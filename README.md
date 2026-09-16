@@ -73,5 +73,5 @@ Yelloved merupakan platform jual beli dan pertukaran barang preloved yang dituju
 
 ## Links
 
-- Deployment PWS: https://muhammad-adib51-tugaskelompokc10.pws.cs.ui.ac.id
+- Deployment PWS: https://muhammad-adib51-yelloved.pws.cs.ui.ac.id
 - Figma: https://www.figma.com/design/vX59epB4suKi9Hn0AvAlCm/Desktop?m=auto&t=lBfJytlKiMLzHr9P-6
