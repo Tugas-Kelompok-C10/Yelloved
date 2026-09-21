@@ -55,16 +55,17 @@ Yelloved merupakan platform jual beli dan pertukaran barang preloved yang dituju
 | Modul | Deskripsi | PIC |
 |-------|-----------|-----|
 | Account & Profile | Mengelola akun pengguna mulai dari registrasi, login, logout, hingga informasi profil. Pengguna dapat melengkapi profil dan melihat aktivitas mereka di platform, seperti barang yang pernah diposting, wanted post, serta transaksi yang telah diselesaikan. | Adib |
-| Explore Items | Menyediakan halaman untuk menemukan barang-barang preloved yang tersedia di lingkungan mahasiswa UI. Pengguna dapat mencari barang berdasarkan kata kunci serta menggunakan filter. Setiap barang memiliki halaman detail yang menampilkan informasi, foto, kondisi, dan sebagainya. | Dzaky |
-| Post & Manage Items | Memungkinkan pengguna menawarkan barang yang sudah tidak digunakan tetapi masih layak pakai. Pengguna dapat membuat, mengubah, dan menghapus posting dengan memasukkan informasi barang, foto, kondisi, dan sebagainya. Pemilik juga dapat memperbarui status barang ketika sudah tidak tersedia. | Adyra |
+| Payment & Transaction |  Mengelola proses checkout, pembayaran, dan transaksi barang. Pengguna dapat membuat transaksi, melihat detail dan riwayat transaksi, memperbarui status pembayaran, serta membatalkan transaksi yang masih berjalan. | Dzaky |
+| Items Management | Memungkinkan pengguna menawarkan barang yang sudah tidak digunakan tetapi masih layak pakai. Pengguna dapat membuat, mengubah, dan menghapus posting dengan memasukkan informasi barang, foto, kondisi, dan sebagainya. Pemilik juga dapat memperbarui status barang ketika sudah tidak tersedia. | Adyra |
 | Wanted Board | Menyediakan ruang bagi pengguna yang sedang mencari barang tertentu untuk membuat wanted post. Pengguna dapat menjelaskan barang yang dibutuhkan dan informasi tambahan lainnya. Pengguna lain yang memiliki barang yang sesuai dapat memberikan penawaran terhadap wanted post tersebut. | Cindy |
 | Item Matching & Exchange | Menghubungkan pengguna yang memiliki barang dengan pengguna yang sedang membutuhkannya. Pengguna dapat mengajukan request terhadap suatu barang atau menawarkan barang sebagai respons terhadap wanted post. | Baron |
 
 ## Sumber Dataset / Public API
 
-- Nama API: OpenStreetMap (Nominatim API)
-- ⁠Kegunaan: Menampilkan/menandai lokasi pengambilan barang (misal titik kos/asrama/fakultas di lingkungan UI) di halaman detail barang atau wanted post, sehingga pembeli dan penjual bisa memperkirakan jarak COD.
-- Dokumentasi: https://nominatim.org/release-docs/latest/api/Overview/
+- https://dummyjson.com/docs/auth
+- https://dummyjson.com/users
+- https://dummyjson.com/docs/products
+- https://github.com/emsifa/api-wilayah-indonesia.git
 
 ## Roles
 
