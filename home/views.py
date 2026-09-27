@@ -1,3 +1,26 @@
 from django.shortcuts import render
 
-# Create your views here.
+
+def show_main(request):
+    context = {
+        "name": "Yelloved"
+    }
+    return render(request, "index.html", context)
+
+def show_explore(request):
+    context = {
+        "name": "Yelloved"
+    }
+    return render(request, "index.html", context)
+
+def show_wanted(request):
+    context = {
+        "name": "Yelloved"
+    }
+    return render(request, "index.html", context)
+
+def show_activity(request):
+    context = {
+        "name": "Yelloved"
+    }
+    return render(request, "index.html", context)
