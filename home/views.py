@@ -17,7 +17,7 @@ def show_wanted(request):
     context = {
         "name": "Yelloved"
     }
-    return render(request, "index.html", context)
+    return render(request, "wanted_post.html", context)
 
 def show_activity(request):
     context = {
