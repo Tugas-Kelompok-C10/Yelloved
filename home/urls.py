@@ -9,6 +9,6 @@ urlpatterns = [
     path("account-profile/", show_account_profile, name="account_profile"),
     path("", show_main, name="show_main"),
     path("", show_explore, name="show_explore"),
-    path("", show_wanted, name="show_wanted"),
+    path("wanted-post/", show_wanted, name="show_wanted"),
     path("", show_activity, name="show_activity"),
 ]
