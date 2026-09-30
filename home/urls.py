@@ -1,14 +1,14 @@
-from django.urls import path
+from django.contrib import admin
+from django.urls import include, path
 
-from home.views import show_main, show_activity, show_explore, show_wanted, register, show_account_profile
-
-app_name = "home"
+from home.views import show_main
 
 urlpatterns = [
-    path("register/", register, name="register"),
-    path("account-profile/", show_account_profile, name="account_profile"),
+    path('admin/', admin.site.urls),
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('explore/', include('items.urls')),
+    path('transactions/', include('transactions.urls')),
+    path('account/', include('account_profile.urls')),
+    path('wanted-post/', include('wanted_board.urls')),
     path("", show_main, name="show_main"),
-    path("", show_explore, name="show_explore"),
-    path("wanted-post/", show_wanted, name="show_wanted"),
-    path("", show_activity, name="show_activity"),
 ]
