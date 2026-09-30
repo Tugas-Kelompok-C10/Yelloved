@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Transaction History - Yelloved</title>
+</head>
+<body>
+
+    <h1>Transaction History</h1>
+
+    {% if transactions %}
+        {% for transaction in transactions %}
+            <div>
+                <h3>{{ transaction.order_id }}</h3>
+
+                <p>Item: {{ transaction.item_name }}</p>
+
+                <p>
+                    Total:
+                    Rp {{ transaction.total_amount }}
+                </p>
+
+                <p>
+                    Status Pembayaran:
+                    {{ transaction.get_payment_status_display }}
+                </p>
+
+                <p>
+                    Status Transaksi:
+                    {{ transaction.get_transaction_status_display }}
+                </p>
+
+                <p>
+                    Dibuat:
+                    {{ transaction.created_at }}
+                </p>
+
+                <hr>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>Belum ada transaksi.</p>
+    {% endif %}
+
+</body>
+</html>
