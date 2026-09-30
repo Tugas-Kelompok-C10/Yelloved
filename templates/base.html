@@ -19,6 +19,7 @@
                 <a href="{% url 'home:show_explore' %}">Explore</a>
                 <a href="{% url 'home:show_wanted' %}">Wanted</a>
                 <a href="{% url 'home:show_activity' %}">Activity</a>
+                <a href="{% url 'home:show_item_matching' %}">Item Matching</a>
                 <a href="{% url 'home:account_profile' %}">Account &amp; Profile</a>
                 {% if user.is_authenticated %}
                     <span>Halo, {{ user.username }}</span>

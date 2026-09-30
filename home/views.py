@@ -45,3 +45,9 @@ def show_activity(request):
         "name": "Yelloved"
     }
     return render(request, "index.html", context)
+
+def show_item_matching(request):
+    context = {
+        "name": "Yelloved"
+    }
+    return render(request, "index.html", context)

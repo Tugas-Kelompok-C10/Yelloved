@@ -1,6 +1,6 @@
 from django.urls import path
 
-from home.views import show_main, show_activity, show_explore, show_wanted, register, show_account_profile
+from home.views import show_main, show_activity, show_explore, show_wanted, register, show_account_profile, show_item_matching
 
 app_name = "home"
 
@@ -11,4 +11,5 @@ urlpatterns = [
     path("", show_explore, name="show_explore"),
     path("", show_wanted, name="show_wanted"),
     path("", show_activity, name="show_activity"),
+    path("", show_item_matching, name="show_item_matching"),
 ]
