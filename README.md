@@ -60,6 +60,17 @@ Yelloved merupakan platform jual beli dan pertukaran barang preloved yang dituju
 | Wanted Board | Menyediakan ruang bagi pengguna yang sedang mencari barang tertentu untuk membuat wanted post. Pengguna dapat menjelaskan barang yang dibutuhkan dan informasi tambahan lainnya. Pengguna lain yang memiliki barang yang sesuai dapat memberikan penawaran terhadap wanted post tersebut. | Cindy |
 | Item Matching & Exchange | Menghubungkan pengguna yang memiliki barang dengan pengguna yang sedang membutuhkannya. Pengguna dapat mengajukan request terhadap suatu barang atau menawarkan barang sebagai respons terhadap wanted post. | Baron |
 
+Setiap modul Django memiliki app sendiri: `account_profile`, `transactions`, `items`, `wanted_board`, dan `item_matching`. App `home` menangani halaman utama proyek. Semua app terdaftar di `INSTALLED_APPS` pada `home/settings.py`.
+
+## Menjalankan Proyek Secara Lokal
+
+1. Pasang dependency dari `requirements.txt`.
+2. Isi `SECRET_KEY` dan konfigurasi database pada environment atau file `.env` lokal. File `.env` tidak ikut dipush.
+3. Jalankan migrasi dengan `python manage.py migrate`.
+4. Jalankan server dengan `python manage.py runserver`.
+
+Konfigurasi development memakai SQLite secara default. Set `PRODUCTION=True` untuk memakai konfigurasi PostgreSQL dari environment.
+
 ## Sumber Dataset / Public API
 
 - https://dummyjson.com/docs/auth

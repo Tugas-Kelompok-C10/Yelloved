@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block meta %}
+<title>Explore Items | {{ name }}</title>
+<meta name="description" content="Temukan barang preloved pilihan di sekitar UI. Beri barang kesempatan kedua bersama Yelloved.">
+{% endblock meta %}
+
+{% block content %}
+<main class="explore-page" lang="id">
+    <section class="explore-hero" aria-labelledby="explore-title">
+        <h1 id="explore-title">Explore Items</h1>
+        <p class="explore-description">Temukan barang preloved di sekitar UI bersama {{ name }}.</p>
+    </section>
+
+    <section class="explore-catalog" aria-labelledby="explore-catalog-title">
+        <form class="explore-search" action="{% url 'items:explore_items' %}" method="get" role="search">
+            <div class="explore-field explore-query">
+                <label for="explore-query">Cari barang atau lokasi</label>
+                <input id="explore-query" type="search" name="q" value="{{ query }}" placeholder="Coba kemeja, lampu, atau Kukusan…">
+            </div>
+            <div class="explore-field">
+                <label for="explore-condition">Kondisi</label>
+                <select id="explore-condition" name="condition">
+                    <option value="">Semua kondisi</option>
+                    <option value="Like New"{% if condition == "Like New" %} selected{% endif %}>Like New</option>
+                    <option value="Good"{% if condition == "Good" %} selected{% endif %}>Good</option>
+                </select>
+            </div>
+            <button class="explore-filter" type="submit">Filter barang</button>
+        </form>
+
+        <div class="explore-heading">
+            <h2 id="explore-catalog-title">Daftar barang</h2>
+            <p>{{ items|length }} barang tersedia · Koleksi contoh</p>
+        </div>
+        <div class="explore-grid">
+            {% for item in items %}
+            <article class="item-card">
+                <div class="item-image"><span aria-hidden="true">{{ item.emoji }}</span></div>
+                <div class="item-details">
+                    <span class="item-condition">{{ item.condition }}</span>
+                    <h3 class="item-title">{{ item.name }}</h3>
+                    <p class="item-price">{{ item.price }}</p>
+                    <p class="item-location">{{ item.location }}</p>
+                </div>
+            </article>
+            {% empty %}
+            <p class="explore-empty">Belum ada barang yang cocok. Coba kata lain atau <a href="{% url 'items:explore_items' %}">lihat semua barang</a>.</p>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+{% endblock content %}
