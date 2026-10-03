@@ -3,11 +3,11 @@ from .models import Transaction
 
 
 def transaction_home(request):
-    return render(request, "transactions/transaction_home.html")
+    return render(request, "transactions/transaction_home.html", {"name": "Yelloved"})
 
 
 def checkout(request):
-    return render(request, "transactions/checkout.html")
+    return render(request, "transactions/checkout.html", {"name": "Yelloved"})
 
 
 def transaction_history(request):
@@ -15,7 +15,7 @@ def transaction_history(request):
         return render(
             request,
             "transactions/transaction_history.html",
-            {"transactions": []}
+            {"transactions": [], "name": "Yelloved"}
         )
 
     transactions = Transaction.objects.filter(
@@ -25,5 +25,5 @@ def transaction_history(request):
     return render(
         request,
         "transactions/transaction_history.html",
-        {"transactions": transactions}
+        {"transactions": transactions, "name": "Yelloved"}
     )

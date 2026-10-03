@@ -7,14 +7,14 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Sora:wght@100..800&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="/static/css/style.css">
+        <link rel="stylesheet" href="{% static 'css/style.css' %}">
         {% block meta %} {% endblock meta %}
     </head>
 
     <body>
     <header class="site-header">
         <div class="container">
-            <a href="{% url 'show_main' %}" class="brand">{{ name }}</a>
+            <a href="{% url 'show_main' %}" class="brand">{{ name|default:"Yelloved" }}</a>
             <nav>
                 <a href="{% url 'items:explore_items' %}">Explore</a>
                 <a href="{% url 'wanted_board:show_wanted' %}">Wanted</a>
@@ -27,8 +27,7 @@
                         <button type="submit" class="nav-button">Keluar</button>
                     </form>
                 {% else %}
-                    <a href="{% url 'login' %}">Masuk</a>
-                    <a href="{% url 'account_profile:register' %}">Daftar</a>
+                    <a href="{% url 'account_profile:register' %}">Register</a>
                 {% endif %}
             </nav>
         </div>
@@ -42,7 +41,7 @@
 
     <footer class="site-footer">
         <div class="container">
-            <p>&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+            <p>&copy; 2026 {{ name|default:"Yelloved" }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
         </div>
     </footer>
     </body>
