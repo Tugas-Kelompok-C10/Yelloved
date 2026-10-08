@@ -60,13 +60,13 @@ def create_wanted(request):
         wanted_post = form.save(commit=False)
         wanted_post.requester = request.user
         wanted_post.save()
-        messages.success(request, "Wanted post berhasil dibuat.")
+        messages.success(request, "Your wanted post has been created.")
         return redirect("wanted_board:wanted_detail", pk=wanted_post.pk)
 
     return render(
         request,
         "wanted_board/form.html",
-        {"form": form, "form_title": "Buat wanted post", "name": "Yelloved"},
+        {"form": form, "form_title": "Create a wanted post", "name": "Yelloved"},
     )
 
 
@@ -76,7 +76,7 @@ def edit_wanted(request, pk):
     form = WantedPostForm(request.POST or None, instance=wanted_post)
     if request.method == "POST" and form.is_valid():
         form.save()
-        messages.success(request, "Wanted post berhasil diperbarui.")
+        messages.success(request, "Your wanted post has been updated.")
         return redirect("wanted_board:wanted_detail", pk=wanted_post.pk)
 
     return render(
@@ -96,7 +96,7 @@ def delete_wanted(request, pk):
     wanted_post = get_object_or_404(WantedPost, pk=pk, requester=request.user)
     if request.method == "POST":
         wanted_post.delete()
-        messages.success(request, "Wanted post berhasil dihapus.")
+        messages.success(request, "Your wanted post has been deleted.")
         return redirect("wanted_board:show_wanted")
     if request.method != "GET":
         return HttpResponseNotAllowed(["GET", "POST"])
@@ -114,11 +114,11 @@ def update_status(request, pk):
     wanted_post = get_object_or_404(WantedPost, pk=pk, requester=request.user)
     status = request.POST.get("status")
     if status not in WantedPost.Status.values:
-        messages.error(request, "Status wanted post tidak valid.")
+        messages.error(request, "That wanted post status is not valid.")
     else:
         wanted_post.status = status
         wanted_post.save(update_fields=["status", "updated_at"])
-        messages.success(request, "Status wanted post berhasil diperbarui.")
+        messages.success(request, "The wanted post status has been updated.")
     return redirect("wanted_board:wanted_detail", pk=wanted_post.pk)
 
 
@@ -127,14 +127,14 @@ def update_status(request, pk):
 def create_offer(request, pk):
     wanted_post = get_object_or_404(WantedPost, pk=pk)
     if wanted_post.requester == request.user:
-        messages.error(request, "Kamu tidak dapat menawarkan barang ke post sendiri.")
+        messages.error(request, "You cannot make an offer on your own post.")
     elif wanted_post.status != WantedPost.Status.OPEN:
-        messages.error(request, "Wanted post ini sudah tidak menerima penawaran.")
+        messages.error(request, "This wanted post is no longer accepting offers.")
     elif Offer.objects.filter(
         wanted_post=wanted_post,
         offerer=request.user,
     ).exists():
-        messages.error(request, "Kamu sudah mengirim penawaran untuk post ini.")
+        messages.error(request, "You have already made an offer on this post.")
     else:
         form = OfferForm(request.POST)
         if form.is_valid():
@@ -142,7 +142,7 @@ def create_offer(request, pk):
             offer.wanted_post = wanted_post
             offer.offerer = request.user
             offer.save()
-            messages.success(request, "Penawaran berhasil dikirim.")
+            messages.success(request, "Your offer has been sent.")
         else:
             for errors in form.errors.values():
                 for error in errors:

@@ -15,20 +15,20 @@ class WantedPostForm(forms.ModelForm):
             "location",
         )
         labels = {
-            "title": "Barang yang dicari",
-            "description": "Deskripsi kebutuhan",
-            "category": "Kategori",
-            "preferred_condition": "Kondisi yang diinginkan",
-            "budget": "Anggaran maksimal",
-            "location": "Lokasi",
+            "title": "Item you are looking for",
+            "description": "What do you need?",
+            "category": "Category",
+            "preferred_condition": "Preferred condition",
+            "budget": "Maximum budget",
+            "location": "Location",
         }
         widgets = {
             "title": forms.TextInput(
-                attrs={"placeholder": "Contoh: Lampu meja belajar"}
+                attrs={"placeholder": "Example: Study desk lamp"}
             ),
             "description": forms.Textarea(
                 attrs={
-                    "placeholder": "Jelaskan spesifikasi atau detail barang yang kamu butuhkan.",
+                    "placeholder": "Describe the item, specifications, or details you need.",
                     "rows": 5,
                 }
             ),
@@ -36,7 +36,7 @@ class WantedPostForm(forms.ModelForm):
                 attrs={"min": 0, "step": 1000, "placeholder": "150000"}
             ),
             "location": forms.TextInput(
-                attrs={"placeholder": "Contoh: Kukusan atau Kampus UI"}
+                attrs={"placeholder": "Example: Kukusan or UI Campus"}
             ),
         }
 
@@ -46,13 +46,13 @@ class OfferForm(forms.ModelForm):
         model = Offer
         fields = ("message", "offered_price")
         labels = {
-            "message": "Pesan penawaran",
-            "offered_price": "Harga yang ditawarkan",
+            "message": "Offer message",
+            "offered_price": "Offered price",
         }
         widgets = {
             "message": forms.Textarea(
                 attrs={
-                    "placeholder": "Ceritakan kondisi barang dan cara menghubungimu.",
+                    "placeholder": "Describe the item's condition and how to contact you.",
                     "rows": 4,
                 }
             ),

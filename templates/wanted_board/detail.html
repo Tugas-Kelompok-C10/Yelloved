@@ -3,8 +3,8 @@
 {% block meta %}<title>{{ wanted_post.title }} | {{ name }}</title>{% endblock meta %}
 
 {% block content %}
-<main class="wanted-detail-page" lang="id">
-    <a class="wanted-back" href="{% url 'wanted_board:show_wanted' %}">← Kembali ke Wanted Board</a>
+<main class="wanted-detail-page" lang="en">
+    <a class="wanted-back" href="{% url 'wanted_board:show_wanted' %}">← Back to Wanted Board</a>
 
     <div class="wanted-detail-layout">
         <article class="wanted-detail-card">
@@ -16,12 +16,12 @@
             <p class="wanted-detail-description">{{ wanted_post.description|linebreaksbr }}</p>
 
             <dl class="wanted-detail-meta">
-                <div><dt>Kondisi</dt><dd>{{ wanted_post.get_preferred_condition_display }}</dd></div>
-                <div><dt>Budget</dt><dd>{% if wanted_post.budget %}Rp{{ wanted_post.budget|floatformat:0 }}{% else %}Fleksibel{% endif %}</dd></div>
-                <div><dt>Lokasi</dt><dd>{{ wanted_post.location|default:"Sekitar UI" }}</dd></div>
-                <div><dt>Dibuat oleh</dt><dd>{{ wanted_post.requester.username }}</dd></div>
+                <div><dt>Condition</dt><dd>{{ wanted_post.get_preferred_condition_display }}</dd></div>
+                <div><dt>Budget</dt><dd>{% if wanted_post.budget %}Rp{{ wanted_post.budget|floatformat:0 }}{% else %}Flexible{% endif %}</dd></div>
+                <div><dt>Location</dt><dd>{{ wanted_post.location|default:"Around UI" }}</dd></div>
+                <div><dt>Posted by</dt><dd>{{ wanted_post.requester.username }}</dd></div>
             </dl>
-            <p class="wanted-timestamp">Dibuat {{ wanted_post.created_at|date:"d M Y, H:i" }}</p>
+            <p class="wanted-timestamp">Posted {{ wanted_post.created_at|date:"d M Y, H:i" }}</p>
 
             {% if user == wanted_post.requester %}
                 <div class="wanted-owner-actions">
@@ -30,28 +30,28 @@
                         {% csrf_token %}
                         {% if wanted_post.status == "open" %}
                             <input type="hidden" name="status" value="fulfilled">
-                            <button class="wanted-button wanted-button-secondary" type="submit">Tandai terpenuhi</button>
+                            <button class="wanted-button wanted-button-secondary" type="submit">Mark as fulfilled</button>
                         {% else %}
                             <input type="hidden" name="status" value="open">
-                            <button class="wanted-button wanted-button-secondary" type="submit">Buka kembali</button>
+                            <button class="wanted-button wanted-button-secondary" type="submit">Reopen post</button>
                         {% endif %}
                     </form>
-                    <a class="wanted-button wanted-button-danger" href="{% url 'wanted_board:delete_wanted' wanted_post.pk %}">Hapus</a>
+                    <a class="wanted-button wanted-button-danger" href="{% url 'wanted_board:delete_wanted' wanted_post.pk %}">Delete</a>
                 </div>
             {% endif %}
         </article>
 
         <aside class="wanted-offer-panel">
-            <h2>Berikan penawaran</h2>
+            <h2>Make an offer</h2>
             {% if not user.is_authenticated %}
-                <p>Masuk untuk menawarkan barang yang sesuai.</p>
-                <a class="wanted-button wanted-button-primary" href="{% url 'login' %}?next={{ request.path }}">Masuk</a>
+                <p>Log in to offer an item that matches this request.</p>
+                <a class="wanted-button wanted-button-primary" href="{% url 'login' %}?next={{ request.path }}">Log in</a>
             {% elif user == wanted_post.requester %}
-                <p>Penawaran dari pengguna lain akan muncul di bawah detail post.</p>
+                <p>Offers from other users will appear below your post details.</p>
             {% elif wanted_post.status != "open" %}
-                <p>Wanted post ini sudah tidak menerima penawaran.</p>
+                <p>This wanted post is no longer accepting offers.</p>
             {% elif has_offered %}
-                <p>Kamu sudah mengirim penawaran untuk wanted post ini.</p>
+                <p>You have already made an offer on this wanted post.</p>
             {% else %}
                 <form class="wanted-form" method="post" action="{% url 'wanted_board:create_offer' wanted_post.pk %}">
                     {% csrf_token %}
@@ -62,7 +62,7 @@
                             {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
                         </div>
                     {% endfor %}
-                    <button class="wanted-button wanted-button-primary" type="submit">Kirim penawaran</button>
+                    <button class="wanted-button wanted-button-primary" type="submit">Send offer</button>
                 </form>
             {% endif %}
         </aside>
@@ -71,8 +71,8 @@
     {% if user == wanted_post.requester %}
         <section class="wanted-offers" aria-labelledby="offer-list-title">
             <div class="wanted-section-heading">
-                <h2 id="offer-list-title">Penawaran masuk</h2>
-                <span>{{ wanted_post.offers.count }} penawaran</span>
+                <h2 id="offer-list-title">Incoming offers</h2>
+                <span>{{ wanted_post.offers.count }} offer{{ wanted_post.offers.count|pluralize }}</span>
             </div>
             <div class="wanted-offer-list">
                 {% for offer in wanted_post.offers.all %}
@@ -82,10 +82,10 @@
                             <time datetime="{{ offer.created_at|date:'c' }}">{{ offer.created_at|date:"d M Y, H:i" }}</time>
                         </div>
                         <p>{{ offer.message|linebreaksbr }}</p>
-                        <strong>{% if offer.offered_price %}Rp{{ offer.offered_price|floatformat:0 }}{% else %}Harga bisa didiskusikan{% endif %}</strong>
+                        <strong>{% if offer.offered_price %}Rp{{ offer.offered_price|floatformat:0 }}{% else %}Price negotiable{% endif %}</strong>
                     </article>
                 {% empty %}
-                    <p class="wanted-empty-inline">Belum ada penawaran. Tunggu sebentar, mungkin barang yang kamu cari segera ditemukan.</p>
+                    <p class="wanted-empty-inline">No offers yet. Someone in the community may have what you need soon.</p>
                 {% endfor %}
             </div>
         </section>
