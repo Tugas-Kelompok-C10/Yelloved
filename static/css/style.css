@@ -1,21 +1,35 @@
+/* =========================
+   Reset
+   ========================= */
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+
+/* =========================
+   Design Tokens
+   ========================= */
+
 :root {
     --ink: #1c1917;
-    --violet : #320C35;
-    --paper: #FDFCF5;
-    --text: #F2EEBF;
+    --violet: #320c35;
+    --paper: #fdfcf5;
+    --text: #f2eebf;
     --accent: #ffcae0;
-    --accent-dark: #FF5CA0;
+    --accent-dark: #ff5ca0;
     --line: #e3d9c9;
     --text-muted: #6b6459;
     --radius: 20px;
-    --gradient: linear-gradient(to right, #320C35 , #4F1353);
+    --gradient: linear-gradient(to right, #320c35, #4f1353);
 }
+
+
+/* =========================
+   Base Elements
+   ========================= */
 
 body {
     font-family: "Sora", sans-serif;
@@ -25,116 +39,80 @@ body {
 
 main {
     flex: 1;
-
 }
 
 .h1 {
-    font-family: "Sora", sans-serif ;
+    font-family: "Sora", sans-serif;
 }
-
-.site-header nav { display: flex; align-items: center; gap: 1rem; }
-.nav-form { display: inline; margin: 0; }
-
-.auth-page { max-width: 28rem; margin: 3rem auto; padding: 0 1rem; }
-.auth-card { padding: 2rem; border: 1px solid #ddd; border-radius: 12px; }
-.form-field { display: grid; gap: .4rem; margin: 1rem 0; }
-.form-field input { box-sizing: border-box; width: 100%; padding: .7rem; }
-.form-field ul { margin: 0; padding-left: 1.2rem; }
-.auth-card button[type="submit"] { padding: .7rem 1.2rem; cursor: pointer; }
-.form-error { color: #a21d2b; }
-.site-message { padding: .75rem 1rem; background: #eef8ef; border-radius: 8px; }
 
 
 /* =========================
-   NAVBAR
+   Site Header
+   ========================= */
 
 .site-header {
-    background: var(--gradient);
     width: 100%;
+    background: var(--gradient);
 }
 
 .site-header .container {
-    max-width: 1400px;
-    margin: 0 auto;
-
-    min-height: 72px;
-
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: space-between;
-
-    padding: 0;
+    min-height: 72px;
+    padding: 0 32px;
 }
 
 
-/* LOGO / BRAND */
+/* Brand */
 
 .brand {
     color: #f7f2a4;
-
     font-size: 25px;
     font-weight: 700;
-
     text-decoration: none;
-
     letter-spacing: -1px;
 }
 
 .brand img {
     display: block;
-    height: 52px; /* header 82px, sisakan ruang atas-bawah */
     width: auto;
+    height: 52px;
     object-fit: contain;
 }
 
-/* NAV */
+
+/* Main Navigation */
 
 .site-header nav {
-    flex: 1;
+    grid-column: 2;
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 32px;
+    white-space: nowrap;
 }
-
-
-/* semua link navbar */
 
 .site-header nav a {
     position: relative;
-
     color: var(--text);
-
-    text-decoration: none;
-
     font-size: 14px;
     font-weight: 500;
-
+    text-decoration: none;
     transition: 0.2s ease;
 }
-
-/* hover */
 
 .site-header nav a:hover {
     color: #fff8b5;
 }
 
-
-/* underline animation */
-
 .site-header nav a::after {
-    content: "";
-
     position: absolute;
-
-    left: 0;
     bottom: -7px;
-
+    left: 0;
     width: 0;
     height: 2px;
-
     background: #f7f2a4;
-
+    content: "";
     transition: width 0.2s ease;
 }
 
@@ -143,57 +121,50 @@ main {
 }
 
 
-/* USERNAME */
+/* User Actions */
 
-.site-header nav span {
-    color: #f5ddc7;
-
-    font-size: 13px;
+.nav-actions {
+    grid-column: 3;
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
 
-
-/* supaya form logout sejajar */
+.user-greeting {
+    color: var(--text);
+}
 
 .nav-form {
+    display: inline;
     margin: 0;
 }
 
-
-/* BUTTON LOGOUT */
-
 .nav-button {
-    border: none;
-
+    display: inline-block;
     padding: 9px 18px;
-
+    border: none;
     border-radius: 999px;
-
     background: var(--text);
     color: var(--violet);
-
     font-family: inherit;
     font-size: 13px;
     font-weight: 700;
-
+    text-decoration: none;
     cursor: pointer;
-
     transition: 0.2s ease;
 }
 
 .nav-button:hover {
     background: #fffbd0;
-
     transform: translateY(-1px);
 }
 
 .site-header nav .register-button {
     padding: 9px 18px;
-
+    border-radius: 999px;
     background: #f7f2a4;
     color: #430442;
-
-    border-radius: 999px;
-
     font-weight: 700;
 }
 
@@ -206,42 +177,56 @@ main {
     display: none;
 }
 
-.site-header nav { display: flex; 
-    align-items: center; 
-    gap: 1rem; 
+
+/* =========================
+   Authentication Pages
+   ========================= */
+
+.auth-page {
+    max-width: 28rem;
+    margin: 3rem auto;
+    padding: 0 1rem;
 }
-.nav-form { display: inline; 
-    margin: 0; 
+
+.auth-card {
+    padding: 2rem;
+    border: 1px solid #ddd;
+    border-radius: 12px;
 }
-.nav-button { border: 0; 
-    background: none; 
-    color: inherit; 
-    font: inherit; 
-    cursor: pointer; 
+
+.form-field {
+    display: grid;
+    gap: 0.4rem;
+    margin: 1rem 0;
 }
-.auth-page { max-width: 28rem; 
-    margin: 3rem auto; 
-    padding: 0 1rem; }
-.auth-card { padding: 2rem; 
-    border: 1px solid #ddd; 
-    border-radius: 12px; }
-.form-field { display: grid; 
-    gap: .4rem; 
-    margin: 1rem 0; }
-.form-field input { box-sizing: border-box; 
-    width: 100%; 
-    padding: .7rem; }
-.form-field ul { margin: 0; 
-    padding-left: 1.2rem; }
-.auth-card button[type="submit"] { padding: .7rem 1.2rem; 
-    cursor: pointer; }
-.form-error { color: #a21d2b; }
-.site-message { padding: .75rem 1rem; 
-    background: #eef8ef; 
-    border-radius: 8px; }
-body {
-    background-color: #FDFCF5;
+
+.form-field input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.7rem;
+}
+
+.form-field ul {
     margin: 0;
-    color: #171717;
-    font-family: "Sora", sans-serif;
+    padding-left: 1.2rem;
+}
+
+.auth-card button[type="submit"] {
+    padding: 0.7rem 1.2rem;
+    cursor: pointer;
+}
+
+.form-error {
+    color: #a21d2b;
+}
+
+
+/* =========================
+   Feedback Messages
+   ========================= */
+
+.site-message {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: #eef8ef;
 }
