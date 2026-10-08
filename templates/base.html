@@ -41,6 +41,8 @@
                         {% csrf_token %}
                         <button type="submit" class="nav-button">Logout</button>
                     </form>
+                {% else %}
+                    <a href="{% url 'account_profile:register' %}">Register</a>
                 {% endif %}
             </nav>
 
@@ -63,7 +65,7 @@
 
     <footer class="site-footer">
         <div class="container">
-            <p>&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+            <p>&copy; 2026 {{ name|default:"Yelloved" }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
         </div>
     </footer>
     </body>

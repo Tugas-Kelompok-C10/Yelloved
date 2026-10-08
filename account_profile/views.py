@@ -15,7 +15,7 @@ def register(request):
         messages.success(request, "Akun berhasil dibuat. Selamat datang!")
         return redirect("show_main")
 
-    return render(request, "registration/register.html", {"form": form, "name": "Yelloved"})
+    return render(request, "account_profile/register.html", {"form": form, "name": "Yelloved"})
 
 def show_account_profile(request):
-    return render(request, "account_profile.html", {"name": "Yelloved"})
+    return render(request, "account_profile/Biodata.html", {"name": "Yelloved"})

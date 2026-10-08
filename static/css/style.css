@@ -47,7 +47,6 @@ main {
 
 /* =========================
    NAVBAR
-========================= */
 
 .site-header {
     background: var(--gradient);
@@ -207,3 +206,42 @@ main {
     display: none;
 }
 
+.site-header nav { display: flex; 
+    align-items: center; 
+    gap: 1rem; 
+}
+.nav-form { display: inline; 
+    margin: 0; 
+}
+.nav-button { border: 0; 
+    background: none; 
+    color: inherit; 
+    font: inherit; 
+    cursor: pointer; 
+}
+.auth-page { max-width: 28rem; 
+    margin: 3rem auto; 
+    padding: 0 1rem; }
+.auth-card { padding: 2rem; 
+    border: 1px solid #ddd; 
+    border-radius: 12px; }
+.form-field { display: grid; 
+    gap: .4rem; 
+    margin: 1rem 0; }
+.form-field input { box-sizing: border-box; 
+    width: 100%; 
+    padding: .7rem; }
+.form-field ul { margin: 0; 
+    padding-left: 1.2rem; }
+.auth-card button[type="submit"] { padding: .7rem 1.2rem; 
+    cursor: pointer; }
+.form-error { color: #a21d2b; }
+.site-message { padding: .75rem 1rem; 
+    background: #eef8ef; 
+    border-radius: 8px; }
+body {
+    background-color: #FDFCF5;
+    margin: 0;
+    color: #171717;
+    font-family: "Sora", sans-serif;
+}

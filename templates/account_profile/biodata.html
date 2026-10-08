@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+<main class="profile-page">
+    <aside class="profile-sidebar" aria-label="Menu akun">
+        <div class="profile-identity">
+            <div class="profile-avatar" aria-hidden="true"></div>
+        </div>
+        <nav class="profile-menu" aria-label="Navigasi akun">
+            <section>
+                <h2>Inbox</h2>
+                <a href="#chat">Chat</a>
+                <a href="#ulasan">Ulasan</a>
+                <a href="#bantuan">Bantuan</a>
+            </section>
+            <section>
+                <h2>Purchase</h2>
+                <a href="#pembayaran">Awaiting payment</a>
+                <a href="#ulasan-pembelian">Ulasan</a>
+            </section>
+        </nav>
+        {% if user.is_authenticated %}
+        <form action="{% url 'logout' %}" method="post" class="profile-logout">
+            {% csrf_token %}
+            <button type="submit">Log out</button>
+        </form>
+        {% else %}
+        <a class="profile-logout" href="{% url 'login' %}"><span>Log in</span></a>
+        {% endif %}
+    </aside>
+
+    <section class="profile-content">
+        <h1 class="profile-heading"></h1>
+        <div class="profile-panel">
+            <nav class="profile-tabs" aria-label="Pengaturan profil">
+                <a class="active" href="#biodata" aria-current="page">Biodata</a>
+                <a href="#address-list">Adress List</a>
+                <a href="#payment">Payment</a>
+                <a href="#notification">Notification</a>
+                <a href="#privacy">Privacy &amp; Security</a>
+                <a href="#settings">Settings</a>
+            </nav>
+            <div class="profile-biodata" id="biodata">
+                <article class="biodata-card" aria-label="Foto profil">
+                    <div class="biodata-photo-placeholder" aria-hidden="true"></div>
+                    <div class="biodata-caption-placeholder" aria-hidden="true"></div>
+                </article>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock content %}
