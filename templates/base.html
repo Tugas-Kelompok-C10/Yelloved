@@ -33,26 +33,24 @@
             <nav>
                 <a href="{% url 'items:explore_items' %}">Explore</a>
                 <a href="{% url 'wanted_board:show_wanted' %}">Wanted Board</a>
+
                 {% if user.is_authenticated %}
                     <a href="{% url 'transactions:transaction_history' %}">Activity</a>
                     <a href="{% url 'account_profile:profile' %}">Profile</a>
-                    <span>Hi, {{ user.username }}</span>
+                {% endif %}
+            </nav>
+
+            <div class="nav-actions">
+                {% if user.is_authenticated %}
+                    <span class="user-greeting">Hi, {{ user.username }}</span>
                     <form action="{% url 'logout' %}" method="post" class="nav-form">
                         {% csrf_token %}
                         <button type="submit" class="nav-button">Logout</button>
                     </form>
                 {% else %}
-                    <a href="{% url 'account_profile:register' %}">Register</a>
+                    <a href="{% url 'login' %}" class="nav-button">Login</a>
                 {% endif %}
-            </nav>
-
-            {% if not user.is_authenticated %}
-                <div class="nav-login">
-                    <a href="{% url 'login' %}">
-                        <button class="nav-button">Login</button>
-                    </a>
-                </div>
-            {% endif %}
+            </div>
         </div>
     </header>
 
