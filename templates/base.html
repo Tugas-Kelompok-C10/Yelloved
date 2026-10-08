@@ -4,34 +4,58 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Sora:wght@100..800&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="{% static 'css/style.css' %}">
-        {% block meta %} {% endblock meta %}
+
+        <link
+            href="https://fonts.googleapis.com/css2?family=Sora:wght@100..800&display=swap"
+            rel="stylesheet"
+        >
+
+        <link
+            rel="stylesheet"
+            href="{% static 'css/style.css' %}"
+        >
+
+        {% block meta %}
+        {% endblock meta %}
     </head>
 
     <body>
+        
     <header class="site-header">
         <div class="container">
-            <a href="{% url 'show_main' %}" class="brand">{{ name|default:"Yelloved" }}</a>
+            <a href="{% url 'show_main' %}" class="brand">
+                <img src="{% static 'img/Yelloved.png' %}" alt="Yelloved">
+            </a>
+
             <nav>
                 <a href="{% url 'items:explore_items' %}">Explore</a>
-                <a href="{% url 'wanted_board:show_wanted' %}">Wanted</a>
-                <a href="{% url 'transactions:transaction_history' %}">Activity</a>
-                <a href="{% url 'account_profile:profile' %}">Account &amp; Profile</a>
+                <a href="{% url 'wanted_board:show_wanted' %}">Wanted Board</a>
                 {% if user.is_authenticated %}
-                    <span>Halo, {{ user.username }}</span>
+                    <a href="{% url 'transactions:transaction_history' %}">Activity</a>
+                    <a href="{% url 'account_profile:profile' %}">Profile</a>
+                    <span>Hi, {{ user.username }}</span>
                     <form action="{% url 'logout' %}" method="post" class="nav-form">
                         {% csrf_token %}
-                        <button type="submit" class="nav-button">Keluar</button>
+                        <button type="submit" class="nav-button">Logout</button>
                     </form>
                 {% else %}
                     <a href="{% url 'account_profile:register' %}">Register</a>
                 {% endif %}
             </nav>
+
+            {% if not user.is_authenticated %}
+                <div class="nav-login">
+                    <a href="{% url 'login' %}">
+                        <button class="nav-button">Login</button>
+                    </a>
+                </div>
+            {% endif %}
         </div>
     </header>
+
     {% if messages %}
         <div class="container" aria-live="polite">
             {% for message in messages %}<p class="site-message">{{ message }}</p>{% endfor %}
