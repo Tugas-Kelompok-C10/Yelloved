@@ -1,12 +1,77 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends "base.html" %}
+
+{% block meta %}
+<title>Wanted Board | {{ name }}</title>
+<meta name="description" content="Temukan dan bagikan kebutuhan barang preloved di sekitar UI.">
+{% endblock meta %}
 
 {% block content %}
+<main class="wanted-page" lang="id">
+    <section class="wanted-hero" aria-labelledby="wanted-title">
+        <div>
+            <span class="wanted-eyebrow">Komunitas Yelloved</span>
+            <h1 id="wanted-title">Lagi cari sesuatu?</h1>
+            <p>Ceritakan barang yang kamu butuhkan dan temukan penawaran dari mahasiswa di sekitar UI.</p>
+        </div>
+        {% if user.is_authenticated %}
+            <a class="wanted-button wanted-button-primary" href="{% url 'wanted_board:create_wanted' %}">+ Buat wanted post</a>
+        {% else %}
+            <a class="wanted-button wanted-button-primary" href="{% url 'login' %}?next={% url 'wanted_board:create_wanted' %}">Masuk untuk posting</a>
+        {% endif %}
+    </section>
 
-<main class="wanted-page">
+    <section class="wanted-board" aria-labelledby="wanted-board-title">
+        <div class="wanted-toolbar">
+            <div>
+                <h2 id="wanted-board-title">Wanted Board</h2>
+                <p>{{ wanted_posts|length }} kebutuhan ditemukan</p>
+            </div>
+            <form class="wanted-filter" method="get" role="search">
+                <label class="sr-only" for="wanted-query">Cari wanted post</label>
+                <input id="wanted-query" type="search" name="q" value="{{ query }}" placeholder="Cari barang atau lokasi">
+                <label class="sr-only" for="wanted-category">Pilih kategori</label>
+                <select id="wanted-category" name="category">
+                    <option value="">Semua kategori</option>
+                    {% for value, label in categories %}
+                        <option value="{{ value }}"{% if selected_category == value %} selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Cari</button>
+            </form>
+        </div>
 
-    <h1>tes</h1>
-
+        <div class="wanted-grid">
+            {% for post in wanted_posts %}
+                <article class="wanted-card">
+                    <div class="wanted-card-topline">
+                        <span class="wanted-category">{{ post.get_category_display }}</span>
+                        <span class="wanted-status wanted-status-{{ post.status }}">{{ post.get_status_display }}</span>
+                    </div>
+                    <h3><a href="{% url 'wanted_board:wanted_detail' post.pk %}">{{ post.title }}</a></h3>
+                    <p class="wanted-card-description">{{ post.description|truncatewords:20 }}</p>
+                    <dl class="wanted-card-meta">
+                        <div>
+                            <dt>Budget</dt>
+                            <dd>{% if post.budget %}Rp{{ post.budget|floatformat:0 }}{% else %}Fleksibel{% endif %}</dd>
+                        </div>
+                        <div>
+                            <dt>Lokasi</dt>
+                            <dd>{{ post.location|default:"Sekitar UI" }}</dd>
+                        </div>
+                    </dl>
+                    <div class="wanted-card-footer">
+                        <span>oleh {{ post.requester.username }}</span>
+                        <a href="{% url 'wanted_board:wanted_detail' post.pk %}">Lihat detail →</a>
+                    </div>
+                </article>
+            {% empty %}
+                <div class="wanted-empty">
+                    <span aria-hidden="true">⌕</span>
+                    <h3>Belum ada wanted post yang cocok</h3>
+                    <p>Coba kata kunci lain atau jadilah yang pertama membuat kebutuhan baru.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
 </main>
-
 {% endblock content %}

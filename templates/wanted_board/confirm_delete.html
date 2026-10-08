@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block meta %}<title>Hapus wanted post | {{ name }}</title>{% endblock meta %}
+
+{% block content %}
+<main class="wanted-form-page" lang="id">
+    <section class="wanted-form-card wanted-confirm-card">
+        <span class="wanted-eyebrow">Konfirmasi</span>
+        <h1>Hapus wanted post?</h1>
+        <p>“{{ wanted_post.title }}” dan seluruh penawarannya akan dihapus permanen.</p>
+        <div class="wanted-confirm-actions">
+            <a class="wanted-button wanted-button-secondary" href="{% url 'wanted_board:wanted_detail' wanted_post.pk %}">Batal</a>
+            <form method="post">
+                {% csrf_token %}
+                <button class="wanted-button wanted-button-danger" type="submit">Ya, hapus post</button>
+            </form>
+        </div>
+    </section>
+</main>
+{% endblock content %}
