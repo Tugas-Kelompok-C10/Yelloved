@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block meta %}<title>Delete wanted post | {{ name }}</title>{% endblock meta %}
+
+{% block content %}
+<main class="wanted-form-page" lang="en">
+    <section class="wanted-form-card wanted-confirm-card">
+        <span class="wanted-eyebrow">Confirmation</span>
+        <h1>Delete this wanted post?</h1>
+        <p>“{{ wanted_post.title }}” and all of its offers will be permanently deleted.</p>
+        <div class="wanted-confirm-actions">
+            <a class="wanted-button wanted-button-secondary" href="{% url 'wanted_board:wanted_detail' wanted_post.pk %}">Cancel</a>
+            <form method="post">
+                {% csrf_token %}
+                <button class="wanted-button wanted-button-danger" type="submit">Yes, delete post</button>
+            </form>
+        </div>
+    </section>
+</main>
+{% endblock content %}

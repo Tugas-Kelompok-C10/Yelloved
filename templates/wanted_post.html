@@ -1,12 +1,77 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends "base.html" %}
+
+{% block meta %}
+<title>Wanted Board | {{ name }}</title>
+<meta name="description" content="Find and share preloved item requests around UI.">
+{% endblock meta %}
 
 {% block content %}
+<main class="wanted-page" lang="en">
+    <section class="wanted-hero" aria-labelledby="wanted-title">
+        <div>
+            <span class="wanted-eyebrow">Komunitas Yelloved</span>
+            <h1 id="wanted-title">Looking for something?</h1>
+            <p>Tell the community what you need and discover offers from students around UI.</p>
+        </div>
+        {% if user.is_authenticated %}
+            <a class="wanted-button wanted-button-primary" href="{% url 'wanted_board:create_wanted' %}">+ Create a wanted post</a>
+        {% else %}
+            <a class="wanted-button wanted-button-primary" href="{% url 'login' %}?next={% url 'wanted_board:create_wanted' %}">Log in to post</a>
+        {% endif %}
+    </section>
 
-<main class="wanted-page">
+    <section class="wanted-board" aria-labelledby="wanted-board-title">
+        <div class="wanted-toolbar">
+            <div>
+                <h2 id="wanted-board-title">Wanted Board</h2>
+                <p>{{ wanted_posts|length }} request{{ wanted_posts|length|pluralize }} found</p>
+            </div>
+            <form class="wanted-filter" method="get" role="search">
+                <label class="sr-only" for="wanted-query">Search wanted posts</label>
+                <input id="wanted-query" type="search" name="q" value="{{ query }}" placeholder="Search items or locations">
+                <label class="sr-only" for="wanted-category">Choose a category</label>
+                <select id="wanted-category" name="category">
+                    <option value="">All categories</option>
+                    {% for value, label in categories %}
+                        <option value="{{ value }}"{% if selected_category == value %} selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Search</button>
+            </form>
+        </div>
 
-    <h1>tes</h1>
-
+        <div class="wanted-grid">
+            {% for post in wanted_posts %}
+                <article class="wanted-card">
+                    <div class="wanted-card-topline">
+                        <span class="wanted-category">{{ post.get_category_display }}</span>
+                        <span class="wanted-status wanted-status-{{ post.status }}">{{ post.get_status_display }}</span>
+                    </div>
+                    <h3><a href="{% url 'wanted_board:wanted_detail' post.pk %}">{{ post.title }}</a></h3>
+                    <p class="wanted-card-description">{{ post.description|truncatewords:20 }}</p>
+                    <dl class="wanted-card-meta">
+                        <div>
+                            <dt>Budget</dt>
+                            <dd>{% if post.budget %}Rp{{ post.budget|floatformat:0 }}{% else %}Flexible{% endif %}</dd>
+                        </div>
+                        <div>
+                            <dt>Location</dt>
+                            <dd>{{ post.location|default:"Around UI" }}</dd>
+                        </div>
+                    </dl>
+                    <div class="wanted-card-footer">
+                        <span>by {{ post.requester.username }}</span>
+                        <a href="{% url 'wanted_board:wanted_detail' post.pk %}">View details →</a>
+                    </div>
+                </article>
+            {% empty %}
+                <div class="wanted-empty">
+                    <span aria-hidden="true">⌕</span>
+                    <h3>No matching wanted posts yet</h3>
+                    <p>Try another search or be the first to share a new request.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
 </main>
-
 {% endblock content %}
