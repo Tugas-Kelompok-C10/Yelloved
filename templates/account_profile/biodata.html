@@ -3,7 +3,10 @@
 <main class="profile-page">
     <aside class="profile-sidebar" aria-label="Menu akun">
         <div class="profile-identity">
-            <div class="profile-avatar" aria-hidden="true"></div>
+            <div class="profile-avatar" aria-hidden="true">
+                {% if profile.photo %}<img src="{{ profile.photo.url }}" alt="">{% endif %}
+            </div>
+            <span>{{ user.get_full_name|default:user.username|default:"Adib" }}</span>
         </div>
         <nav class="profile-menu" aria-label="Navigasi akun">
             <section>
@@ -29,22 +32,86 @@
     </aside>
 
     <section class="profile-content">
-        <h1 class="profile-heading"></h1>
+        <h1 class="profile-heading"><span class="profile-heading-icon" aria-hidden="true">◎</span>{{ user.get_full_name|default:user.username|default:"Adib" }}</h1>
         <div class="profile-panel">
             <nav class="profile-tabs" aria-label="Pengaturan profil">
                 <a class="active" href="#biodata" aria-current="page">Biodata</a>
-                <a href="#address-list">Adress List</a>
+                <a href="{% url 'account_profile:address_list' %}">Address List</a>
                 <a href="#payment">Payment</a>
                 <a href="#notification">Notification</a>
                 <a href="#privacy">Privacy &amp; Security</a>
                 <a href="#settings">Settings</a>
             </nav>
+            {% if user.is_authenticated %}
+            <form method="post" enctype="multipart/form-data" class="profile-biodata profile-edit-form" id="biodata">
+                        {% csrf_token %}
+                        <article class="biodata-card" aria-label="Foto profil">
+                            <div class="biodata-photo-placeholder" aria-hidden="true">
+                                {% if profile.photo %}<img src="{{ profile.photo.url }}" alt="Foto profil {{ user.username }}">{% endif %}
+                            </div>
+                            <label class="profile-photo-button" for="{{ form.photo.id_for_label }}">Pilih Foto</label>
+                            {{ form.photo }}
+                            {% for error in form.photo.errors %}<small class="form-error photo-error">{{ error }}</small>{% endfor %}
+                            <small class="photo-hint">JPG, PNG, GIF, WebP · maks. 5 MB</small>
+                        </article>
+                        <div class="biodata-details">
+                        <section>
+                            <h2>Ubah biodata diri</h2>
+                            {% with field=form.first_name %}
+                                <div class="biodata-field">
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
+                                </div>
+                            {% endwith %}
+                            {% with field=form.date_of_birth %}
+                                <div class="biodata-field">
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
+                                </div>
+                            {% endwith %}
+                            {% with field=form.gender %}
+                                <div class="biodata-field">
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
+                                </div>
+                            {% endwith %}
+                        </section>
+                        <section>
+                            <h2>Ubah Kontak</h2>
+                            {% with field=form.email %}
+                                <div class="biodata-field">
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
+                                </div>
+                            {% endwith %}
+                            {% with field=form.phone_number %}
+                                <div class="biodata-field">
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
+                                </div>
+                            {% endwith %}
+                        </section>
+                        <button class="profile-save-button" type="submit">Simpan Perubahan</button>
+                        </div>
+            </form>
+            {% else %}
             <div class="profile-biodata" id="biodata">
                 <article class="biodata-card" aria-label="Foto profil">
                     <div class="biodata-photo-placeholder" aria-hidden="true"></div>
-                    <div class="biodata-caption-placeholder" aria-hidden="true"></div>
+                    <a class="profile-photo-button" href="{% url 'login' %}?next={% url 'account_profile:profile' %}">Masuk untuk pilih foto</a>
                 </article>
+                <div class="profile-login-prompt">
+                    <h2>Ubah biodata diri</h2>
+                    <p>Masuk untuk melengkapi biodata dan informasi kontak.</p>
+                    <a href="{% url 'login' %}?next={% url 'account_profile:profile' %}">Masuk ke akun</a>
+                </div>
             </div>
+            {% endif %}
         </div>
     </section>
 </main>
