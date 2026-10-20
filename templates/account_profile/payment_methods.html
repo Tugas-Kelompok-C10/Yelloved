@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block content %}
+<main class="profile-page payment-page">
+    <aside class="profile-sidebar" aria-label="Menu akun">
+        <div class="profile-identity">
+            <div class="profile-avatar" aria-hidden="true">
+                {% if profile.photo %}<img src="{{ profile.photo.url }}" alt="">{% endif %}
+            </div>
+            <span>{{ user.get_full_name|default:user.username }}</span>
+        </div>
+        <nav class="profile-menu" aria-label="Navigasi akun">
+            <section>
+                <h2>Inbox</h2>
+                <a href="#chat">Chat</a>
+                <a href="#ulasan">Ulasan</a>
+                <a href="#bantuan">Bantuan</a>
+            </section>
+            <section>
+                <h2>Purchase</h2>
+                <a href="#pembayaran">Awaiting payment</a>
+                <a href="#ulasan-pembelian">Ulasan</a>
+            </section>
+        </nav>
+        <form action="{% url 'logout' %}" method="post" class="profile-logout">
+            {% csrf_token %}
+            <button type="submit">Log out</button>
+        </form>
+    </aside>
+
+    <section class="profile-content">
+        <h1 class="profile-heading"><span class="profile-heading-icon" aria-hidden="true">◎</span>{{ user.get_full_name|default:user.username }}</h1>
+        <div class="profile-panel payment-panel">
+            <nav class="profile-tabs" aria-label="Pengaturan profil">
+                <a href="{% url 'account_profile:profile' %}">Biodata</a>
+                <a href="{% url 'account_profile:address_list' %}">Address List</a>
+                <a class="active" href="{% url 'account_profile:payment_methods' %}" aria-current="page">Payment</a>
+                <a href="{% url 'account_profile:notifications' %}">Notification</a>
+                <a href="{% url 'account_profile:privacy_security' %}">Privacy &amp; Security</a>
+            </nav>
+
+            <div class="payment-page-content">
+                <div class="address-intro">
+                    <div>
+                        <h2>Metode pembayaran</h2>
+                        <p>Simpan rekening bank atau e-wallet yang kamu gunakan.</p>
+                    </div>
+                    <span class="address-count">{{ methods|length }} metode</span>
+                </div>
+
+                <div class="payment-layout">
+                    <section class="payment-saved-list" aria-label="Metode pembayaran tersimpan">
+                        {% for method in methods %}
+                        <article class="payment-method-card">
+                            <div class="payment-method-icon" aria-hidden="true">{% if method.method_type == "bank" %}▤{% else %}◉{% endif %}</div>
+                            <div class="payment-method-info">
+                                <div class="saved-address-topline">
+                                    <h3>{{ method.provider }}</h3>
+                                    {% if method.is_default %}<span class="default-address-badge">Utama</span>{% endif %}
+                                </div>
+                                <p class="payment-kind">{{ method.get_method_type_display }}</p>
+                                <p class="payment-owner">{{ method.account_name }}</p>
+                                <p class="payment-number">{{ method.masked_identifier }}</p>
+                                <div class="saved-address-actions">
+                                    <a href="{% url 'account_profile:edit_payment_method' method.id %}">Edit</a>
+                                    <form method="post" action="{% url 'account_profile:delete_payment_method' method.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit">Hapus</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </article>
+                        {% empty %}
+                        <div class="address-empty-state">
+                            <span class="address-empty-icon payment-empty-icon" aria-hidden="true">Rp</span>
+                            <h3>Belum ada metode pembayaran</h3>
+                            <p>Tambahkan rekening bank atau e-wallet di samping.</p>
+                        </div>
+                        {% endfor %}
+                    </section>
+
+                    <section class="address-form-card payment-form-card">
+                        <h2>{% if editing %}Edit metode{% else %}Tambah metode{% endif %}</h2>
+                        <form method="post" action="{% if editing %}{% url 'account_profile:edit_payment_method' editing_method.id %}{% else %}{% url 'account_profile:payment_methods' %}{% endif %}" class="address-form">
+                            {% csrf_token %}
+                            {% for field in form %}
+                            <div class="address-form-field{% if field.name == 'is_default' %} address-default-field{% endif %}">
+                                {% if field.name == 'is_default' %}
+                                    {{ field }}<label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {% else %}
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    {{ field }}
+                                {% endif %}
+                                {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
+                            </div>
+                            {% endfor %}
+                            <p class="payment-note">Nomor rekening atau HP hanya ditampilkan sebagian di daftar.</p>
+                            <div class="address-form-actions">
+                                <button class="profile-save-button" type="submit">{% if editing %}Simpan Perubahan{% else %}Simpan Metode{% endif %}</button>
+                                {% if editing %}<a href="{% url 'account_profile:payment_methods' %}">Batal</a>{% endif %}
+                            </div>
+                        </form>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock content %}
