@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block content %}
+<main class="profile-page notification-page">
+    <aside class="profile-sidebar" aria-label="Menu akun">
+        <div class="profile-identity">
+            <div class="profile-avatar" aria-hidden="true">
+                {% if profile.photo %}<img src="{{ profile.photo.url }}" alt="">{% endif %}
+            </div>
+            <span>{{ user.get_full_name|default:user.username }}</span>
+        </div>
+        <nav class="profile-menu" aria-label="Navigasi akun">
+            <section>
+                <h2>Inbox</h2>
+                <a href="#chat">Chat</a>
+                <a href="#ulasan">Ulasan</a>
+                <a href="#bantuan">Bantuan</a>
+            </section>
+            <section>
+                <h2>Purchase</h2>
+                <a href="#pembayaran">Awaiting payment</a>
+                <a href="#ulasan-pembelian">Ulasan</a>
+            </section>
+        </nav>
+        <form action="{% url 'logout' %}" method="post" class="profile-logout">
+            {% csrf_token %}
+            <button type="submit">Log out</button>
+        </form>
+    </aside>
+
+    <section class="profile-content">
+        <h1 class="profile-heading"><span class="profile-heading-icon" aria-hidden="true">◎</span>{{ user.get_full_name|default:user.username }}</h1>
+        <div class="profile-panel notification-panel">
+            <nav class="profile-tabs" aria-label="Pengaturan profil">
+                <a href="{% url 'account_profile:profile' %}">Biodata</a>
+                <a href="{% url 'account_profile:address_list' %}">Address List</a>
+                <a href="{% url 'account_profile:payment_methods' %}">Payment</a>
+                <a class="active" href="{% url 'account_profile:notifications' %}" aria-current="page">Notification</a>
+                <a href="{% url 'account_profile:privacy_security' %}">Privacy &amp; Security</a>
+            </nav>
+
+            <div class="notification-page-content">
+                <div class="address-intro">
+                    <div>
+                        <h2>Preferensi notifikasi</h2>
+                        <p>Pilih kabar yang ingin kamu terima dari Yelloved.</p>
+                    </div>
+                    <span class="notification-mark" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                </div>
+
+                <form method="post" class="notification-form">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="notification-option">
+                        <div class="notification-option-copy">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            <p>{% if field.name == "order_updates" %}Status transaksi, pembayaran, dan pengiriman.{% elif field.name == "wanted_updates" %}Respons dan kabar terkait Wanted Board.{% elif field.name == "account_updates" %}Perubahan profil dan pemberitahuan keamanan.{% else %}Info pilihan tentang promo dan barang yang mungkin kamu suka.{% endif %}</p>
+                        </div>
+                        {{ field }}
+                    </div>
+                    {% endfor %}
+                    <button class="profile-save-button" type="submit">Simpan Preferensi</button>
+                </form>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock content %}

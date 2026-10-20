@@ -1,11 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from django.contrib.auth import update_session_auth_hash
 from django.shortcuts import get_object_or_404, redirect, render
-from .forms import ProfileForm
-from .forms import AddressForm
-from .models import Address, Profile
+from .forms import AddressForm, NotificationPreferenceForm, PaymentMethodForm, ProfileForm
+from .models import Address, NotificationPreference, PaymentMethod, Profile
 
 # Create your views here.
 def register(request):
@@ -98,3 +100,108 @@ def delete_address(request, address_id):
                 next_address.save(update_fields=["is_default"])
         messages.success(request, "Alamat berhasil dihapus.")
     return redirect("account_profile:address_list")
+
+
+@login_required
+@require_POST
+def set_default_address(request, address_id):
+    address = get_object_or_404(Address, id=address_id, user=request.user)
+    Address.objects.filter(user=request.user).update(is_default=False)
+    address.is_default = True
+    address.save(update_fields=["is_default"])
+    messages.success(request, "Alamat utama berhasil diperbarui.")
+    return redirect("account_profile:address_list")
+
+
+@login_required
+def show_payment_methods(request):
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+    if request.method == "POST":
+        form = PaymentMethodForm(request.POST)
+        if form.is_valid():
+            method = form.save(commit=False)
+            method.user = request.user
+            if method.is_default:
+                PaymentMethod.objects.filter(user=request.user).update(is_default=False)
+            if not PaymentMethod.objects.filter(user=request.user).exists():
+                method.is_default = True
+            method.save()
+            messages.success(request, "Metode pembayaran berhasil ditambahkan.")
+            return redirect("account_profile:payment_methods")
+    else:
+        form = PaymentMethodForm()
+    return render(request, "account_profile/payment_methods.html", {
+        "name": "Yelloved",
+        "profile": profile,
+        "methods": PaymentMethod.objects.filter(user=request.user),
+        "form": form,
+        "editing": False,
+    })
+
+
+@login_required
+def edit_payment_method(request, method_id):
+    method = get_object_or_404(PaymentMethod, id=method_id, user=request.user)
+    form = PaymentMethodForm(request.POST or None, instance=method)
+    if request.method == "POST" and form.is_valid():
+        saved_method = form.save(commit=False)
+        if saved_method.is_default:
+            PaymentMethod.objects.filter(user=request.user).exclude(id=method.id).update(is_default=False)
+        saved_method.save()
+        messages.success(request, "Metode pembayaran berhasil diperbarui.")
+        return redirect("account_profile:payment_methods")
+    return render(request, "account_profile/payment_methods.html", {
+        "name": "Yelloved",
+        "profile": Profile.objects.get_or_create(user=request.user)[0],
+        "methods": PaymentMethod.objects.filter(user=request.user),
+        "form": form,
+        "editing": True,
+        "editing_method": method,
+    })
+
+
+@login_required
+def delete_payment_method(request, method_id):
+    method = get_object_or_404(PaymentMethod, id=method_id, user=request.user)
+    if request.method == "POST":
+        was_default = method.is_default
+        method.delete()
+        if was_default:
+            next_method = PaymentMethod.objects.filter(user=request.user).first()
+            if next_method:
+                next_method.is_default = True
+                next_method.save(update_fields=["is_default"])
+        messages.success(request, "Metode pembayaran berhasil dihapus.")
+    return redirect("account_profile:payment_methods")
+
+
+@login_required
+def notification_settings(request):
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+    preferences, _ = NotificationPreference.objects.get_or_create(user=request.user)
+    form = NotificationPreferenceForm(request.POST or None, instance=preferences)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Preferensi notifikasi berhasil disimpan.")
+        return redirect("account_profile:notifications")
+    return render(request, "account_profile/notifications.html", {
+        "name": "Yelloved",
+        "profile": profile,
+        "form": form,
+    })
+
+
+@login_required
+def privacy_security(request):
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+    form = PasswordChangeForm(request.user, request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        user = form.save()
+        update_session_auth_hash(request, user)
+        messages.success(request, "Kata sandi berhasil diperbarui.")
+        return redirect("account_profile:privacy_security")
+    return render(request, "account_profile/privacy_security.html", {
+        "name": "Yelloved",
+        "profile": profile,
+        "form": form,
+    })

@@ -37,10 +37,9 @@
             <nav class="profile-tabs" aria-label="Pengaturan profil">
                 <a class="active" href="#biodata" aria-current="page">Biodata</a>
                 <a href="{% url 'account_profile:address_list' %}">Address List</a>
-                <a href="#payment">Payment</a>
-                <a href="#notification">Notification</a>
-                <a href="#privacy">Privacy &amp; Security</a>
-                <a href="#settings">Settings</a>
+                <a href="{% url 'account_profile:payment_methods' %}">Payment</a>
+                <a href="{% url 'account_profile:notifications' %}">Notification</a>
+                <a href="{% url 'account_profile:privacy_security' %}">Privacy &amp; Security</a>
             </nav>
             {% if user.is_authenticated %}
             <form method="post" enctype="multipart/form-data" class="profile-biodata profile-edit-form" id="biodata">

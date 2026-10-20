@@ -3,13 +3,14 @@
 <main class="auth-page">
     <section class="auth-card">
         <h1>Buat akun</h1>
+        <p class="auth-intro">Bergabung untuk menemukan dan berbagi barang.</p>
         <form method="post">
             {% csrf_token %}
             {% for field in form %}
                 <div class="form-field">
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                     {{ field }}
-                    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                    {% if field.help_text %}<small class="auth-help-text">{{ field.help_text }}</small>{% endif %}
                     {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
                 </div>
             {% endfor %}

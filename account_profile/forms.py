@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Address, Profile
+from .models import Address, NotificationPreference, PaymentMethod, Profile
 
 
 class ProfileForm(forms.ModelForm):
@@ -81,4 +81,29 @@ class AddressForm(forms.ModelForm):
         }
         widgets = {
             "street_address": forms.Textarea(attrs={"rows": 3}),
+        }
+
+
+class PaymentMethodForm(forms.ModelForm):
+    class Meta:
+        model = PaymentMethod
+        fields = ("method_type", "provider", "account_name", "account_identifier", "is_default")
+        labels = {
+            "method_type": "Jenis pembayaran",
+            "provider": "Nama bank / e-wallet",
+            "account_name": "Nama pemilik",
+            "account_identifier": "Nomor rekening / HP",
+            "is_default": "Jadikan metode utama",
+        }
+
+
+class NotificationPreferenceForm(forms.ModelForm):
+    class Meta:
+        model = NotificationPreference
+        fields = ("order_updates", "wanted_updates", "account_updates", "promotions")
+        labels = {
+            "order_updates": "Pembaruan pesanan",
+            "wanted_updates": "Aktivitas Wanted Board",
+            "account_updates": "Keamanan dan aktivitas akun",
+            "promotions": "Promo dan rekomendasi",
         }
