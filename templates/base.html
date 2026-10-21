@@ -22,7 +22,7 @@
 
         <link
             rel="stylesheet"
-            href="{% static 'css/style.css' %}?v=auth-2"
+            href="{% static 'css/style.css' %}?v=auth-4"
         >
 
 
@@ -48,7 +48,6 @@
                 <a href="{% url 'transactions:transaction_history' %}">
                     Pesanan Saya
                 </a>
-                <a href="{% url 'account_profile:profile' %}">Profile</a>
             {% endif %}
 
             </nav>
@@ -84,7 +83,7 @@
                     </a>
                 </div>
 
-                <span class="user-greeting">Hi, {{ user.username }}</span>
+                <a href="{% url 'account_profile:profile' %}" class="user-greeting">Hi, {{ user.username }}</a>
 
                 <form action="{% url 'logout' %}" method="post" class="nav-form">
                     {% csrf_token %}

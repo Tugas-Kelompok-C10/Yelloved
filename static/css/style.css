@@ -8,6 +8,10 @@
     box-sizing: border-box;
 }
 
+html {
+    scrollbar-gutter: stable;
+}
+
 
 /* =========================
    Design Tokens
@@ -51,6 +55,9 @@ main {
    ========================= */
 
 .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
     width: 100%;
     background: var(--gradient);
 }
@@ -152,6 +159,12 @@ main {
 
 .user-greeting {
     color: var(--text);
+    text-decoration: none;
+}
+
+.user-greeting:hover,
+.user-greeting:focus-visible {
+    color: #fff8b5;
 }
 
 .nav-form {
@@ -346,8 +359,6 @@ body:has(.profile-page) {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    border-top: 2px solid var(--violet);
-    border-bottom: 2px solid var(--violet);
 }
 
 body:has(.profile-page) .site-footer .container {
@@ -355,24 +366,7 @@ body:has(.profile-page) .site-footer .container {
 }
 
 body:has(.profile-page) .site-header {
-    flex: none;
-}
-
-body:has(.profile-page) .site-header .container {
-    min-height: 50px;
-    padding: 0 24px;
-}
-
-body:has(.profile-page) .site-header .brand img {
-    height: 38px;
-}
-
-body:has(.profile-page) .site-header nav {
-    gap: 22px;
-}
-
-body:has(.profile-page) .site-header nav a {
-    font-size: 12px;
+    flex: 0 0 auto;
 }
 
 body:has(.profile-page) .site-footer {
@@ -1311,24 +1305,6 @@ body:has(.profile-page) .site-footer {
 }
 
 @media (max-width: 700px) {
-    body:has(.profile-page) .site-header .container {
-        min-height: 60px;
-        grid-template-columns: auto 1fr;
-        gap: 8px;
-        padding: 6px 12px;
-    }
-    body:has(.profile-page) .site-header nav {
-        grid-column: 1 / -1;
-        grid-row: 2;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 14px;
-        padding-bottom: 8px;
-    }
-    body:has(.profile-page) .site-header .nav-actions {
-        grid-column: 2;
-        grid-row: 1;
-    }
     .profile-page {
         width: min(100% - 24px, 500px);
         min-height: 0;
