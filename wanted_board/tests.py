@@ -117,6 +117,23 @@ class WantedBoardViewTests(TestCase):
         )
         self.assertEqual(created_post.requester, self.other_user)
 
+    def test_create_form_opens_as_modal_and_keeps_validation_errors(self):
+        self.client.login(username="other", password="test-password")
+        create_url = reverse("wanted_board:create_wanted")
+
+        get_response = self.client.get(create_url)
+        self.assertRedirects(
+            get_response,
+            f"{reverse('wanted_board:show_wanted')}?create=1",
+        )
+
+        invalid_response = self.client.post(create_url, {})
+        self.assertEqual(invalid_response.status_code, 200)
+        self.assertContains(invalid_response, 'id="create-wanted-modal"')
+        self.assertContains(invalid_response, 'data-auto-open="true"')
+        self.assertContains(invalid_response, "This field is required.")
+        self.assertFalse(WantedPost.objects.filter(requester=self.other_user).exists())
+
     def test_only_owner_can_edit_or_delete_post(self):
         self.client.login(username="other", password="test-password")
 
