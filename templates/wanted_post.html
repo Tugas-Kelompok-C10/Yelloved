@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block meta %}
 <title>Wanted Board | {{ name }}</title>
@@ -22,7 +23,7 @@
     <section class="wanted-board" aria-labelledby="wanted-board-title">
         <div class="wanted-toolbar">
             <h2 id="wanted-board-title">Search what people are looking for</h2>
-            <form class="wanted-filter" method="get" role="search">
+            <form class="wanted-filter" method="get" action="{% url 'wanted_board:show_wanted' %}" role="search" data-ajax-search>
                 <label class="sr-only" for="wanted-query">Search wanted posts</label>
                 <div class="wanted-search-bar">
                     <input id="wanted-query" type="search" name="q" value="{{ query }}" placeholder="Search items">
@@ -34,49 +35,20 @@
                     </button>
                 </div>
                 <div class="wanted-filter-meta">
-                    <label class="sr-only" for="wanted-category">Choose a category</label>
-                    <select id="wanted-category" name="category" onchange="this.form.submit()">
-                        <option value="">All items</option>
+                    <fieldset class="wanted-category-chips">
+                        <legend class="sr-only">Choose a category</legend>
+                        <button type="submit" name="category" value=""{% if not selected_category %} class="active" aria-pressed="true"{% else %} aria-pressed="false"{% endif %}>All items</button>
                         {% for value, label in categories %}
-                            <option value="{{ value }}"{% if selected_category == value %} selected{% endif %}>{{ label }}</option>
+                            <button type="submit" name="category" value="{{ value }}"{% if selected_category == value %} class="active" aria-pressed="true"{% else %} aria-pressed="false"{% endif %}>{{ label }}</button>
                         {% endfor %}
-                    </select>
-                    <span>{{ wanted_posts|length }} request{{ wanted_posts|length|pluralize }} found</span>
+                    </fieldset>
+                    <span class="wanted-results-count" aria-live="polite">{{ total_count }} request{{ total_count|pluralize }} found</span>
                 </div>
             </form>
         </div>
 
-        <div class="wanted-grid">
-            {% for post in wanted_posts %}
-                <article class="wanted-card">
-                    <div class="wanted-card-topline">
-                        <span class="wanted-category">{{ post.get_category_display }}</span>
-                        <span class="wanted-status wanted-status-{{ post.status }}">{{ post.get_status_display }}</span>
-                    </div>
-                    <h3><a href="{% url 'wanted_board:wanted_detail' post.pk %}">{{ post.title }}</a></h3>
-                    <p class="wanted-card-description">{{ post.description|truncatewords:20 }}</p>
-                    <dl class="wanted-card-meta">
-                        <div>
-                            <dt>Budget</dt>
-                            <dd>{% if post.budget %}Rp{{ post.budget|floatformat:0 }}{% else %}Flexible{% endif %}</dd>
-                        </div>
-                        <div>
-                            <dt>Location</dt>
-                            <dd>{{ post.location|default:"Around UI" }}</dd>
-                        </div>
-                    </dl>
-                    <div class="wanted-card-footer">
-                        <span>by {{ post.requester.username }}</span>
-                        <a href="{% url 'wanted_board:wanted_detail' post.pk %}">View details →</a>
-                    </div>
-                </article>
-            {% empty %}
-                <div class="wanted-empty">
-                    <span aria-hidden="true">⌕</span>
-                    <h3>No matching wanted posts yet</h3>
-                    <p>Try another search or be the first to share a new request.</p>
-                </div>
-            {% endfor %}
+        <div class="wanted-grid" aria-live="polite" aria-busy="false">
+            {% include "wanted_board/_card_grid.html" %}
         </div>
     </section>
 </main>
@@ -138,4 +110,5 @@
     })();
 </script>
 {% endif %}
+<script src="{% static 'js/wanted_board.js' %}" defer></script>
 {% endblock content %}

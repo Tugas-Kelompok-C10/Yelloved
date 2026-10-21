@@ -89,6 +89,46 @@ class WantedBoardViewTests(TestCase):
         self.assertContains(response, self.wanted_post.title)
         self.assertEqual(list(response.context["wanted_posts"]), [self.wanted_post])
 
+    def test_board_returns_filtered_card_markup_for_ajax_search(self):
+        response = self.client.get(
+            reverse("wanted_board:show_wanted"),
+            {"q": "calculus", "category": WantedPost.Category.BOOKS},
+            HTTP_ACCEPT="application/json",
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["selected_category"], WantedPost.Category.BOOKS)
+        self.assertEqual(payload["result_label"], "1 request found")
+        self.assertIn(self.wanted_post.title, payload["html"])
+        self.assertNotIn("Casio Scientific Calculator", payload["html"])
+
+    def test_board_includes_eight_sample_cards(self):
+        response = self.client.get(reverse("wanted_board:show_wanted"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["sample_posts"]), 8)
+        self.assertContains(response, "Casio Scientific Calcula…")
+        self.assertContains(response, "Mini Rice Cooker")
+        self.assertContains(response, "Portable Laptop Stand")
+        self.assertContains(response, "Canvas Tote Bag")
+        self.assertContains(response, "data-sample-card", count=8)
+
+    def test_sample_card_has_a_detail_page(self):
+        response = self.client.get(
+            reverse(
+                "wanted_board:sample_wanted_detail",
+                args=["casio-scientific-calculator"],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Casio Scientific Calculator")
+        self.assertContains(response, "Nadia Putri")
+        self.assertContains(response, "Good")
+        self.assertContains(response, "Fasilkom UI")
+
     def test_create_requires_login_and_assigns_requester(self):
         create_url = reverse("wanted_board:create_wanted")
         anonymous_response = self.client.get(create_url)
@@ -132,6 +172,28 @@ class WantedBoardViewTests(TestCase):
         self.assertContains(invalid_response, 'id="create-wanted-modal"')
         self.assertContains(invalid_response, 'data-auto-open="true"')
         self.assertContains(invalid_response, "This field is required.")
+        self.assertFalse(WantedPost.objects.filter(requester=self.other_user).exists())
+
+    def test_create_rejects_item_name_longer_than_25_characters(self):
+        self.client.login(username="other", password="test-password")
+
+        response = self.client.post(
+            reverse("wanted_board:create_wanted"),
+            {
+                "title": "A" * 26,
+                "description": "A valid description for the requested item.",
+                "category": WantedPost.Category.OTHER,
+                "preferred_condition": WantedPost.Condition.ANY,
+                "budget": "100000",
+                "location": "Kampus UI",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Ensure this value has at most 25 characters (it has 26).",
+        )
         self.assertFalse(WantedPost.objects.filter(requester=self.other_user).exists())
 
     def test_only_owner_can_edit_or_delete_post(self):

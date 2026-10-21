@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block meta %}<title>{{ wanted_post.title }} | {{ name }}</title>{% endblock meta %}
+
+{% block content %}
+<main class="wanted-detail-page" lang="en">
+    <a class="wanted-back" href="{% url 'wanted_board:show_wanted' %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m15 18-6-6 6-6"></path>
+        </svg>
+        <span>Back</span>
+    </a>
+
+    <div class="wanted-detail-layout">
+        <article class="wanted-detail-card">
+            <div class="wanted-detail-media" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                    <circle cx="8.5" cy="9" r="1.5"></circle>
+                    <path d="m5 17 4.5-4 3.5 3 2.5-2 3.5 3"></path>
+                </svg>
+            </div>
+            <div class="wanted-card-topline">
+                <span class="wanted-category">{{ wanted_post.category_label }}</span>
+                <span class="wanted-status wanted-status-{{ wanted_post.status }}">{{ wanted_post.status_label }}</span>
+            </div>
+            <h1>{{ wanted_post.title }}</h1>
+            <p class="wanted-detail-description">{{ wanted_post.description }}</p>
+
+            <dl class="wanted-detail-meta">
+                <div><dt>Preferred condition</dt><dd>{{ wanted_post.condition_label }}</dd></div>
+                <div><dt>Maximum budget</dt><dd>Rp {{ wanted_post.budget|floatformat:0 }}</dd></div>
+                <div><dt>Location</dt><dd>{{ wanted_post.location }}</dd></div>
+                <div><dt>Posted by</dt><dd>{{ wanted_post.poster }}</dd></div>
+            </dl>
+            <p class="wanted-timestamp">Posted {{ wanted_post.posted_on }} · Sample listing</p>
+        </article>
+
+        <aside class="wanted-offer-panel wanted-sample-poster">
+            <div class="wanted-poster-avatar" aria-hidden="true">{{ wanted_post.poster_initials }}</div>
+            <span>Posted by</span>
+            <h2>{{ wanted_post.poster }}</h2>
+            <p>This is a sample wanted post used to preview the Wanted Board experience.</p>
+            <a class="wanted-button wanted-button-primary" href="{% url 'wanted_board:show_wanted' %}">Browse more requests</a>
+        </aside>
+    </div>
+</main>
+{% endblock content %}

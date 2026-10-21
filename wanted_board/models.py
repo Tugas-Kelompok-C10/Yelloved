@@ -27,7 +27,7 @@ class WantedPost(models.Model):
         on_delete=models.CASCADE,
         related_name="wanted_posts",
     )
-    title = models.CharField(max_length=120)
+    title = models.CharField(max_length=25)
     description = models.TextField()
     category = models.CharField(
         max_length=20,

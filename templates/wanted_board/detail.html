@@ -4,7 +4,12 @@
 
 {% block content %}
 <main class="wanted-detail-page" lang="en">
-    <a class="wanted-back" href="{% url 'wanted_board:show_wanted' %}">← Back to Wanted Board</a>
+    <a class="wanted-back" href="{% url 'wanted_board:show_wanted' %}">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m15 18-6-6 6-6"></path>
+        </svg>
+        <span>Back</span>
+    </a>
 
     <div class="wanted-detail-layout">
         <article class="wanted-detail-card">
