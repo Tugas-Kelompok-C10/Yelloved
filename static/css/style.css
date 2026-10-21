@@ -25,6 +25,8 @@ html {
     --text: #f2eebf;
     --text-hover: #DAD6AC;
     --violet-light-hover: #E0DBE1;
+    --blue: #AEDAE7;
+    --blue-hover: #8BAEB9;
     --radius: 20px;
     --gradient: linear-gradient(to right, #320c35, #4f1353);
 }
@@ -1499,7 +1501,6 @@ body:has(.profile-page) .site-footer {
     border: 0;
 }
 
-.wanted-page,
 .wanted-detail-page,
 .wanted-form-page {
     width: min(1180px, calc(100% - 40px));
@@ -1507,6 +1508,8 @@ body:has(.profile-page) .site-footer {
 }
 
 .wanted-page {
+    width: min(1280px, calc(100% - 40px));
+    margin: 0 auto;
     padding: 72px 0;
 }
 
@@ -1631,7 +1634,7 @@ body:has(.profile-page) .site-footer {
 }
 
 .wanted-filter {
-    width: min(900px, 100%);
+    width: 100%;
 }
 
 .wanted-filter input,
@@ -1710,40 +1713,131 @@ body:has(.profile-page) .site-footer {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    margin-top: 34px;
+    margin-top: 18px;
 }
 
-.wanted-filter-meta #wanted-category {
-    min-height: 28px;
-    padding: 3px 28px 3px 10px;
+.wanted-category-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+}
+
+.wanted-filter .wanted-category-chips button {
+    min-height: 34px;
+    padding: 6px 14px;
     border: 1px solid var(--violet);
     border-radius: 999px;
-    background: var(--paper);
+    background: transparent;
     color: var(--violet);
     font-size: 12px;
     font-weight: 600;
+    cursor: pointer;
+    transition: background-color 160ms ease, color 160ms ease;
 }
 
-.wanted-filter-meta span {
+.wanted-filter .wanted-category-chips button:hover,
+.wanted-filter .wanted-category-chips button.active {
+    background: var(--violet);
+    color: var(--paper);
+}
+
+.wanted-filter .wanted-category-chips button:focus-visible {
+    outline: 2px solid var(--violet);
+    outline-offset: 2px;
+}
+
+.wanted-results-count {
+    flex: none;
     color: var(--violet);
     font-size: 12px;
 }
 
 .wanted-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 18px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    justify-content: center;
+    justify-items: center;
+    gap: 20px;
+    transition: opacity 160ms ease;
+}
+
+.wanted-grid.is-loading {
+    opacity: 0.55;
+    pointer-events: none;
 }
 
 .wanted-card {
     display: flex;
     flex-direction: column;
-    min-height: 310px;
-    padding: 24px;
-    border: 1px solid var(--text-hover);
+    width: 100%;
+    max-width: 305px;
+    height: 330px;
+    padding: 18px;
+    border: 0;
     border-radius: var(--radius);
-    background: var(--paper);
-    box-shadow: 0 10px 30px var(--text-hover);
+    background: var(--violet);
+    color: var(--paper);
+    font-family: "Trispace", sans-serif;
+}
+
+.wanted-card-media,
+.wanted-detail-media {
+    display: grid;
+    border: 1px dashed var(--text-hover);
+    border-radius: 16px;
+    color: var(--text-hover);
+    place-items: center;
+}
+
+.wanted-card-media {
+    position: relative;
+    min-height: 130px;
+    border-color: var(--text);
+    color: var(--text);
+}
+
+.wanted-card-badges {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    left: 12px;
+    display: flex;
+    justify-content: start;
+    gap: 8px;
+}
+
+.wanted-card-badges span {
+    max-width: 48%;
+    padding: 5px 9px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--blue);
+    color: var(--violet);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.wanted-detail-media {
+    border-color: var(--text);
+    color: var(--text);
+}
+
+.wanted-card-media svg,
+.wanted-detail-media svg {
+    width: 38px;
+    height: 38px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.6;
 }
 
 .wanted-card-topline {
@@ -1788,31 +1882,27 @@ body:has(.profile-page) .site-footer {
 }
 
 .wanted-card h3 {
-    margin-top: 22px;
-    font-size: 20px;
+    margin-top: 12px;
+    font-size: 16px;
     line-height: 1.35;
 }
 
 .wanted-card h3 a {
-    color: var(--violet);
+    color: var(--paper);
     text-decoration: none;
 }
 
 .wanted-card-description {
-    margin-top: 10px;
-    color: var(--ink);
-    font-size: 14px;
-    line-height: 1.65;
+    display: -webkit-box;
+    margin-top: 7px;
+    overflow: hidden;
+    color: var(--paper);
+    font-size: 12px;
+    line-height: 1.5;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
 }
 
-.wanted-card-meta {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-    margin-top: 22px;
-}
-
-.wanted-card-meta dt,
 .wanted-detail-meta dt {
     color: var(--ink);
     font-size: 11px;
@@ -1820,7 +1910,6 @@ body:has(.profile-page) .site-footer {
     text-transform: uppercase;
 }
 
-.wanted-card-meta dd,
 .wanted-detail-meta dd {
     margin-top: 4px;
     font-size: 13px;
@@ -1833,15 +1922,24 @@ body:has(.profile-page) .site-footer {
     justify-content: space-between;
     gap: 12px;
     margin-top: auto;
-    padding-top: 22px;
-    color: var(--ink);
-    font-size: 12px;
+    padding-top: 16px;
+    color: var(--text);
+    font-size: 13px;
 }
 
-.wanted-card-footer a {
+.wanted-card-footer .wanted-card-view {
+    min-width: 62px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: var(--blue);
     color: var(--violet);
     font-weight: 700;
+    text-align: center;
     text-decoration: none;
+}
+
+.wanted-card-footer .wanted-card-view:hover {
+    background: var(--blue-hover);
 }
 
 .wanted-empty {
@@ -1879,12 +1977,24 @@ body:has(.profile-page) .site-footer {
 }
 
 .wanted-back {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     margin-bottom: 24px;
     color: var(--violet);
     font-size: 14px;
     font-weight: 700;
     text-decoration: none;
+}
+
+.wanted-back svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
 }
 
 .wanted-detail-layout {
@@ -1903,8 +2013,25 @@ body:has(.profile-page) .site-footer {
     background: var(--paper);
 }
 
+.wanted-detail-card,
+.wanted-offer-panel {
+    border-color: var(--text);
+    background: #fbfaed;
+}
+
 .wanted-detail-card {
     padding: 38px;
+}
+
+.wanted-detail-media {
+    min-height: 260px;
+    margin-bottom: 26px;
+    background: var(--violet);
+}
+
+.wanted-detail-media svg {
+    width: 54px;
+    height: 54px;
 }
 
 .wanted-detail-card h1 {
@@ -1952,6 +2079,29 @@ body:has(.profile-page) .site-footer {
 .wanted-offer-panel h2 {
     color: var(--violet);
     font-size: 22px;
+}
+
+.wanted-sample-poster {
+    text-align: center;
+}
+
+.wanted-poster-avatar {
+    display: grid;
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: var(--violet);
+    color: var(--text);
+    font-size: 20px;
+    font-weight: 700;
+    place-items: center;
+}
+
+.wanted-sample-poster > span {
+    color: var(--ink);
+    font-size: 12px;
+    text-transform: uppercase;
 }
 
 .wanted-offer-panel > p {
@@ -2060,6 +2210,15 @@ body:has(.profile-page) .site-footer {
     resize: vertical;
 }
 
+.wanted-form select {
+    padding-right: 44px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='m1 1 5 5 5-5' fill='none' stroke='%23320c35' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 12px 8px;
+}
+
 .wanted-form input:focus,
 .wanted-form select:focus,
 .wanted-form textarea:focus,
@@ -2146,6 +2305,12 @@ body:has(.profile-page) .site-footer {
 
 
 /* Wanted Board Responsive */
+
+@media (max-width: 1270px) {
+    .wanted-grid {
+        grid-template-columns: repeat(2, minmax(0, 392px));
+    }
+}
 
 @media (max-width: 900px) {
     .wanted-grid {

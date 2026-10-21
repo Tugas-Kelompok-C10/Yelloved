@@ -1,0 +1,27 @@
+{% for card in wanted_cards %}
+    <article class="wanted-card"{% if card.is_sample %} data-sample-card{% endif %}>
+        <div class="wanted-card-media">
+            <div class="wanted-card-badges">
+                <span>{{ card.category_label }}</span>
+                <span>{{ card.condition_label }}</span>
+            </div>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                <circle cx="8.5" cy="9" r="1.5"></circle>
+                <path d="m5 17 4.5-4 3.5 3 2.5-2 3.5 3"></path>
+            </svg>
+        </div>
+        <h3><a href="{{ card.detail_url }}">{{ card.title|truncatechars:25 }}</a></h3>
+        <p class="wanted-card-description">{{ card.description|truncatewords:16 }}</p>
+        <div class="wanted-card-footer">
+            <strong>{% if card.budget %}Rp {{ card.budget|floatformat:0 }}{% else %}Flexible{% endif %}</strong>
+            <a class="wanted-card-view" href="{{ card.detail_url }}">View</a>
+        </div>
+    </article>
+{% empty %}
+    <div class="wanted-empty">
+        <span aria-hidden="true">⌕</span>
+        <h3>No matching wanted posts yet</h3>
+        <p>Try another search or be the first to share a new request.</p>
+    </div>
+{% endfor %}

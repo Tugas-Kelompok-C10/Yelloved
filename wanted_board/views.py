@@ -1,13 +1,70 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.http import HttpResponseNotAllowed
+from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from .forms import OfferForm, WantedPostForm
 from .models import Offer, WantedPost
+from .sample_data import SAMPLE_WANTED_POSTS
+
+
+def _sample_posts_for(query, category):
+    sample_posts = SAMPLE_WANTED_POSTS
+    if query:
+        normalized_query = query.casefold()
+        sample_posts = tuple(
+            post
+            for post in sample_posts
+            if normalized_query
+            in " ".join(
+                (
+                    post["title"],
+                    post["description"],
+                    post["location"],
+                    post["poster"],
+                )
+            ).casefold()
+        )
+    if category in WantedPost.Category.values:
+        sample_posts = tuple(
+            post for post in sample_posts if post["category"] == category
+        )
+    return sample_posts
+
+
+def _wanted_cards(wanted_posts, sample_posts):
+    cards = [
+        {
+            "title": post.title,
+            "description": post.description,
+            "category_label": post.get_category_display(),
+            "condition_label": post.get_preferred_condition_display(),
+            "budget": post.budget,
+            "location": post.location or "Around UI",
+            "poster": post.requester.username,
+            "status": post.status,
+            "status_label": post.get_status_display(),
+            "detail_url": reverse("wanted_board:wanted_detail", args=[post.pk]),
+            "is_sample": False,
+        }
+        for post in wanted_posts
+    ]
+    cards.extend(
+        {
+            **post,
+            "detail_url": reverse(
+                "wanted_board:sample_wanted_detail",
+                args=[post["slug"]],
+            ),
+            "is_sample": True,
+        }
+        for post in sample_posts
+    )
+    return cards
 
 
 def _board_context(request, creation_form=None, open_create_modal=False):
@@ -24,12 +81,18 @@ def _board_context(request, creation_form=None, open_create_modal=False):
     if category in WantedPost.Category.values:
         wanted_posts = wanted_posts.filter(category=category)
 
+    sample_posts = _sample_posts_for(query, category)
+    wanted_cards = _wanted_cards(wanted_posts, sample_posts)
+
     return {
         "name": "Yelloved",
         "wanted_posts": wanted_posts,
         "query": query,
         "selected_category": category,
         "categories": WantedPost.Category.choices,
+        "sample_posts": sample_posts,
+        "wanted_cards": wanted_cards,
+        "total_count": len(wanted_cards),
         "creation_form": (
             creation_form if creation_form is not None else WantedPostForm()
         ),
@@ -42,6 +105,22 @@ def show_wanted(request):
         request,
         open_create_modal=request.GET.get("create") == "1",
     )
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        total_count = context["total_count"]
+        return JsonResponse(
+            {
+                "html": render_to_string(
+                    "wanted_board/_card_grid.html",
+                    context,
+                    request=request,
+                ),
+                "result_label": (
+                    f"{total_count} request"
+                    f"{'s' if total_count != 1 else ''} found"
+                ),
+                "selected_category": context["selected_category"],
+            }
+        )
     return render(request, "wanted_post.html", context)
 
 
@@ -63,6 +142,21 @@ def wanted_detail(request, pk):
         "has_offered": has_offered,
     }
     return render(request, "wanted_board/detail.html", context)
+
+
+def sample_wanted_detail(request, slug):
+    sample_post = next(
+        (post for post in SAMPLE_WANTED_POSTS if post["slug"] == slug),
+        None,
+    )
+    if sample_post is None:
+        raise Http404("Sample wanted post not found")
+
+    return render(
+        request,
+        "wanted_board/sample_detail.html",
+        {"name": "Yelloved", "wanted_post": sample_post},
+    )
 
 
 @login_required
