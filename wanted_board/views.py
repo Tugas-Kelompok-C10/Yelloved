@@ -3,13 +3,14 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from .forms import OfferForm, WantedPostForm
 from .models import Offer, WantedPost
 
 
-def show_wanted(request):
+def _board_context(request, creation_form=None, open_create_modal=False):
     query = request.GET.get("q", "").strip()
     category = request.GET.get("category", "").strip()
 
@@ -23,13 +24,24 @@ def show_wanted(request):
     if category in WantedPost.Category.values:
         wanted_posts = wanted_posts.filter(category=category)
 
-    context = {
+    return {
         "name": "Yelloved",
         "wanted_posts": wanted_posts,
         "query": query,
         "selected_category": category,
         "categories": WantedPost.Category.choices,
+        "creation_form": (
+            creation_form if creation_form is not None else WantedPostForm()
+        ),
+        "open_create_modal": open_create_modal,
     }
+
+
+def show_wanted(request):
+    context = _board_context(
+        request,
+        open_create_modal=request.GET.get("create") == "1",
+    )
     return render(request, "wanted_post.html", context)
 
 
@@ -55,7 +67,10 @@ def wanted_detail(request, pk):
 
 @login_required
 def create_wanted(request):
-    form = WantedPostForm(request.POST or None)
+    if request.method == "GET":
+        return redirect(f"{reverse('wanted_board:show_wanted')}?create=1")
+
+    form = WantedPostForm(request.POST)
     if request.method == "POST" and form.is_valid():
         wanted_post = form.save(commit=False)
         wanted_post.requester = request.user
@@ -63,17 +78,21 @@ def create_wanted(request):
         messages.success(request, "Your wanted post has been created.")
         return redirect("wanted_board:wanted_detail", pk=wanted_post.pk)
 
-    return render(
+    context = _board_context(
         request,
-        "wanted_board/form.html",
-        {"form": form, "form_title": "Create a wanted post", "name": "Yelloved"},
+        creation_form=form,
+        open_create_modal=True,
     )
+    return render(request, "wanted_post.html", context)
 
 
 @login_required
 def edit_wanted(request, pk):
     wanted_post = get_object_or_404(WantedPost, pk=pk, requester=request.user)
-    form = WantedPostForm(request.POST or None, instance=wanted_post)
+    form = WantedPostForm(
+        request.POST if request.method == "POST" else None,
+        instance=wanted_post,
+    )
     if request.method == "POST" and form.is_valid():
         form.save()
         messages.success(request, "Your wanted post has been updated.")
