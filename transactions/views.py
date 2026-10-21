@@ -104,9 +104,3 @@ def app_page(request):
         {"name": "Yelloved"}
     )
 
-def pesan_page(request):
-    return render(
-        request,
-        "transactions/pesan.html",
-        {"name": "Yelloved"}
-    )
