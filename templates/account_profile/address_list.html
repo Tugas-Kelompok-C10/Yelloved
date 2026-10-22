@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
 <main class="profile-page address-page">
     <aside class="profile-sidebar" aria-label="Menu akun">
         <div class="profile-identity">
             <div class="profile-avatar" aria-hidden="true">
-                {% if profile.photo %}<img src="{{ profile.photo.url }}" alt="">{% endif %}
+                {% if profile.photo %}<img src="{{ profile.photo.url }}" alt="">{% else %}<img src="{% static 'img/Default_PP.png' %}" alt="">{% endif %}
             </div>
             <span>{{ user.get_full_name|default:user.username }}</span>
         </div>

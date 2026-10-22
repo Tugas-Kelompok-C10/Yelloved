@@ -1,10 +1,15 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
 <main class="profile-page">
     <aside class="profile-sidebar" aria-label="Menu akun">
         <div class="profile-identity">
             <div class="profile-avatar" aria-hidden="true">
-                {% if profile.photo %}<img src="{{ profile.photo.url }}" alt="">{% endif %}
+                {% if profile.photo %}
+                    <img src="{{ profile.photo.url }}" alt="">
+                {% else %}
+                    <img src="{% static 'img/Default_PP.png' %}" alt="">
+                {% endif %}
             </div>
             <span>{{ user.get_full_name|default:user.username|default:"Adib" }}</span>
         </div>
@@ -46,7 +51,11 @@
                         {% csrf_token %}
                         <article class="biodata-card" aria-label="Foto profil">
                             <div class="biodata-photo-placeholder" aria-hidden="true">
-                                {% if profile.photo %}<img src="{{ profile.photo.url }}" alt="Foto profil {{ user.username }}">{% endif %}
+                                {% if profile.photo %}
+                                    <img src="{{ profile.photo.url }}" alt="Foto profil {{ user.username }}">
+                                {% else %}
+                                    <img src="{% static 'img/Default_PP.png' %}" alt="Foto profil default">
+                                {% endif %}
                             </div>
                             <label class="profile-photo-button" for="{{ form.photo.id_for_label }}">Pilih Foto</label>
                             {{ form.photo }}
