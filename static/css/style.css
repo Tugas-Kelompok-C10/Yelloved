@@ -2081,18 +2081,34 @@ body:has(.profile-page) .site-footer {
 }
 
 
-/* ================================
-   YELLOVED - MY ORDERS
-================================ */
+/* ==========================================
+   YELLOVED — MY ORDERS
+   Official Plum Theme
+   #320C35 → #4F1353
+========================================== */
 
-.orders-page {
-    padding-top: 42px;
-    padding-bottom: 64px;
+.container.orders-page {
+    --orders-plum-dark: #320C35;
+    --orders-plum: #4F1353;
+    --orders-gradient: linear-gradient(135deg, #320C35 0%, #4F1353 100%);
+    --orders-paper: #FDFCF5;
+    --orders-cream: #F8F5F0;
+    --orders-border: #E7DFE7;
+    --orders-text: #302433;
+    --orders-muted: #817783;
+
+    width: min(1180px, calc(100% - 40px));
+    max-width: 1180px;
+    margin-inline: auto;
+    padding: 42px 0 64px;
     min-height: 65vh;
-    color: #26352d;
+    color: var(--orders-text);
+    font-family: "Sora", sans-serif;
 }
 
-.orders-heading {
+/* Heading */
+
+.container.orders-page .orders-heading {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -2100,347 +2116,436 @@ body:has(.profile-page) .site-footer {
     margin-bottom: 30px;
 }
 
-.orders-eyebrow {
+.container.orders-page .orders-eyebrow {
     display: inline-block;
     margin-bottom: 9px;
-    color: #47845e;
+    color: var(--orders-plum);
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 2px;
 }
 
-.orders-heading h1 {
+.container.orders-page .orders-heading h1 {
     margin: 0 0 9px;
+    color: var(--orders-plum-dark);
     font-size: clamp(28px, 4vw, 38px);
     font-weight: 800;
     letter-spacing: -1.3px;
+    line-height: 1.2;
 }
 
-.orders-heading p {
+.container.orders-page .orders-heading p {
     margin: 0;
-    color: #748078;
+    color: var(--orders-muted);
     font-size: 14px;
     line-height: 1.7;
 }
 
-.orders-explore {
+/* Primary button */
+
+.container.orders-page .orders-explore {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     padding: 12px 18px;
-    border: 1px solid #286b48;
+    border: 1px solid var(--orders-plum);
     border-radius: 12px;
-    background: #286b48;
-    color: #fff;
+    background: var(--orders-gradient);
+    color: #FFFFFF;
+    font-family: inherit;
     font-size: 13px;
     font-weight: 700;
     text-decoration: none;
     white-space: nowrap;
-    transition: background 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.orders-explore:hover {
-    background: #1d5337;
-    transform: translateY(-1px);
+.container.orders-page .orders-explore:hover {
+    background: linear-gradient(135deg, #280A2A, #3C1040);
+    color: #FFFFFF;
+    box-shadow: 0 6px 18px rgba(50, 12, 53, 0.18);
+    transform: translateY(-2px);
 }
 
-.orders-tabs {
+/* Status filters */
+
+.container.orders-page .orders-tabs {
     display: flex;
     gap: 6px;
     overflow-x: auto;
-    margin-bottom: 24px;
+    margin: 0 0 24px;
     padding: 6px;
-    border: 1px solid #e7ece7;
+    border: 1px solid var(--orders-border);
     border-radius: 14px;
-    background: #f4f7f3;
+    background: #F5F0F5;
+    scrollbar-width: thin;
 }
 
-.orders-tabs a {
+.container.orders-page .orders-tabs a {
     flex: 1 0 auto;
     padding: 12px 16px;
     border-radius: 10px;
-    color: #68756c;
+    color: #716675;
     font-size: 13px;
     font-weight: 650;
     text-align: center;
     text-decoration: none;
+    white-space: nowrap;
     transition: background 0.2s ease, color 0.2s ease;
 }
 
-.orders-tabs a:hover {
-    background: #e7efe7;
-    color: #286b48;
+.container.orders-page .orders-tabs a:hover {
+    background: #E9DFEB;
+    color: var(--orders-plum);
 }
 
-.orders-tabs a.active {
-    background: #286b48;
-    color: #fff;
-    box-shadow: 0 3px 8px rgb(40 107 72 / 14%);
+.container.orders-page .orders-tabs a.active {
+    background: var(--orders-gradient);
+    color: #FFFFFF;
+    box-shadow: 0 3px 10px rgba(50, 12, 53, 0.17);
 }
 
-.orders-list {
+/* Order list */
+
+.container.orders-page .orders-list {
     display: grid;
     gap: 18px;
+    min-width: 0;
 }
 
-.order-card {
+/* Order card */
+
+.container.orders-page .order-card {
     overflow: hidden;
-    border: 1px solid #e5eae5;
+    min-width: 0;
+    border: 1px solid var(--orders-border);
     border-radius: 18px;
-    background: #fff;
-    box-shadow: 0 5px 18px rgb(35 65 43 / 4%);
+    background: #FFFFFF;
+    box-shadow: 0 5px 18px rgba(50, 12, 53, 0.045);
     transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.order-card:hover {
-    box-shadow: 0 10px 28px rgb(35 65 43 / 8%);
+.container.orders-page .order-card:hover {
+    box-shadow: 0 10px 28px rgba(50, 12, 53, 0.10);
     transform: translateY(-2px);
 }
 
-.order-card-top {
+/* Order header */
+
+.container.orders-page .order-card-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
     padding: 19px 22px;
-    border-bottom: 1px solid #edf0ed;
+    border-bottom: 1px solid #F0EAF0;
+    background: #FFFDFF;
 }
 
-.order-reference {
+.container.orders-page .order-reference {
     display: flex;
     align-items: center;
     gap: 12px;
     min-width: 0;
 }
 
-.order-icon {
+.container.orders-page .order-icon {
     display: grid;
     flex: 0 0 42px;
     width: 42px;
     height: 42px;
     place-items: center;
     border-radius: 12px;
-    background: #edf5ed;
-    color: #286b48;
-    font-size: 23px;
+    background: var(--orders-gradient);
+    color: #FFFFFF;
+    font-size: 20px;
 }
 
-.order-reference > div {
+.container.orders-page .order-reference > div {
     display: grid;
     gap: 5px;
     min-width: 0;
 }
 
-.order-label {
-    color: #859087;
+.container.orders-page .order-label {
+    color: var(--orders-muted);
     font-size: 11px;
 }
 
-.order-reference strong {
+.container.orders-page .order-reference strong {
     overflow-wrap: anywhere;
-    color: #33453a;
+    color: var(--orders-plum-dark);
     font-size: 13px;
 }
 
-.order-date {
-    color: #7c877f;
+.container.orders-page .order-date {
+    color: var(--orders-muted);
     font-size: 12px;
     text-align: right;
 }
 
-.order-card-body {
+/* Product details */
+
+.container.orders-page .order-card-body {
     display: flex;
     align-items: center;
     gap: 20px;
     padding: 24px 22px;
 }
 
-.order-product-placeholder {
+.container.orders-page .order-product-placeholder {
     display: grid;
     flex: 0 0 94px;
     width: 94px;
     height: 94px;
     place-items: center;
+    border: 1px solid #E9DFEB;
     border-radius: 14px;
-    background: #eff5ec;
-    font-size: 36px;
+    background: #F6F0F7;
+    color: var(--orders-plum);
+    font-size: 32px;
 }
 
-.order-product-info {
+.container.orders-page .order-product-info {
     flex: 1;
     min-width: 0;
 }
 
-.order-product-info h2 {
+.container.orders-page .order-product-info h2 {
     margin: 0 0 7px;
-    color: #293b30;
+    color: var(--orders-text);
     font-size: 17px;
     font-weight: 750;
     overflow-wrap: anywhere;
 }
 
-.order-product-info p {
+.container.orders-page .order-product-info p {
     margin: 0 0 13px;
-    color: #7a857d;
+    color: var(--orders-muted);
     font-size: 13px;
 }
 
-.order-statuses {
+/* Payment and transaction badges */
+
+.container.orders-page .order-statuses {
     display: flex;
     flex-wrap: wrap;
     gap: 7px;
 }
 
-.order-status {
+.container.orders-page .order-status {
     display: inline-flex;
+    align-items: center;
     padding: 6px 10px;
+    border: 1px solid #E5D9E8;
     border-radius: 7px;
-    background: #f0f2f0;
-    color: #606a62;
+    background: #F3EDF5;
+    color: var(--orders-plum);
     font-size: 11px;
     font-weight: 700;
+    line-height: 1.45;
 }
 
-.status-pending {
-    background: #fff3d9;
-    color: #95610c;
+/* Pending payment */
+
+.container.orders-page .order-status.status-pending {
+    border-color: #E9D8AD;
+    background: #FBF4E5;
+    color: #79591F;
 }
 
-.status-paid,
-.status-processing {
-    background: #e5f0ff;
-    color: #285c9e;
+/* Paid / processing */
+
+.container.orders-page .order-status.status-paid,
+.container.orders-page .order-status.status-processing {
+    border-color: #D8C9E5;
+    background: #F0EAF7;
+    color: #59346F;
 }
 
-.status-completed {
-    background: #e1f4e7;
-    color: #267244;
+/* Completed */
+
+.container.orders-page .order-status.status-completed {
+    border-color: #D4C1DF;
+    background: #EDE2F2;
+    color: #4F1353;
 }
 
-.status-failed,
-.status-expired,
-.status-cancelled {
-    background: #fde9e7;
-    color: #a43c35;
+/* Cancelled / failed / expired */
+
+.container.orders-page .order-status.status-cancelled,
+.container.orders-page .order-status.status-failed,
+.container.orders-page .order-status.status-expired {
+    border-color: #E8CCD5;
+    background: #F9EDF1;
+    color: #913D59;
 }
 
-.order-total {
+/* Total */
+
+.container.orders-page .order-total {
     display: grid;
     flex: 0 0 auto;
     gap: 8px;
     text-align: right;
 }
 
-.order-total span {
-    color: #7b867e;
+.container.orders-page .order-total span {
+    color: var(--orders-muted);
     font-size: 12px;
 }
 
-.order-total strong {
-    color: #286b48;
+.container.orders-page .order-total strong {
+    color: var(--orders-plum);
     font-size: 18px;
     font-weight: 800;
+    overflow-wrap: anywhere;
 }
 
-.order-card-footer {
+/* Card footer */
+
+.container.orders-page .order-card-footer {
     padding: 13px 22px;
-    border-top: 1px solid #edf0ed;
-    background: #fafcf9;
-    color: #78847a;
+    border-top: 1px solid #F0EAF0;
+    background: var(--orders-cream);
+    color: var(--orders-muted);
     font-size: 12px;
+    line-height: 1.6;
 }
 
-.orders-empty {
+/* Empty state */
+
+.container.orders-page .orders-empty {
     display: flex;
     align-items: center;
     flex-direction: column;
     padding: 64px 24px;
-    border: 1px solid #e6ece5;
+    border: 1px solid var(--orders-border);
     border-radius: 20px;
-    background: #fff;
+    background: #FFFFFF;
     text-align: center;
-    box-shadow: 0 5px 18px rgb(35 65 43 / 3%);
+    box-shadow: 0 5px 18px rgba(50, 12, 53, 0.04);
 }
 
-.empty-illustration {
+.container.orders-page .empty-illustration {
     display: grid;
     width: 92px;
     height: 92px;
     margin-bottom: 22px;
     place-items: center;
+    border: 1px solid #E9DFEB;
     border-radius: 28px;
-    background: #edf5eb;
-    font-size: 43px;
+    background: #F5EDF6;
+    color: var(--orders-plum);
+    font-size: 40px;
 }
 
-.orders-empty h2 {
+.container.orders-page .orders-empty h2 {
     margin: 0 0 10px;
-    color: #2c4334;
+    color: var(--orders-plum-dark);
     font-size: 22px;
+    line-height: 1.4;
 }
 
-.orders-empty p {
+.container.orders-page .orders-empty p {
     max-width: 420px;
     margin: 0 0 24px;
-    color: #7b867e;
+    color: var(--orders-muted);
     font-size: 14px;
     line-height: 1.8;
 }
 
+/* Keyboard accessibility */
+
+.container.orders-page .orders-explore:focus-visible,
+.container.orders-page .orders-tabs a:focus-visible {
+    outline: 3px solid #A98AAF;
+    outline-offset: 3px;
+}
+
+/* Responsive */
+
 @media (max-width: 700px) {
-    .orders-page {
+    .container.orders-page {
+        width: calc(100% - 28px);
         padding-top: 28px;
+        padding-bottom: 42px;
     }
 
-    .orders-heading {
+    .container.orders-page .orders-heading {
         align-items: flex-start;
         flex-direction: column;
         gap: 18px;
     }
 
-    .orders-tabs a {
+    .container.orders-page .orders-tabs a {
         padding: 11px 14px;
     }
 
-    .order-card-top {
+    .container.orders-page .order-card-top {
         align-items: flex-start;
         flex-direction: column;
         gap: 10px;
         padding: 16px;
     }
 
-    .order-date {
+    .container.orders-page .order-date {
         text-align: left;
     }
 
-    .order-card-body {
+    .container.orders-page .order-card-body {
         flex-wrap: wrap;
         gap: 14px;
         padding: 18px 16px;
     }
 
-    .order-product-placeholder {
+    .container.orders-page .order-product-placeholder {
         flex-basis: 72px;
         width: 72px;
         height: 72px;
     }
 
-    .order-product-info {
+    .container.orders-page .order-product-info {
         flex-basis: calc(100% - 90px);
     }
 
-    .order-total {
+    .container.orders-page .order-total {
         flex-basis: 100%;
         padding-top: 14px;
-        border-top: 1px solid #edf0ed;
+        border-top: 1px solid #F0EAF0;
         text-align: left;
     }
 
-    .order-card-footer {
+    .container.orders-page .order-card-footer {
         padding: 13px 16px;
     }
+
+    .container.orders-page .orders-empty {
+        padding: 48px 20px;
+    }
 }
+
+@media (max-width: 420px) {
+    .container.orders-page .orders-heading h1 {
+        font-size: 29px;
+    }
+
+    .container.orders-page .orders-tabs {
+        gap: 4px;
+    }
+
+    .container.orders-page .orders-tabs a {
+        padding: 10px 12px;
+        font-size: 12px;
+    }
+
+    .container.orders-page .order-status {
+        font-size: 10px;
+    }
+}
+
 
 
 .nav-icon-group {
@@ -2750,536 +2855,3 @@ body:has(.profile-page) .site-footer {
 }
 
 
-/* Yelloved Messages Page */
-.messages-page {
-    padding: 42px 24px 64px;
-    color: #332338;
-    font-family: "Sora", sans-serif;
-}
-
-.messages-heading {
-    max-width: 1160px;
-    margin: 0 auto 30px;
-}
-
-.messages-eyebrow {
-    margin: 0 0 10px;
-    color: #36795a;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 2px;
-}
-
-.messages-heading h1 {
-    margin: 0 0 12px;
-    font-size: clamp(30px, 4vw, 40px);
-    color: #332338;
-}
-
-.messages-heading > p:last-child {
-    color: #7c7480;
-    font-size: 14px;
-}
-
-.messages-empty {
-    max-width: 1160px;
-    min-height: 340px;
-    margin: 0 auto;
-    padding: 50px 24px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    background: #fff;
-    border: 1px solid #eee9df;
-    border-radius: 20px;
-}
-
-.messages-empty-icon {
-    width: 76px;
-    height: 76px;
-    margin-bottom: 22px;
-    display: grid;
-    place-items: center;
-    border-radius: 24px;
-    background: #f7efbd;
-    color: #421445;
-    font-size: 34px;
-}
-
-.messages-empty h2 {
-    margin: 0 0 10px;
-    color: #332338;
-    font-size: 22px;
-}
-
-.messages-empty p {
-    max-width: 420px;
-    margin: 0 0 24px;
-    color: #7c7480;
-    font-size: 13px;
-    line-height: 1.8;
-}
-
-.messages-button {
-    padding: 13px 22px;
-    border-radius: 11px;
-    background: #276c4c;
-    color: #fff;
-    font-size: 13px;
-    font-weight: 700;
-    text-decoration: none;
-}
-
-.messages-button:hover {
-    background: #20583e;
-}
-
-@media (max-width: 600px) {
-    .messages-page {
-        padding: 28px 14px 42px;
-    }
-
-    .messages-empty {
-        min-height: 300px;
-    }
-}
-
-
-/* =========================================
-   YELLOVED MESSAGES
-========================================= */
-
-.messages-page {
-    --msg-purple: #421445;
-    --msg-purple-light: #60245e;
-    --msg-gold: #f5e99a;
-    --msg-cream: #fffdf5;
-    --msg-text: #302632;
-    --msg-muted: #8b8290;
-    --msg-border: #eeeaf0;
-
-    min-height: 620px;
-    padding: 26px 24px 38px;
-    color: var(--msg-text);
-    font-family: "Sora", sans-serif;
-}
-
-.messages-workspace {
-    max-width: 1400px;
-    min-height: 610px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 340px minmax(0, 1fr);
-    overflow: hidden;
-    background: #fff;
-    border: 1px solid var(--msg-border);
-    border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(48, 22, 50, 0.045);
-}
-
-/* Sidebar */
-
-.messages-sidebar {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid var(--msg-border);
-    background: #fff;
-}
-
-.messages-sidebar-header {
-    min-height: 66px;
-    padding: 0 22px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid #f2eff3;
-}
-
-.messages-sidebar-header h1 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 750;
-    letter-spacing: -0.4px;
-}
-
-.messages-compose {
-    width: 36px;
-    height: 36px;
-    display: grid;
-    place-items: center;
-    border: 1px solid #eee8ef;
-    border-radius: 11px;
-    background: #fffdf5;
-    color: var(--msg-purple);
-}
-
-.messages-compose svg {
-    width: 19px;
-    height: 19px;
-}
-
-.messages-compose:disabled {
-    opacity: 0.65;
-    cursor: not-allowed;
-}
-
-.messages-tabs {
-    display: flex;
-    gap: 5px;
-    padding: 16px 18px 12px;
-}
-
-.messages-tab {
-    min-height: 34px;
-    padding: 0 15px;
-    border: 1px solid transparent;
-    border-radius: 999px;
-    background: transparent;
-    color: #716775;
-    font-family: inherit;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s ease, color 0.2s ease;
-}
-
-.messages-tab:hover {
-    background: #f8f4f8;
-}
-
-.messages-tab.active {
-    background: var(--msg-purple);
-    color: var(--msg-gold);
-    box-shadow: 0 3px 8px rgba(66, 20, 69, 0.13);
-}
-
-.messages-search {
-    height: 39px;
-    margin: 2px 18px 14px;
-    padding: 0 12px;
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    border: 1px solid #eeeaf0;
-    border-radius: 10px;
-    background: #fcfafc;
-}
-
-.messages-search svg {
-    width: 17px;
-    height: 17px;
-    flex-shrink: 0;
-    color: #9a909c;
-}
-
-.messages-search input {
-    width: 100%;
-    min-width: 0;
-    border: 0;
-    outline: none;
-    background: transparent;
-    color: var(--msg-text);
-    font-family: inherit;
-    font-size: 11px;
-}
-
-.messages-search input::placeholder {
-    color: #a49aa6;
-}
-
-.messages-search input:disabled {
-    cursor: not-allowed;
-}
-
-.messages-list {
-    flex: 1;
-    min-height: 280px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px 18px;
-}
-
-.messages-list-empty {
-    max-width: 230px;
-    text-align: center;
-}
-
-.messages-list-empty-icon {
-    width: 52px;
-    height: 52px;
-    margin: 0 auto 15px;
-    display: grid;
-    place-items: center;
-    border-radius: 17px;
-    background: #f7f1d0;
-    color: var(--msg-purple);
-}
-
-.messages-list-empty-icon svg {
-    width: 24px;
-    height: 24px;
-}
-
-.messages-list-empty p {
-    margin: 0 0 7px;
-    font-size: 12px;
-    font-weight: 700;
-}
-
-.messages-list-empty span {
-    display: block;
-    color: var(--msg-muted);
-    font-size: 10px;
-    line-height: 1.8;
-}
-
-.messages-sidebar-footer {
-    min-height: 49px;
-    padding: 12px 18px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    border-top: 1px solid #f2eff3;
-    color: #938997;
-    font-size: 9px;
-}
-
-.messages-status-dot {
-    width: 7px;
-    height: 7px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    background: #7aa884;
-}
-
-/* Main welcome panel */
-
-.messages-main {
-    position: relative;
-    min-width: 0;
-    display: flex;
-    background:
-        radial-gradient(ellipse at 50% 45%, #fffdf6 0%, #fff 72%);
-}
-
-.messages-welcome {
-    position: relative;
-    isolation: isolate;
-    width: 100%;
-    min-height: 610px;
-    padding: 50px 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-.messages-welcome-content {
-    position: relative;
-    z-index: 2;
-    width: 100%;
-    max-width: 440px;
-    text-align: center;
-}
-
-.messages-welcome-icon {
-    position: relative;
-    width: 94px;
-    height: 94px;
-    margin: 0 auto 28px;
-    display: grid;
-    place-items: center;
-    border: 1px solid #eee2a0;
-    border-radius: 29px;
-    background: linear-gradient(145deg, #fff8cb, #f4e9a3);
-    color: var(--msg-purple);
-    box-shadow: 0 12px 28px rgba(110, 86, 26, 0.09);
-    transform: rotate(-4deg);
-}
-
-.messages-welcome-icon svg {
-    width: 43px;
-    height: 43px;
-}
-
-.messages-welcome-sparkle {
-    position: absolute;
-    top: -13px;
-    right: -12px;
-    color: #b99a36;
-    font-size: 27px;
-    transform: rotate(4deg);
-}
-
-.messages-welcome-eyebrow {
-    display: block;
-    margin-bottom: 13px;
-    color: #438264;
-    font-size: 9px;
-    font-weight: 750;
-    letter-spacing: 2px;
-}
-
-.messages-welcome h2 {
-    margin: 0 0 14px;
-    color: var(--msg-purple);
-    font-size: clamp(22px, 2.5vw, 30px);
-    font-weight: 750;
-    line-height: 1.35;
-    letter-spacing: -0.7px;
-}
-
-.messages-welcome-content > p {
-    max-width: 370px;
-    margin: 0 auto 25px;
-    color: #847a87;
-    font-size: 12px;
-    line-height: 1.9;
-}
-
-.messages-explore-button {
-    width: fit-content;
-    min-height: 44px;
-    margin: 0 auto;
-    padding: 0 19px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    border: 1px solid var(--msg-purple);
-    border-radius: 11px;
-    background: var(--msg-purple);
-    color: var(--msg-gold);
-    font-family: inherit;
-    font-size: 11px;
-    font-weight: 700;
-    text-decoration: none;
-    transition: transform 0.2s ease, background 0.2s ease;
-}
-
-.messages-explore-button svg {
-    width: 17px;
-    height: 17px;
-}
-
-.messages-explore-button:hover {
-    transform: translateY(-2px);
-    background: var(--msg-purple-light);
-}
-
-.messages-coming-note {
-    display: block;
-    margin-top: 23px;
-    color: #a39aa3;
-    font-size: 10px;
-}
-
-.messages-welcome-decoration {
-    position: absolute;
-    z-index: -1;
-    border: 1px solid rgba(66, 20, 69, 0.045);
-    border-radius: 50%;
-    pointer-events: none;
-}
-
-.messages-welcome-decoration.decoration-one {
-    width: 280px;
-    height: 280px;
-    top: -175px;
-    right: -100px;
-}
-
-.messages-welcome-decoration.decoration-two {
-    width: 340px;
-    height: 340px;
-    bottom: -230px;
-    left: -170px;
-    box-shadow: 0 0 0 35px rgba(245, 233, 154, 0.09);
-}
-
-/* Responsive */
-
-@media (max-width: 800px) {
-    .messages-page {
-        min-height: auto;
-        padding: 16px 12px 28px;
-    }
-
-    .messages-workspace {
-        grid-template-columns: 260px minmax(0, 1fr);
-        min-height: 560px;
-    }
-
-    .messages-welcome {
-        min-height: 560px;
-        padding: 35px 18px;
-    }
-
-    .messages-sidebar-header {
-        padding: 0 15px;
-    }
-
-    .messages-tabs {
-        padding-right: 10px;
-        padding-left: 10px;
-        flex-wrap: wrap;
-    }
-
-    .messages-tab {
-        padding: 0 10px;
-        font-size: 10px;
-    }
-}
-
-@media (max-width: 560px) {
-    .messages-workspace {
-        grid-template-columns: 1fr;
-        min-height: 560px;
-    }
-
-    .messages-sidebar {
-        border-right: 0;
-    }
-
-    .messages-sidebar-header {
-        min-height: 58px;
-    }
-
-    .messages-list {
-        min-height: 190px;
-        padding: 20px;
-    }
-
-    .messages-sidebar-footer {
-        display: none;
-    }
-
-    .messages-main {
-        border-top: 1px solid var(--msg-border);
-    }
-
-    .messages-welcome {
-        min-height: 390px;
-        padding: 35px 20px;
-    }
-
-    .messages-welcome-icon {
-        width: 75px;
-        height: 75px;
-        margin-bottom: 23px;
-        border-radius: 23px;
-    }
-
-    .messages-welcome-icon svg {
-        width: 35px;
-        height: 35px;
-    }
-
-    .messages-welcome h2 {
-        font-size: 23px;
-    }
-}
