@@ -1,12 +1,10 @@
 {% extends "base.html" %}
 {% load static %}
-
-{% block meta %}
-<title>Explore Items | {{ name }}</title>
-<meta name="description" content="Temukan barang preloved pilihan di sekitar UI dan Depok bersama Yelloved.">
+{% block meta %}<script src="{% static 'js/items/images.js' %}" defer></script>
+<title>Explore Items | Yelloved</title>
 <link rel="stylesheet" href="{% static 'css/explore.css' %}">
-{% endblock meta %}
-
+<script src="{% static 'js/items/explore.js' %}" defer></script>
+{% endblock %}
 {% block content %}
 <main class="explore-page" lang="id">
     <section class="explore-hero" aria-labelledby="explore-title">
@@ -15,56 +13,24 @@
         <p>Temukan preloved favoritmu di sekitar UI &amp; Depok.<br>Lebih hemat, lebih dekat, lebih berarti.</p>
         <span class="explore-hero-note">✦ A little love goes a long way</span>
     </section>
-
-    <section class="explore-catalog" aria-labelledby="explore-catalog-title">
-        <form class="explore-search" action="{% url 'items:explore_items' %}" method="get" role="search">
-            <div class="explore-field explore-query">
-                <label for="explore-query">Cari barang atau lokasi</label>
-                <input id="explore-query" type="search" name="q" value="{{ query }}" placeholder="Kemeja, buku, Kukusan…">
-            </div>
-            <div class="explore-field">
-                <label for="explore-category">Kategori</label>
-                <select id="explore-category" name="category">
-                    <option value="">Semua kategori</option>
-                    {% for option in categories %}<option value="{{ option }}"{% if category == option %} selected{% endif %}>{{ option }}</option>{% endfor %}
-                </select>
-            </div>
-            <div class="explore-field">
-                <label for="explore-condition">Kondisi</label>
-                <select id="explore-condition" name="condition">
-                    <option value="">Semua kondisi</option>
-                    {% for option in conditions %}<option value="{{ option }}"{% if condition == option %} selected{% endif %}>{{ option }}</option>{% endfor %}
-                </select>
-            </div>
+    <section aria-labelledby="explore-catalog-title">
+        <div class="explore-heading explore-toolbar">
+            <h2 id="explore-catalog-title">Explore Items</h2>
+            {% if user.is_authenticated %}<a class="explore-button" href="{% url 'items:item_create' %}">+ Jual Barang</a>
+            {% else %}<a class="explore-button" href="{% url 'login' %}?next={% url 'items:item_create' %}">+ Jual Barang</a>{% endif %}
+        </div>
+        <form id="explore-filters" class="explore-search" action="{% url 'items:explore_items' %}" data-endpoint="{% url 'items:items_json' %}" method="get" role="search">
+            <div class="explore-field explore-query"><label for="{{ filter_form.q.id_for_label }}">Cari judul atau deskripsi</label>{{ filter_form.q }}</div>
+            {% for field in filter_form %}{% if field.name != 'q' %}
+            <div class="explore-field"><label for="{{ field.id_for_label }}">{% if field.name == 'category' %}Kategori{% elif field.name == 'condition' %}Kondisi{% elif field.name == 'listing_type' %}Tipe listing{% else %}Status{% endif %}</label>{{ field }}</div>
+            {% endif %}{% endfor %}
             <button class="explore-button" type="submit">Cari barang</button>
+            <a class="explore-reset" href="{% url 'items:explore_items' %}">Reset filter</a>
         </form>
-        <div class="explore-heading">
-            <div><h2 id="explore-catalog-title">Explore Items</h2><p>{{ items|length }} barang ditemukan · Koleksi dummy</p></div>
-            {% if query or condition or category %}<a class="explore-reset" href="{% url 'items:explore_items' %}">Reset filter</a>{% endif %}
-        </div>
-        <div class="explore-grid">
-            {% for item in items %}
-            <article class="explore-card">
-                <a class="explore-card-link" href="{% url 'items:item_detail' item.id %}">
-                    <div class="explore-image">
-                        <img src="{% static item.image %}" alt="Foto ilustrasi {{ item.name }}" width="480" height="360" loading="lazy">
-
-                        <span class="explore-condition">{{ item.condition }}</span>
-                    </div>
-                    <div class="explore-card-body">
-                        <p class="explore-category">{{ item.category }}</p>
-                        <h3>{{ item.name }}</h3>
-                        <p class="explore-price">{{ item.price }}</p>
-                        <p class="explore-location"><span aria-hidden="true">⌖</span> {{ item.location }}</p>
-                        <span class="explore-card-cta">Lihat detail <span aria-hidden="true">↗</span></span>
-                    </div>
-                </a>
-            </article>
-            {% empty %}
-            <div class="explore-empty"><h3>Belum ketemu yang cocok?</h3><p>Coba kata kunci lain atau longgarkan filtermu.</p><a class="explore-button" href="{% url 'items:explore_items' %}">Lihat semua barang</a></div>
-            {% endfor %}
-        </div>
-        <p class="explore-demo-note">Data barang adalah contoh. Foto ilustrasi dari Unsplash.</p>
+        {% if filter_form.errors %}<p class="explore-feedback">Filter tidak valid. Silakan reset filter.</p>{% endif %}
+        <p id="explore-loading" role="status" hidden>Memuat barang…</p>
+        <div id="explore-error" class="explore-feedback" role="alert" hidden>Barang gagal dimuat. Periksa koneksi, lalu <button type="button" id="explore-retry">coba lagi</button>.</div>
+        <div id="explore-results" aria-live="polite" aria-busy="false">{% include 'items/_results.html' %}</div>
     </section>
 </main>
-{% endblock content %}
+{% endblock %}

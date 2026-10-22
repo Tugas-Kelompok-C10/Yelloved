@@ -21,8 +21,8 @@
 .explore-page .explore-card:hover { box-shadow: 0 8px 26px #320c3517; }
 .explore-page .explore-card-link { display: block; height: 100%; color: inherit; text-decoration: none; }
 .explore-page .explore-card:focus-within { outline: 3px solid #805184; outline-offset: 3px; }
-.explore-page .explore-image { position: relative; overflow: hidden; aspect-ratio: 4 / 3; background: var(--text); }
-.explore-page .explore-image img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.explore-page .explore-image { position: relative; overflow: hidden; aspect-ratio: 4 / 3; background: #fffef9; }
+.explore-page .explore-image img { display: block; width: 100%; height: 100%; object-fit: cover; background: #fffef9; }
 .explore-page .explore-condition { position: absolute; top: 14px; left: 14px; padding: 4px 11px; border-radius: 999px; background: var(--paper); color: var(--violet); font-size: 10px; font-weight: 600; }
 .explore-page .explore-card-body { padding: 20px; }
 .explore-page .explore-category { margin-bottom: 6px; color: #765779; font-size: 10px; font-weight: 600; }
@@ -64,3 +64,39 @@
     .explore-page .explore-grid { grid-template-columns: minmax(0, 1fr); }
     .explore-page .explore-detail-body { padding: 24px; }
 }
+
+/* Items database forms and catalog states. */
+.explore-page .explore-toolbar { margin: 24px 0 0; }
+.explore-page .explore-search { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.explore-page .explore-query { grid-column: 1 / -1; }
+.explore-page .explore-result-count { margin-bottom: 18px; font-size: 12px; color: #716b61; }
+.explore-page .explore-status { margin-top: 8px; font-size: 11px; }
+.explore-page .explore-pagination { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 16px; margin-top: 24px; font-size: 12px; }
+.explore-page .explore-feedback { padding: 16px; margin-bottom: 16px; background: var(--text); border-radius: 10px; font-size: 13px; }
+.explore-page .explore-feedback button { font: inherit; color: var(--violet); background: transparent; border: 0; text-decoration: underline; cursor: pointer; }
+.explore-page [aria-busy="true"] { opacity: .55; }
+.explore-page .explore-owner-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
+.explore-page .explore-detail-note a { color: inherit; }
+.explore-page.item-form-page { max-width: 720px; margin-bottom: 32px; }
+.explore-page .item-form-panel { padding: 28px; background: #fffef9; border: 1px solid #e4dfcd; border-radius: var(--radius); }
+.explore-page .item-form-panel h1 { font-size: 26px; margin-bottom: 10px; }
+.explore-page .item-form { display: grid; gap: 18px; margin-top: 24px; }
+.explore-page .item-form-field { display: grid; gap: 7px; }
+.explore-page .item-form-field label { font-size: 12px; font-weight: 600; }
+.explore-page .item-form-field :is(input, select, textarea) { width: 100%; min-height: 44px; padding: 12px; border: 1px solid #ded8bf; border-radius: 10px; background: var(--paper); color: var(--violet); font: inherit; font-size: 13px; }
+.explore-page .item-form-field textarea { resize: vertical; }
+.explore-page .item-form-help { font-size: 11px; color: #716b61; }
+.explore-page .errorlist { padding-left: 20px; font-size: 12px; color: #a21d2b; }
+.explore-page .explore-button-secondary { border: 1px solid var(--violet); background: var(--paper); color: var(--violet); }
+.explore-page .explore-button-secondary:hover { background: var(--text); }
+.explore-page .explore-description { overflow-wrap: anywhere; }
+@media (max-width: 900px) { .explore-page .explore-search { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 540px) {
+    .explore-page .explore-search { grid-template-columns: minmax(0, 1fr); }
+    .explore-page .item-form-panel { padding: 20px; }
+}
+
+.explore-page .explore-detail-image img { object-fit: contain; }
+
+.explore-page .explore-photo-credit { margin-top: 12px; font-size: 11px; }
+.explore-page .explore-photo-credit a { color: var(--violet); text-underline-offset: 3px; }
