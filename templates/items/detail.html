@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+{% block meta %}
+<title>{{ item.name }} | Yelloved</title>
+<link rel="stylesheet" href="{% static 'css/explore.css' %}">
+{% endblock meta %}
+{% block content %}
+<main class="explore-page" lang="id">
+    <a class="explore-back" href="{% url 'items:explore_items' %}">← Kembali ke Explore</a>
+    <article class="explore-detail">
+        <div class="explore-image explore-detail-image">
+            <img src="{% static item.image %}" alt="Foto ilustrasi {{ item.name }}" width="480" height="360">
+
+        </div>
+        <div class="explore-detail-body">
+            <p class="explore-category">{{ item.category }}</p>
+            <h1>{{ item.name }}</h1>
+            <p class="explore-price">{{ item.price }}</p>
+            <dl class="explore-specs"><div><dt>Kondisi</dt><dd>{{ item.condition }}</dd></div><div><dt>Lokasi</dt><dd>{{ item.location }}</dd></div></dl>
+            <h2>Tentang barang ini</h2>
+            <p class="explore-description">{{ item.description }}</p>
+            <p class="explore-detail-note">Item dummy · Foto merupakan ilustrasi dari Unsplash. Barang belum tersedia untuk transaksi.</p>
+            <div class="explore-detail-actions">
+                <button class="explore-button" id="explore-interest-button" type="button" aria-controls="explore-interest-message">Tertarik dengan Item Ini</button>
+                <a class="explore-button explore-button-secondary" href="{% url 'items:explore_items' %}">Kembali ke Explore</a>
+            </div>
+            <p class="explore-interest-message" id="explore-interest-message" role="status" aria-live="polite"></p>
+        </div>
+    </article>
+</main>
+<script>
+    document.getElementById('explore-interest-button').addEventListener('click', function () {
+        document.getElementById('explore-interest-message').textContent = 'Fitur pengajuan request akan segera tersedia.';
+    });
+</script>
+{% endblock content %}
