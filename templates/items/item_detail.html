@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+{% block meta %}<script src="{% static 'js/items/images.js' %}" defer></script><title>{{ item.title }} | Yelloved</title><link rel="stylesheet" href="{% static 'css/explore.css' %}">{% endblock %}
+{% block content %}
+<main class="explore-page item-detail-page" lang="id">
+    <a class="explore-back" href="{% url 'items:explore_items' %}">← Kembali ke Explore</a>
+    <article class="explore-detail">
+        <div class="explore-image explore-detail-image"><img src="{{ item.display_image_url }}" data-fallback="{{ item.fallback_image_url }}" alt="{{ item.title }}" width="480" height="360" referrerpolicy="no-referrer"></div>
+        <div class="explore-detail-body">
+            <p class="explore-category">{{ item.get_category_display }} · {{ item.get_listing_type_display }}</p>
+            <h1>{{ item.title }}</h1><p class="explore-price">{{ item.price_display }}</p>
+            <dl class="explore-specs">
+                <div><dt>Kondisi</dt><dd>{{ item.get_condition_display }}</dd></div>
+                <div><dt>Lokasi</dt><dd>{{ item.location }}</dd></div>
+                <div><dt>Status</dt><dd>{{ item.get_status_display }}</dd></div>
+                <div><dt>Ditambahkan</dt><dd>{{ item.created_at|date:'d M Y' }}</dd></div>
+            </dl>
+            <h2>Tentang barang ini</h2><p class="explore-description">{{ item.description|linebreaksbr }}</p>
+            <div class="explore-detail-note">
+                {% if item.source == 'dummyjson' %}Koleksi inspirasi preloved untuk mahasiswa dan penghuni kos.
+                {% elif user.is_authenticated %}{% if item.owner %}Penjual: {{ item.owner.username }}{% else %}Akun penjual sudah tidak tersedia.{% endif %}
+                {% else %}<a href="{% url 'login' %}?next={{ request.path|urlencode }}">Masuk untuk melihat informasi penjual.</a>{% endif %}
+            </div>
+            {% if can_manage %}<div class="explore-owner-actions"><a class="explore-button" href="{% url 'items:item_update' item.pk %}">Edit Item / Status</a><a class="explore-reset" href="{% url 'items:item_delete' item.pk %}">Hapus Item</a></div>{% endif %}
+            <div class="explore-detail-actions">
+                <button class="explore-button" id="explore-interest-button" type="button" aria-controls="explore-interest-message">Tertarik dengan Item Ini</button>
+                <a class="explore-button explore-button-secondary" href="{% url 'items:explore_items' %}">Kembali ke Explore</a>
+            </div>
+            <p class="explore-interest-message" id="explore-interest-message" role="status"></p>
+        </div>
+    </article>
+    {% if item.source == 'dummyjson' %}<p class="explore-photo-credit"><a href="{% static 'img/items/SOURCES.md' %}">Sumber dan lisensi foto katalog</a></p>{% endif %}
+</main>
+<script>document.getElementById('explore-interest-button').addEventListener('click', function () { document.getElementById('explore-interest-message').textContent = 'Fitur pengajuan request akan segera tersedia.'; });</script>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load static %}
+{% block meta %}<title>Hapus Item | Yelloved</title><link rel="stylesheet" href="{% static 'css/explore.css' %}">{% endblock %}
+{% block content %}
+<main class="explore-page item-form-page" lang="id">
+    <section class="item-form-panel"><h1>Hapus Item?</h1><p>Listing “{{ item.title }}” akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.</p>
+        <form method="post" class="item-form">{% csrf_token %}<div class="explore-detail-actions"><button type="submit" class="explore-button">Ya, Hapus Item</button><a class="explore-button explore-button-secondary" href="{{ item.get_absolute_url }}">Batal</a></div></form>
+    </section>
+</main>
+{% endblock %}
