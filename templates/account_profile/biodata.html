@@ -1,43 +1,6 @@
-{% extends 'base.html' %}
+{% extends 'account_profile/profile_base.html' %}
 {% load static %}
-{% block content %}
-<main class="profile-page">
-    <aside class="profile-sidebar" aria-label="Menu akun">
-        <div class="profile-identity">
-            <div class="profile-avatar" aria-hidden="true">
-                {% if profile.photo %}
-                    <img src="{{ profile.photo.url }}" alt="">
-                {% else %}
-                    <img src="{% static 'img/Default_PP.png' %}" alt="">
-                {% endif %}
-            </div>
-            <span>{{ user.get_full_name|default:user.username|default:"Adib" }}</span>
-        </div>
-        <nav class="profile-menu" aria-label="Navigasi akun">
-            <section>
-                <h2>Inbox</h2>
-                <a href="#chat">Chat</a>
-                <a href="#ulasan">Ulasan</a>
-                <a href="#bantuan">Bantuan</a>
-            </section>
-            <section>
-                <h2>Purchase</h2>
-                <a href="#pembayaran">Awaiting payment</a>
-                <a href="#ulasan-pembelian">Ulasan</a>
-            </section>
-        </nav>
-        {% if user.is_authenticated %}
-        <form action="{% url 'logout' %}" method="post" class="profile-logout">
-            {% csrf_token %}
-            <button type="submit">Log out</button>
-        </form>
-        {% else %}
-        <a class="profile-logout" href="{% url 'login' %}"><span>Log in</span></a>
-        {% endif %}
-    </aside>
-
-    <section class="profile-content">
-        <h1 class="profile-heading"><span class="profile-heading-icon" aria-hidden="true">◎</span>{{ user.get_full_name|default:user.username|default:"Adib" }}</h1>
+{% block profile_content %}
         <div class="profile-panel">
             <nav class="profile-tabs" aria-label="Pengaturan profil">
                 <a class="active" href="#biodata" aria-current="page">Biodata</a>
@@ -121,6 +84,4 @@
             </div>
             {% endif %}
         </div>
-    </section>
-</main>
-{% endblock content %}
+{% endblock profile_content %}

@@ -205,3 +205,27 @@ def privacy_security(request):
         "profile": profile,
         "form": form,
     })
+
+
+@login_required
+def profile_reviews(request):
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+    active_tab = request.GET.get("tab", "pending")
+    if active_tab not in {"pending", "mine"}:
+        active_tab = "pending"
+    return render(request, "account_profile/reviews.html", {
+        "name": "Yelloved",
+        "profile": profile,
+        "active_tab": active_tab,
+        "period": request.GET.get("period", "3m"),
+        "query": request.GET.get("q", ""),
+    })
+
+
+@login_required
+def help_messages(request):
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+    return render(request, "account_profile/help_messages.html", {
+        "name": "Yelloved",
+        "profile": profile,
+    })
