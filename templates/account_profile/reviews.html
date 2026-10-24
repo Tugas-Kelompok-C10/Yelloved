@@ -1,0 +1,38 @@
+{% extends 'account_profile/profile_base.html' %}
+
+{% block meta %}
+<title>Ulasan | {{ name }}</title>
+<meta name="description" content="Lihat ulasan akun Yelloved.">
+{% endblock meta %}
+
+{% block profile_reviews_active %}profile-menu-active{% endblock %}
+{% block profile_content %}
+<section class="profile-panel reviews-panel">
+    <nav class="reviews-tabs" aria-label="Kategori ulasan">
+        <a href="?tab=pending&period={{ period }}&q={{ query|urlencode }}" class="{% if active_tab == 'pending' %}active{% endif %}" {% if active_tab == 'pending' %}aria-current="page"{% endif %}>Menunggu Diulas</a>
+        <a href="?tab=mine&period={{ period }}&q={{ query|urlencode }}" class="{% if active_tab == 'mine' %}active{% endif %}" {% if active_tab == 'mine' %}aria-current="page"{% endif %}>Ulasan Saya</a>
+    </nav>
+
+    <form class="reviews-tools" method="get">
+        <input type="hidden" name="tab" value="{{ active_tab }}">
+        <label class="reviews-period">
+            <span>Filter</span>
+            <select name="period" onchange="this.form.submit()">
+                <option value="3m" {% if period == '3m' %}selected{% endif %}>3 Bulan Terakhir</option>
+                <option value="6m" {% if period == '6m' %}selected{% endif %}>6 Bulan Terakhir</option>
+                <option value="all" {% if period == 'all' %}selected{% endif %}>Semua Waktu</option>
+            </select>
+        </label>
+        <label class="reviews-search">
+            <span class="sr-only">Cari ulasan</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>
+            </svg>
+            <input type="search" name="q" value="{{ query }}" placeholder="Invoice / Nama Penjual / Produk / Toko">
+            <button type="submit">Cari</button>
+        </label>
+    </form>
+
+    <div class="reviews-empty-state">Tidak Ada Reputasi</div>
+</section>
+{% endblock profile_content %}

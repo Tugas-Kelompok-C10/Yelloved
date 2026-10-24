@@ -14,4 +14,5 @@ urlpatterns = [
     path("checkout/", views.checkout, name="checkout"),
     path("history/", views.transaction_history, name="transaction_history"),
     path("app/", app_page, name="app"),
+    path("pesan/", views.pesan_page, name="pesan"),
 ]
