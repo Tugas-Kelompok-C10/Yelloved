@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
 <main class="profile-page address-page">
     <aside class="profile-sidebar" aria-label="Menu akun">
         <div class="profile-identity">
             <div class="profile-avatar" aria-hidden="true">
-                {% if profile.photo %}<img src="{{ profile.photo.url }}" alt="">{% endif %}
+                {% if profile.photo %}<img src="{{ profile.photo.url }}" alt="">{% else %}<img src="{% static 'img/Default_PP.png' %}" alt="">{% endif %}
             </div>
             <span>{{ user.get_full_name|default:user.username }}</span>
         </div>
@@ -12,13 +13,13 @@
             <section>
                 <h2>Inbox</h2>
                 <a href="#chat">Chat</a>
-                <a href="#ulasan">Ulasan</a>
-                <a href="#bantuan">Bantuan</a>
+                <a href="{% url 'account_profile:reviews' %}">Ulasan</a>
+                <a href="{% url 'account_profile:help_messages' %}">Bantuan</a>
             </section>
             <section>
                 <h2>Purchase</h2>
-                <a href="#pembayaran">Awaiting payment</a>
-                <a href="#ulasan-pembelian">Ulasan</a>
+                <a href="{% url 'transactions:transaction_history' %}?status=pending">Awaiting payment</a>
+                <a href="{% url 'transactions:transaction_history' %}">Daftar Transaksi</a>
             </section>
         </nav>
         <form action="{% url 'logout' %}" method="post" class="profile-logout">

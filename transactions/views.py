@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from .models import Transaction
+from account_profile.models import Profile
 
 
 def transaction_home(request):
@@ -97,6 +98,7 @@ def transaction_history(request):
         },
     )
 
+
 def app_page(request):
     return render(
         request,
@@ -104,9 +106,8 @@ def app_page(request):
         {"name": "Yelloved"}
     )
 
+
 def pesan_page(request):
-    return render(
-        request,
-        "transactions/pesan.html",
-        {"name": "Yelloved"}
-    )
+    profile = Profile.objects.get_or_create(user=request.user)[0] if request.user.is_authenticated else None
+    return render(request, "transactions/pesan.html", {"name": "Yelloved", "profile": profile})
+

@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
 <main class="profile-page payment-page">
     <aside class="profile-sidebar" aria-label="Menu akun">
         <div class="profile-identity">
             <div class="profile-avatar" aria-hidden="true">
-                {% if profile.photo %}<img src="{{ profile.photo.url }}" alt="">{% endif %}
+                {% if profile.photo %}<img src="{{ profile.photo.url }}" alt="">{% else %}<img src="{% static 'img/Default_PP.png' %}" alt="">{% endif %}
             </div>
             <span>{{ user.get_full_name|default:user.username }}</span>
         </div>
@@ -12,13 +13,13 @@
             <section>
                 <h2>Inbox</h2>
                 <a href="#chat">Chat</a>
-                <a href="#ulasan">Ulasan</a>
-                <a href="#bantuan">Bantuan</a>
+                <a href="{% url 'account_profile:reviews' %}">Ulasan</a>
+                <a href="{% url 'account_profile:help_messages' %}">Bantuan</a>
             </section>
             <section>
                 <h2>Purchase</h2>
-                <a href="#pembayaran">Awaiting payment</a>
-                <a href="#ulasan-pembelian">Ulasan</a>
+                <a href="{% url 'transactions:transaction_history' %}?status=pending">Awaiting payment</a>
+                <a href="{% url 'transactions:transaction_history' %}">Daftar Transaksi</a>
             </section>
         </nav>
         <form action="{% url 'logout' %}" method="post" class="profile-logout">
@@ -48,7 +49,11 @@
                 </div>
 
                 <div class="payment-layout">
-                    <section class="payment-saved-list" aria-label="Metode pembayaran tersimpan">
+                    <section class="payment-saved-list"
+                             aria-label="Metode pembayaran tersimpan"
+                             data-payment-list
+                             data-api-url="{% url 'account_profile:api_payment_methods' %}"
+                             data-edit-url-base="{% url 'account_profile:payment_methods' %}">
                         {% for method in methods %}
                         <article class="payment-method-card">
                             <div class="payment-method-icon" aria-hidden="true">{% if method.method_type == "bank" %}▤{% else %}◉{% endif %}</div>
@@ -62,7 +67,9 @@
                                 <p class="payment-number">{{ method.masked_identifier }}</p>
                                 <div class="saved-address-actions">
                                     <a href="{% url 'account_profile:edit_payment_method' method.id %}">Edit</a>
-                                    <form method="post" action="{% url 'account_profile:delete_payment_method' method.id %}">
+                                    <form method="post" action="{% url 'account_profile:delete_payment_method' method.id %}"
+                                          data-api-delete
+                                          data-api-url="{% url 'account_profile:api_payment_method_detail' method.id %}">
                                         {% csrf_token %}
                                         <button type="submit">Hapus</button>
                                     </form>
@@ -80,7 +87,12 @@
 
                     <section class="address-form-card payment-form-card">
                         <h2>{% if editing %}Edit metode{% else %}Tambah metode{% endif %}</h2>
-                        <form method="post" action="{% if editing %}{% url 'account_profile:edit_payment_method' editing_method.id %}{% else %}{% url 'account_profile:payment_methods' %}{% endif %}" class="address-form">
+                        <form method="post" action="{% if editing %}{% url 'account_profile:edit_payment_method' editing_method.id %}{% else %}{% url 'account_profile:payment_methods' %}{% endif %}"
+                              class="address-form"
+                              data-payment-api-form
+                              data-api-url="{% if editing %}{% url 'account_profile:api_payment_method_detail' editing_method.id %}{% else %}{% url 'account_profile:api_payment_methods' %}{% endif %}"
+                              data-api-method="{% if editing %}PATCH{% else %}POST{% endif %}"
+                              data-list-url="{% url 'account_profile:payment_methods' %}">
                             {% csrf_token %}
                             {% for field in form %}
                             <div class="address-form-field{% if field.name == 'is_default' %} address-default-field{% endif %}">
@@ -94,6 +106,7 @@
                             </div>
                             {% endfor %}
                             <p class="payment-note">Nomor rekening atau HP hanya ditampilkan sebagian di daftar.</p>
+                            <p class="form-error" data-api-form-error role="alert" hidden></p>
                             <div class="address-form-actions">
                                 <button class="profile-save-button" type="submit">{% if editing %}Simpan Perubahan{% else %}Simpan Metode{% endif %}</button>
                                 {% if editing %}<a href="{% url 'account_profile:payment_methods' %}">Batal</a>{% endif %}
@@ -105,4 +118,180 @@
         </div>
     </section>
 </main>
+<script>
+(() => {
+    const list = document.querySelector("[data-payment-list]");
+    const form = document.querySelector("[data-payment-api-form]");
+    if (!list) return;
+
+    const csrfToken = () => {
+        const cookie = document.cookie.split("; ").find(value => value.startsWith("csrftoken="));
+        return cookie ? decodeURIComponent(cookie.split("=").slice(1).join("=")) : "";
+    };
+
+    const requestHeaders = () => ({ "X-CSRFToken": csrfToken() });
+    const setMessage = (message, isError = false) => {
+        let status = document.querySelector("[data-payment-api-status]");
+        if (!status) {
+            status = document.createElement("p");
+            status.dataset.paymentApiStatus = "";
+            list.closest(".payment-layout")?.before(status);
+        }
+        status.setAttribute("role", isError ? "alert" : "status");
+        status.textContent = message;
+        status.classList.toggle("form-error", isError);
+    };
+
+    const element = (tag, className, text) => {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text !== undefined) node.textContent = text;
+        return node;
+    };
+
+    const renderMethods = methods => {
+        list.replaceChildren();
+        const count = document.querySelector(".address-count");
+        if (count) count.textContent = `${methods.length} metode`;
+
+        if (!methods.length) {
+            const empty = element("div", "address-empty-state");
+            empty.append(
+                element("span", "address-empty-icon payment-empty-icon", "Rp"),
+                element("h3", "", "Belum ada metode pembayaran"),
+                element("p", "", "Tambahkan rekening bank atau e-wallet di samping.")
+            );
+            list.append(empty);
+            return;
+        }
+
+        methods.forEach(method => {
+            const card = element("article", "payment-method-card");
+            card.append(element("div", "payment-method-icon", method.method_type === "bank" ? "▤" : "◉"));
+            const info = element("div", "payment-method-info");
+            const topline = element("div", "saved-address-topline");
+            topline.append(element("h3", "", method.provider));
+            if (method.is_default) topline.append(element("span", "default-address-badge", "Utama"));
+            info.append(
+                topline,
+                element("p", "payment-kind", method.method_type === "bank" ? "Transfer bank" : "E-wallet"),
+                element("p", "payment-owner", method.account_name),
+                element("p", "payment-number", method.account_identifier)
+            );
+
+            const actions = element("div", "saved-address-actions");
+            const edit = element("a", "", "Edit");
+            edit.href = `${list.dataset.editUrlBase}${method.id}/edit/`;
+            const deleteForm = element("form", "");
+            deleteForm.method = "post";
+            deleteForm.dataset.apiDelete = "";
+            deleteForm.dataset.apiUrl = `${list.dataset.apiUrl}${method.id}/`;
+            const csrfInput = element("input");
+            csrfInput.type = "hidden";
+            csrfInput.name = "csrfmiddlewaretoken";
+            csrfInput.value = csrfToken();
+            const deleteButton = element("button", "", "Hapus");
+            deleteButton.type = "submit";
+            deleteForm.append(csrfInput, deleteButton);
+            actions.append(edit, deleteForm);
+            info.append(actions);
+            card.append(info);
+            list.append(card);
+        });
+    };
+
+    const loadMethods = async () => {
+        try {
+            const response = await fetch(list.dataset.apiUrl, {
+                headers: { "Accept": "application/json" },
+                credentials: "same-origin"
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Gagal memuat metode pembayaran.");
+            renderMethods(data.results || []);
+        } catch (error) {
+            setMessage(error.message, true);
+        }
+    };
+
+    const showFormErrors = (formElement, errors) => {
+        const globalError = formElement.querySelector("[data-api-form-error]");
+        globalError.hidden = true;
+        globalError.textContent = "";
+        formElement.querySelectorAll(".form-error").forEach(node => {
+            if (node !== globalError) node.remove();
+        });
+
+        Object.entries(errors || {}).forEach(([fieldName, messages]) => {
+            const field = formElement.elements.namedItem(fieldName);
+            if (!field) {
+                globalError.hidden = false;
+                globalError.textContent = messages.join(" ");
+                return;
+            }
+            const error = element("small", "form-error", messages.join(" "));
+            field.closest(".address-form-field")?.append(error);
+        });
+    };
+
+    loadMethods();
+
+    form?.addEventListener("submit", async event => {
+        event.preventDefault();
+        const values = Object.fromEntries(new FormData(form).entries());
+        values.is_default = form.elements.namedItem("is_default")?.checked || false;
+        showFormErrors(form, {});
+        const button = form.querySelector("button[type='submit']");
+        button.disabled = true;
+
+        try {
+            const response = await fetch(form.dataset.apiUrl, {
+                method: form.dataset.apiMethod,
+                credentials: "same-origin",
+                headers: { ...requestHeaders(), "Content-Type": "application/json", "Accept": "application/json" },
+                body: JSON.stringify(values)
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                if (data.errors) showFormErrors(form, data.errors);
+                else throw new Error(data.error || "Metode pembayaran gagal disimpan.");
+                return;
+            }
+            if (form.dataset.apiMethod === "PATCH") {
+                window.location.assign(form.dataset.listUrl);
+                return;
+            }
+            form.reset();
+            setMessage("Metode pembayaran berhasil ditambahkan.");
+            await loadMethods();
+        } catch (error) {
+            const errorNode = form.querySelector("[data-api-form-error]");
+            errorNode.hidden = false;
+            errorNode.textContent = error.message;
+        } finally {
+            button.disabled = false;
+        }
+    });
+
+    document.addEventListener("submit", async event => {
+        const deleteForm = event.target.closest("form[data-api-delete]");
+        if (!deleteForm) return;
+        event.preventDefault();
+        if (!window.confirm("Hapus metode pembayaran ini?")) return;
+        try {
+            const response = await fetch(deleteForm.dataset.apiUrl, {
+                method: "DELETE",
+                credentials: "same-origin",
+                headers: { ...requestHeaders(), "Accept": "application/json" }
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Metode pembayaran gagal dihapus.");
+            setMessage("Metode pembayaran berhasil dihapus.");
+            await loadMethods();
+        } catch (error) {
+            setMessage(error.message, true);
+        }
+    });
+})();
+</script>
 {% endblock content %}

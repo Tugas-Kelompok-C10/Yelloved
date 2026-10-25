@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<main class="profile-page{% block profile_layout_class %}{% endblock %}">
+    <aside class="profile-sidebar" aria-label="Menu akun">
+        <div class="profile-identity">
+            <div class="profile-avatar" aria-hidden="true">
+                {% if profile.photo %}<img src="{{ profile.photo.url }}" alt="">{% else %}<img src="{% static 'img/Default_PP.png' %}" alt="">{% endif %}
+            </div>
+            <span>{{ user.get_full_name|default:user.username|default:"Adib" }}</span>
+        </div>
+        <nav class="profile-menu" aria-label="Navigasi akun">
+            <section>
+                <h2>Inbox</h2>
+                <a class="{% block profile_chat_active %}{% endblock %}" href="{% url 'transactions:pesan' %}">Chat</a>
+                <a class="{% block profile_reviews_active %}{% endblock %}" href="{% url 'account_profile:reviews' %}">Ulasan</a>
+                <a class="{% block profile_help_active %}{% endblock %}" href="{% url 'account_profile:help_messages' %}">Bantuan</a>
+            </section>
+            <section>
+                <h2>Purchase</h2>
+                <a href="{% url 'transactions:transaction_history' %}?status=pending">Awaiting payment</a>
+                <a href="{% url 'transactions:transaction_history' %}">Daftar Transaksi</a>
+            </section>
+        </nav>
+        {% if user.is_authenticated %}
+        <form action="{% url 'logout' %}" method="post" class="profile-logout">
+            {% csrf_token %}
+            <button type="submit">Log out</button>
+        </form>
+        {% else %}
+        <a class="profile-logout" href="{% url 'login' %}"><span>Log in</span></a>
+        {% endif %}
+    </aside>
+
+    <section class="profile-content">
+        {% block profile_heading %}
+        <h1 class="profile-heading"><span class="profile-heading-icon" aria-hidden="true">◎</span>{{ user.get_full_name|default:user.username|default:"Adib" }}</h1>
+        {% endblock %}
+        {% block profile_content %}{% endblock %}
+    </section>
+</main>
+{% endblock content %}

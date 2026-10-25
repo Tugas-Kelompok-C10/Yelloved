@@ -1,53 +1,36 @@
 {% extends "base.html" %}
-
-{% block meta %}
-<title>Explore Items | {{ name }}</title>
-<meta name="description" content="Temukan barang preloved pilihan di sekitar UI. Beri barang kesempatan kedua bersama Yelloved.">
-{% endblock meta %}
-
+{% load static %}
+{% block meta %}<script src="{% static 'js/items/images.js' %}" defer></script>
+<title>Explore Items | Yelloved</title>
+<link rel="stylesheet" href="{% static 'css/explore.css' %}">
+<script src="{% static 'js/items/explore.js' %}" defer></script>
+{% endblock %}
 {% block content %}
 <main class="explore-page" lang="id">
     <section class="explore-hero" aria-labelledby="explore-title">
-        <h1 id="explore-title">Explore Items</h1>
-        <p class="explore-description">Temukan barang preloved di sekitar UI bersama {{ name }}.</p>
+        <span class="explore-eyebrow">DARI SEKITAR KAMPUS, UNTUK KAMU</span>
+        <h1 id="explore-title">Barang lama, cerita baru.</h1>
+        <p>Temukan preloved favoritmu di sekitar UI &amp; Depok.<br>Lebih hemat, lebih dekat, lebih berarti.</p>
+        <span class="explore-hero-note">✦ A little love goes a long way</span>
     </section>
-
-    <section class="explore-catalog" aria-labelledby="explore-catalog-title">
-        <form class="explore-search" action="{% url 'items:explore_items' %}" method="get" role="search">
-            <div class="explore-field explore-query">
-                <label for="explore-query">Cari barang atau lokasi</label>
-                <input id="explore-query" type="search" name="q" value="{{ query }}" placeholder="Coba kemeja, lampu, atau Kukusan…">
-            </div>
-            <div class="explore-field">
-                <label for="explore-condition">Kondisi</label>
-                <select id="explore-condition" name="condition">
-                    <option value="">Semua kondisi</option>
-                    <option value="Like New"{% if condition == "Like New" %} selected{% endif %}>Like New</option>
-                    <option value="Good"{% if condition == "Good" %} selected{% endif %}>Good</option>
-                </select>
-            </div>
-            <button class="explore-filter" type="submit">Filter barang</button>
+    <section aria-labelledby="explore-catalog-title">
+        <div class="explore-heading explore-toolbar">
+            <h2 id="explore-catalog-title">Explore Items</h2>
+            {% if user.is_authenticated %}<a class="explore-button" href="{% url 'items:item_create' %}">+ Jual Barang</a>
+            {% else %}<a class="explore-button" href="{% url 'login' %}?next={% url 'items:item_create' %}">+ Jual Barang</a>{% endif %}
+        </div>
+        <form id="explore-filters" class="explore-search" action="{% url 'items:explore_items' %}" data-endpoint="{% url 'items:items_json' %}" method="get" role="search">
+            <div class="explore-field explore-query"><label for="{{ filter_form.q.id_for_label }}">Cari judul atau deskripsi</label>{{ filter_form.q }}</div>
+            {% for field in filter_form %}{% if field.name != 'q' %}
+            <div class="explore-field"><label for="{{ field.id_for_label }}">{% if field.name == 'category' %}Kategori{% elif field.name == 'condition' %}Kondisi{% elif field.name == 'listing_type' %}Tipe listing{% else %}Status{% endif %}</label>{{ field }}</div>
+            {% endif %}{% endfor %}
+            <button class="explore-button" type="submit">Cari barang</button>
+            <a class="explore-reset" href="{% url 'items:explore_items' %}">Reset filter</a>
         </form>
-
-        <div class="explore-heading">
-            <h2 id="explore-catalog-title">Daftar barang</h2>
-            <p>{{ items|length }} barang tersedia · Koleksi contoh</p>
-        </div>
-        <div class="explore-grid">
-            {% for item in items %}
-            <article class="item-card">
-                <div class="item-image"><span aria-hidden="true">{{ item.emoji }}</span></div>
-                <div class="item-details">
-                    <span class="item-condition">{{ item.condition }}</span>
-                    <h3 class="item-title">{{ item.name }}</h3>
-                    <p class="item-price">{{ item.price }}</p>
-                    <p class="item-location">{{ item.location }}</p>
-                </div>
-            </article>
-            {% empty %}
-            <p class="explore-empty">Belum ada barang yang cocok. Coba kata lain atau <a href="{% url 'items:explore_items' %}">lihat semua barang</a>.</p>
-            {% endfor %}
-        </div>
+        {% if filter_form.errors %}<p class="explore-feedback">Filter tidak valid. Silakan reset filter.</p>{% endif %}
+        <p id="explore-loading" role="status" hidden>Memuat barang…</p>
+        <div id="explore-error" class="explore-feedback" role="alert" hidden>Barang gagal dimuat. Periksa koneksi, lalu <button type="button" id="explore-retry">coba lagi</button>.</div>
+        <div id="explore-results" aria-live="polite" aria-busy="false">{% include 'items/_results.html' %}</div>
     </section>
 </main>
-{% endblock content %}
+{% endblock %}
