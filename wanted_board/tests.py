@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.urls import reverse
@@ -142,6 +143,11 @@ class WantedBoardViewTests(TestCase):
             create_url,
             {
                 "title": "Desk chair",
+                "image": SimpleUploadedFile(
+                    "desk-chair.png",
+                    b"reference-image",
+                    content_type="image/png",
+                ),
                 "description": "Need a compact chair for a dorm room.",
                 "category": WantedPost.Category.HOME,
                 "preferred_condition": WantedPost.Condition.ANY,
@@ -151,11 +157,33 @@ class WantedBoardViewTests(TestCase):
         )
 
         created_post = WantedPost.objects.get(title="Desk chair")
+        self.addCleanup(created_post.image.delete, save=False)
         self.assertRedirects(
             response,
             reverse("wanted_board:wanted_detail", args=[created_post.pk]),
         )
         self.assertEqual(created_post.requester, self.other_user)
+        self.assertTrue(created_post.image.name.endswith("desk-chair.png"))
+
+    def test_create_requires_a_reference_image(self):
+        self.client.login(username="other", password="test-password")
+
+        response = self.client.post(
+            reverse("wanted_board:create_wanted"),
+            {
+                "title": "Desk chair",
+                "description": "Need a compact chair for a dorm room.",
+                "category": WantedPost.Category.HOME,
+                "preferred_condition": WantedPost.Condition.ANY,
+                "budget": "200000",
+                "location": "Margonda",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("image", response.context["creation_form"].errors)
+        self.assertContains(response, "This picture is for reference only.")
+        self.assertFalse(WantedPost.objects.filter(requester=self.other_user).exists())
 
     def test_create_form_opens_as_modal_and_keeps_validation_errors(self):
         self.client.login(username="other", password="test-password")

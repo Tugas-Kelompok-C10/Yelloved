@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.core.validators import MinValueValidator
+from django.core.validators import FileExtensionValidator, MinValueValidator
 from django.db import models
 
 
@@ -28,6 +28,14 @@ class WantedPost(models.Model):
         related_name="wanted_posts",
     )
     title = models.CharField(max_length=25)
+    image = models.FileField(
+        upload_to="wanted_references/",
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=("jpg", "jpeg", "png", "webp")
+            )
+        ],
+    )
     description = models.TextField()
     category = models.CharField(
         max_length=20,

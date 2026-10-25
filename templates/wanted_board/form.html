@@ -10,12 +10,13 @@
         <h1>{{ form_title }}</h1>
         <p>Add clear details so other users can easily recognize the item you need.</p>
 
-        <form class="wanted-form" method="post">
+        <form class="wanted-form" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             {% for field in form %}
                 <div class="wanted-form-field">
                     {{ field.label_tag }}
                     {{ field }}
+                    {% if field.help_text %}<small class="wanted-form-help">{{ field.help_text }}</small>{% endif %}
                     {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
                 </div>
             {% endfor %}

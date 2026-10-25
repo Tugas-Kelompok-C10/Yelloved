@@ -8,6 +8,7 @@ class WantedPostForm(forms.ModelForm):
         model = WantedPost
         fields = (
             "title",
+            "image",
             "description",
             "category",
             "preferred_condition",
@@ -16,16 +17,21 @@ class WantedPostForm(forms.ModelForm):
         )
         labels = {
             "title": "Item you are looking for",
+            "image": "Reference picture",
             "description": "What do you need?",
             "category": "Category",
             "preferred_condition": "Preferred condition",
             "budget": "Maximum budget",
             "location": "Location",
         }
+        help_texts = {
+            "image": "This picture is for reference only. Upload a JPG, JPEG, PNG, or WEBP image.",
+        }
         widgets = {
             "title": forms.TextInput(
                 attrs={"placeholder": "Example: Study desk lamp"}
             ),
+            "image": forms.FileInput(attrs={"accept": ".jpg,.jpeg,.png,.webp"}),
             "description": forms.Textarea(
                 attrs={
                     "placeholder": "Describe the item, specifications, or details you need.",

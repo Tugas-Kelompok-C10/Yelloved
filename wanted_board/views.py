@@ -40,6 +40,7 @@ def _wanted_cards(wanted_posts, sample_posts):
     cards = [
         {
             "title": post.title,
+            "image_url": post.image.url if post.image else "",
             "description": post.description,
             "category_label": post.get_category_display(),
             "condition_label": post.get_preferred_condition_display(),
@@ -164,7 +165,7 @@ def create_wanted(request):
     if request.method == "GET":
         return redirect(f"{reverse('wanted_board:show_wanted')}?create=1")
 
-    form = WantedPostForm(request.POST)
+    form = WantedPostForm(request.POST, request.FILES)
     if request.method == "POST" and form.is_valid():
         wanted_post = form.save(commit=False)
         wanted_post.requester = request.user
@@ -185,6 +186,7 @@ def edit_wanted(request, pk):
     wanted_post = get_object_or_404(WantedPost, pk=pk, requester=request.user)
     form = WantedPostForm(
         request.POST if request.method == "POST" else None,
+        request.FILES if request.method == "POST" else None,
         instance=wanted_post,
     )
     if request.method == "POST" and form.is_valid():
