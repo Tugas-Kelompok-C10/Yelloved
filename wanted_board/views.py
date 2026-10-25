@@ -12,7 +12,7 @@ from .models import Offer, WantedPost
 from .sample_data import SAMPLE_WANTED_POSTS
 
 
-def _sample_posts_for(query, category):
+def _sample_posts_for(query, category, condition):
     sample_posts = SAMPLE_WANTED_POSTS
     if query:
         normalized_query = query.casefold()
@@ -33,6 +33,10 @@ def _sample_posts_for(query, category):
         sample_posts = tuple(
             post for post in sample_posts if post["category"] == category
         )
+    if condition in WantedPost.Condition.values:
+        sample_posts = tuple(
+            post for post in sample_posts if post["condition"] == condition
+        )
     return sample_posts
 
 
@@ -43,6 +47,7 @@ def _wanted_cards(wanted_posts, sample_posts):
             "image_url": post.image.url if post.image else "",
             "description": post.description,
             "category_label": post.get_category_display(),
+            "listing_type_label": post.get_listing_type_display(),
             "condition_label": post.get_preferred_condition_display(),
             "budget": post.budget,
             "location": post.location or "Around UI",
@@ -71,6 +76,7 @@ def _wanted_cards(wanted_posts, sample_posts):
 def _board_context(request, creation_form=None, open_create_modal=False):
     query = request.GET.get("q", "").strip()
     category = request.GET.get("category", "").strip()
+    condition = request.GET.get("condition", "").strip()
 
     wanted_posts = WantedPost.objects.select_related("requester")
     if query:
@@ -81,8 +87,10 @@ def _board_context(request, creation_form=None, open_create_modal=False):
         )
     if category in WantedPost.Category.values:
         wanted_posts = wanted_posts.filter(category=category)
+    if condition in WantedPost.Condition.values:
+        wanted_posts = wanted_posts.filter(preferred_condition=condition)
 
-    sample_posts = _sample_posts_for(query, category)
+    sample_posts = _sample_posts_for(query, category, condition)
     wanted_cards = _wanted_cards(wanted_posts, sample_posts)
 
     return {
@@ -90,7 +98,9 @@ def _board_context(request, creation_form=None, open_create_modal=False):
         "wanted_posts": wanted_posts,
         "query": query,
         "selected_category": category,
+        "selected_condition": condition,
         "categories": WantedPost.Category.choices,
+        "conditions": WantedPost.Condition.choices,
         "sample_posts": sample_posts,
         "wanted_cards": wanted_cards,
         "total_count": len(wanted_cards),
@@ -120,6 +130,7 @@ def show_wanted(request):
                     f"{'s' if total_count != 1 else ''} found"
                 ),
                 "selected_category": context["selected_category"],
+                "selected_condition": context["selected_condition"],
             }
         )
     return render(request, "wanted_post.html", context)
