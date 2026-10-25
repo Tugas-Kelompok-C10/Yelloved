@@ -4,10 +4,11 @@
     const queryInput = document.getElementById("wanted-query");
     const categorySelect = document.getElementById("wanted-category");
     const conditionSelect = document.getElementById("wanted-condition");
+    const listingTypeSelect = document.getElementById("wanted-listing-type");
     const resetButton = document.getElementById("wanted-filter-reset");
     const seeMoreButton = document.querySelector(".wanted-see-more");
 
-    if (!form || !grid || !queryInput || !categorySelect || !conditionSelect || !resetButton || !seeMoreButton) return;
+    if (!form || !grid || !queryInput || !categorySelect || !conditionSelect || !listingTypeSelect || !resetButton || !seeMoreButton) return;
 
     const debounceDelay = 300;
     let debounceTimer;
@@ -43,6 +44,7 @@
         if (query) url.searchParams.set("q", query);
         if (categorySelect.value) url.searchParams.set("category", categorySelect.value);
         if (conditionSelect.value) url.searchParams.set("condition", conditionSelect.value);
+        if (listingTypeSelect.value) url.searchParams.set("listing_type", listingTypeSelect.value);
 
         return url;
     };
@@ -72,6 +74,7 @@
             applyCardLimit();
             categorySelect.value = data.selected_category;
             conditionSelect.value = data.selected_condition;
+            listingTypeSelect.value = data.selected_listing_type;
             window.history.replaceState({}, "", url);
         } catch (error) {
             if (error.name !== "AbortError") window.location.assign(url);
@@ -88,7 +91,7 @@
         debounceTimer = window.setTimeout(loadResults, debounceDelay);
     });
 
-    [categorySelect, conditionSelect].forEach((select) => {
+    [categorySelect, conditionSelect, listingTypeSelect].forEach((select) => {
         select.addEventListener("change", () => {
             window.clearTimeout(debounceTimer);
             loadResults();
@@ -100,6 +103,7 @@
         queryInput.value = "";
         categorySelect.value = "";
         conditionSelect.value = "";
+        listingTypeSelect.value = "";
         loadResults();
     });
 
