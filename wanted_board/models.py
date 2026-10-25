@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.core.validators import MinValueValidator
+from django.core.validators import FileExtensionValidator, MinValueValidator
 from django.db import models
 
 
@@ -12,10 +12,13 @@ class WantedPost(models.Model):
         OTHER = "other", "Other"
 
     class Condition(models.TextChoices):
-        ANY = "any", "Any condition"
         NEW = "new", "New"
-        LIKE_NEW = "like_new", "Like new"
-        GOOD = "good", "Good"
+        LIGHTLY_USED = "lightly_used", "Lightly used"
+        WELL_USED = "well_used", "Well used"
+
+    class ListingType(models.TextChoices):
+        SELL = "sell", "Sell"
+        FREE = "free", "Free"
 
     class Status(models.TextChoices):
         OPEN = "open", "Open"
@@ -27,17 +30,30 @@ class WantedPost(models.Model):
         on_delete=models.CASCADE,
         related_name="wanted_posts",
     )
-    title = models.CharField(max_length=120)
+    title = models.CharField(max_length=25)
+    image = models.FileField(
+        upload_to="wanted_references/",
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=("jpg", "jpeg", "png", "webp")
+            )
+        ],
+    )
     description = models.TextField()
     category = models.CharField(
         max_length=20,
         choices=Category.choices,
         default=Category.OTHER,
     )
+    listing_type = models.CharField(
+        max_length=10,
+        choices=ListingType.choices,
+        default=ListingType.SELL,
+    )
     preferred_condition = models.CharField(
         max_length=20,
         choices=Condition.choices,
-        default=Condition.ANY,
+        default=Condition.LIGHTLY_USED,
     )
     budget = models.DecimalField(
         max_digits=12,

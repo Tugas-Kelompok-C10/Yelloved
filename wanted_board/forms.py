@@ -8,24 +8,32 @@ class WantedPostForm(forms.ModelForm):
         model = WantedPost
         fields = (
             "title",
+            "image",
             "description",
             "category",
+            "listing_type",
             "preferred_condition",
             "budget",
             "location",
         )
         labels = {
             "title": "Item you are looking for",
+            "image": "Reference picture",
             "description": "What do you need?",
             "category": "Category",
+            "listing_type": "Offer type",
             "preferred_condition": "Preferred condition",
             "budget": "Maximum budget",
             "location": "Location",
+        }
+        help_texts = {
+            "image": "This picture is for reference only. Upload a JPG, JPEG, PNG, or WEBP image.",
         }
         widgets = {
             "title": forms.TextInput(
                 attrs={"placeholder": "Example: Study desk lamp"}
             ),
+            "image": forms.FileInput(attrs={"accept": ".jpg,.jpeg,.png,.webp"}),
             "description": forms.Textarea(
                 attrs={
                     "placeholder": "Describe the item, specifications, or details you need.",
@@ -44,15 +52,15 @@ class WantedPostForm(forms.ModelForm):
 class OfferForm(forms.ModelForm):
     class Meta:
         model = Offer
-        fields = ("message", "offered_price")
+        fields = ("offered_price", "message")
         labels = {
             "message": "Offer message",
-            "offered_price": "Offered price",
+            "offered_price": "Your offer price",
         }
         widgets = {
             "message": forms.Textarea(
                 attrs={
-                    "placeholder": "Describe the item's condition and how to contact you.",
+                    "placeholder": "Add item details and how the requester can contact you.",
                     "rows": 4,
                 }
             ),
