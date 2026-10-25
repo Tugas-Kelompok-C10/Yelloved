@@ -1827,7 +1827,7 @@ body:has(.profile-page) .site-header {
 
 .wanted-filter {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
     align-items: end;
     gap: 16px;
     width: 100%;
@@ -2675,6 +2675,10 @@ body:has(.profile-page) .site-header {
 }
 
 @media (max-width: 900px) {
+    .wanted-filter {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .wanted-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
@@ -2701,6 +2705,10 @@ body:has(.profile-page) .site-header {
 
     .wanted-page {
         padding-top: 24px;
+    }
+
+    .wanted-filter {
+        grid-template-columns: 1fr;
     }
 
     .wanted-hero,
