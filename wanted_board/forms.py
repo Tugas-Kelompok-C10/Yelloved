@@ -11,6 +11,7 @@ class WantedPostForm(forms.ModelForm):
             "image",
             "description",
             "category",
+            "listing_type",
             "preferred_condition",
             "budget",
             "location",
@@ -20,6 +21,7 @@ class WantedPostForm(forms.ModelForm):
             "image": "Reference picture",
             "description": "What do you need?",
             "category": "Category",
+            "listing_type": "Offer type",
             "preferred_condition": "Preferred condition",
             "budget": "Maximum budget",
             "location": "Location",
@@ -50,15 +52,15 @@ class WantedPostForm(forms.ModelForm):
 class OfferForm(forms.ModelForm):
     class Meta:
         model = Offer
-        fields = ("message", "offered_price")
+        fields = ("offered_price", "message")
         labels = {
             "message": "Offer message",
-            "offered_price": "Offered price",
+            "offered_price": "Your offer price",
         }
         widgets = {
             "message": forms.Textarea(
                 attrs={
-                    "placeholder": "Describe the item's condition and how to contact you.",
+                    "placeholder": "Add item details and how the requester can contact you.",
                     "rows": 4,
                 }
             ),

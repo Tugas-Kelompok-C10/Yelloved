@@ -12,10 +12,13 @@ class WantedPost(models.Model):
         OTHER = "other", "Other"
 
     class Condition(models.TextChoices):
-        ANY = "any", "Any condition"
         NEW = "new", "New"
-        LIKE_NEW = "like_new", "Like new"
-        GOOD = "good", "Good"
+        LIGHTLY_USED = "lightly_used", "Lightly used"
+        WELL_USED = "well_used", "Well used"
+
+    class ListingType(models.TextChoices):
+        SELL = "sell", "Sell"
+        FREE = "free", "Free"
 
     class Status(models.TextChoices):
         OPEN = "open", "Open"
@@ -42,10 +45,15 @@ class WantedPost(models.Model):
         choices=Category.choices,
         default=Category.OTHER,
     )
+    listing_type = models.CharField(
+        max_length=10,
+        choices=ListingType.choices,
+        default=ListingType.SELL,
+    )
     preferred_condition = models.CharField(
         max_length=20,
         choices=Condition.choices,
-        default=Condition.ANY,
+        default=Condition.LIGHTLY_USED,
     )
     budget = models.DecimalField(
         max_digits=12,

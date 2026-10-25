@@ -2,33 +2,49 @@
     const form = document.querySelector("[data-ajax-search]");
     const grid = document.querySelector(".wanted-grid");
     const queryInput = document.getElementById("wanted-query");
-    const resultCount = document.querySelector(".wanted-results-count");
+    const categorySelect = document.getElementById("wanted-category");
+    const conditionSelect = document.getElementById("wanted-condition");
+    const resetButton = document.getElementById("wanted-filter-reset");
+    const seeMoreButton = document.querySelector(".wanted-see-more");
 
-    if (!form || !grid || !queryInput || !resultCount) return;
+    if (!form || !grid || !queryInput || !categorySelect || !conditionSelect || !resetButton || !seeMoreButton) return;
 
-    const categoryButtons = [...form.querySelectorAll(".wanted-category-chips button")];
     const debounceDelay = 300;
-    let selectedCategory = form.querySelector(".wanted-category-chips .active")?.value || "";
     let debounceTimer;
     let activeRequest;
+    let resizeTimer;
+    let expanded = false;
+
+    const applyCardLimit = () => {
+        const cards = [...grid.querySelectorAll(".wanted-card")];
+        const buttonLabel = seeMoreButton.querySelector("span");
+        const columns = Math.max(
+            1,
+            window.getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length,
+        );
+        const visibleLimit = columns * 5;
+        const hasOverflow = cards.length > visibleLimit;
+
+        if (!hasOverflow) expanded = false;
+
+        cards.forEach((card, index) => {
+            card.hidden = !expanded && index >= visibleLimit;
+        });
+        seeMoreButton.hidden = !hasOverflow;
+        seeMoreButton.classList.toggle("is-expanded", expanded);
+        seeMoreButton.setAttribute("aria-expanded", String(expanded));
+        if (buttonLabel) buttonLabel.textContent = expanded ? "See Less" : "See More";
+    };
 
     const buildUrl = () => {
         const url = new URL(form.action, window.location.origin);
         const query = queryInput.value.trim();
 
         if (query) url.searchParams.set("q", query);
-        if (selectedCategory) url.searchParams.set("category", selectedCategory);
+        if (categorySelect.value) url.searchParams.set("category", categorySelect.value);
+        if (conditionSelect.value) url.searchParams.set("condition", conditionSelect.value);
 
         return url;
-    };
-
-    const updateCategoryState = (category) => {
-        selectedCategory = category;
-        categoryButtons.forEach((button) => {
-            const isActive = button.value === category;
-            button.classList.toggle("active", isActive);
-            button.setAttribute("aria-pressed", String(isActive));
-        });
     };
 
     const loadResults = async () => {
@@ -52,8 +68,10 @@
 
             const data = await response.json();
             grid.innerHTML = data.html;
-            resultCount.textContent = data.result_label;
-            updateCategoryState(data.selected_category);
+            expanded = false;
+            applyCardLimit();
+            categorySelect.value = data.selected_category;
+            conditionSelect.value = data.selected_condition;
             window.history.replaceState({}, "", url);
         } catch (error) {
             if (error.name !== "AbortError") window.location.assign(url);
@@ -70,13 +88,19 @@
         debounceTimer = window.setTimeout(loadResults, debounceDelay);
     });
 
-    categoryButtons.forEach((button) => {
-        button.addEventListener("click", (event) => {
-            event.preventDefault();
+    [categorySelect, conditionSelect].forEach((select) => {
+        select.addEventListener("change", () => {
             window.clearTimeout(debounceTimer);
-            updateCategoryState(button.value);
             loadResults();
         });
+    });
+
+    resetButton.addEventListener("click", () => {
+        window.clearTimeout(debounceTimer);
+        queryInput.value = "";
+        categorySelect.value = "";
+        conditionSelect.value = "";
+        loadResults();
     });
 
     form.addEventListener("submit", (event) => {
@@ -84,4 +108,33 @@
         window.clearTimeout(debounceTimer);
         loadResults();
     });
+
+    seeMoreButton.addEventListener("click", () => {
+        expanded = !expanded;
+        applyCardLimit();
+    });
+
+    window.addEventListener("resize", () => {
+        window.clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(applyCardLimit, 120);
+    });
+
+    applyCardLimit();
+
+    const placeholder = queryInput.dataset.typingPlaceholder;
+    if (!queryInput.value && placeholder) {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            queryInput.placeholder = placeholder;
+        } else {
+            let characterIndex = 0;
+            const typeNextCharacter = () => {
+                characterIndex += 1;
+                queryInput.placeholder = placeholder.slice(0, characterIndex);
+                if (characterIndex < placeholder.length) {
+                    window.setTimeout(typeNextCharacter, 70);
+                }
+            };
+            window.setTimeout(typeNextCharacter, 250);
+        }
+    }
 })();

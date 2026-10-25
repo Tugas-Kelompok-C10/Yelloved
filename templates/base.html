@@ -120,7 +120,7 @@
                 <a href="{% url 'login' %}" class="nav-button">Login</a>
             {% endif %}
         </div>
-
+        </div>
     </header>
 
     {% if messages %}
@@ -131,8 +131,30 @@
     {% block content %} {% endblock content %}
 
     <footer class="site-footer">
-        <div class="container">
-            <p>&copy; 2026 {{ name|default:"Yelloved" }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+        <div class="container site-footer-container">
+            <div class="site-footer-main">
+                <div class="site-footer-brand-block">
+                    <a class="site-footer-brand" href="{% url 'show_main' %}">
+                        <img src="{% static 'img/Yelloved.png' %}" alt="">
+                        <span>Yelloved</span>
+                    </a>
+                    <p>A community marketplace for discovering items and sharing what you are looking for.</p>
+                </div>
+
+                <nav class="site-footer-nav" aria-label="Footer navigation">
+                    <h2>Navigation</h2>
+                    <a href="{% url 'items:explore_items' %}">Explore</a>
+                    <a href="{% url 'wanted_board:show_wanted' %}">Wanted Board</a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'transactions:transaction_history' %}">Transaction</a>
+                    {% endif %}
+                </nav>
+            </div>
+
+            <div class="site-footer-bottom">
+                <p>&copy; 2026 {{ name|default:"Yelloved" }}</p>
+                <p>Fakultas Ilmu Komputer, Universitas Indonesia</p>
+            </div>
         </div>
     </footer>
     <script>
