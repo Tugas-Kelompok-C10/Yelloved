@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block meta %}
 <title>Wanted Board | {{ name }}</title>
@@ -19,64 +20,46 @@
         {% endif %}
     </section>
 
-    <section class="wanted-board" aria-labelledby="wanted-board-title">
+    <section class="wanted-board" aria-label="Wanted Board filters and requests">
         <div class="wanted-toolbar">
-            <h2 id="wanted-board-title">Search what people are looking for</h2>
-            <form class="wanted-filter" method="get" role="search">
-                <label class="sr-only" for="wanted-query">Search wanted posts</label>
-                <div class="wanted-search-bar">
-                    <input id="wanted-query" type="search" name="q" value="{{ query }}" placeholder="Search items">
-                    <button class="wanted-search-submit" type="submit" aria-label="Search wanted posts">
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <circle cx="11" cy="11" r="7"></circle>
-                            <path d="m16.5 16.5 4 4"></path>
-                        </svg>
-                    </button>
+            <form class="wanted-filter" method="get" action="{% url 'wanted_board:show_wanted' %}" role="search" data-ajax-search>
+                <div class="wanted-filter-field wanted-filter-query">
+                    <label for="wanted-query">Search Items</label>
+                    <input id="wanted-query" type="search" name="q" value="{{ query }}" placeholder="" data-typing-placeholder="Looking for Something?" autocomplete="off">
                 </div>
-                <div class="wanted-filter-meta">
-                    <label class="sr-only" for="wanted-category">Choose a category</label>
-                    <select id="wanted-category" name="category" onchange="this.form.submit()">
-                        <option value="">All items</option>
-                        {% for value, label in categories %}
-                            <option value="{{ value }}"{% if selected_category == value %} selected{% endif %}>{{ label }}</option>
-                        {% endfor %}
+                <div class="wanted-filter-field">
+                    <label for="wanted-category">Category</label>
+                    <select id="wanted-category" name="category">
+                        <option value="">All categories</option>
+                        {% for value, label in categories %}<option value="{{ value }}"{% if selected_category == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
                     </select>
-                    <span>{{ wanted_posts|length }} request{{ wanted_posts|length|pluralize }} found</span>
                 </div>
+                <div class="wanted-filter-field">
+                    <label for="wanted-condition">Condition</label>
+                    <select id="wanted-condition" name="condition">
+                        <option value="">All conditions</option>
+                        {% for value, label in conditions %}<option value="{{ value }}"{% if selected_condition == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+                    </select>
+                </div>
+                <button class="wanted-filter-reset" id="wanted-filter-reset" type="button" aria-label="Reset filters" title="Reset filters">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M4 5h16l-6.5 7.2v5.3l-3 1.5v-6.8z"></path>
+                        <path d="m16.5 15.5 4 4m0-4-4 4"></path>
+                    </svg>
+                </button>
             </form>
         </div>
 
-        <div class="wanted-grid">
-            {% for post in wanted_posts %}
-                <article class="wanted-card">
-                    <div class="wanted-card-topline">
-                        <span class="wanted-category">{{ post.get_category_display }}</span>
-                        <span class="wanted-status wanted-status-{{ post.status }}">{{ post.get_status_display }}</span>
-                    </div>
-                    <h3><a href="{% url 'wanted_board:wanted_detail' post.pk %}">{{ post.title }}</a></h3>
-                    <p class="wanted-card-description">{{ post.description|truncatewords:20 }}</p>
-                    <dl class="wanted-card-meta">
-                        <div>
-                            <dt>Budget</dt>
-                            <dd>{% if post.budget %}Rp{{ post.budget|floatformat:0 }}{% else %}Flexible{% endif %}</dd>
-                        </div>
-                        <div>
-                            <dt>Location</dt>
-                            <dd>{{ post.location|default:"Around UI" }}</dd>
-                        </div>
-                    </dl>
-                    <div class="wanted-card-footer">
-                        <span>by {{ post.requester.username }}</span>
-                        <a href="{% url 'wanted_board:wanted_detail' post.pk %}">View details →</a>
-                    </div>
-                </article>
-            {% empty %}
-                <div class="wanted-empty">
-                    <span aria-hidden="true">⌕</span>
-                    <h3>No matching wanted posts yet</h3>
-                    <p>Try another search or be the first to share a new request.</p>
-                </div>
-            {% endfor %}
+        <div class="wanted-grid" aria-live="polite" aria-busy="false">
+            {% include "wanted_board/_card_grid.html" %}
+        </div>
+        <div class="wanted-see-more-wrap">
+            <button class="wanted-see-more" type="button" aria-expanded="false" hidden>
+                <span>See More</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m7 10 5 5 5-5"></path>
+                </svg>
+            </button>
         </div>
     </section>
 </main>
@@ -99,12 +82,13 @@
     </div>
     <p>Add clear details so other users can easily recognize the item you need.</p>
 
-    <form class="wanted-form" method="post" action="{% url 'wanted_board:create_wanted' %}">
+    <form class="wanted-form" method="post" action="{% url 'wanted_board:create_wanted' %}" enctype="multipart/form-data">
         {% csrf_token %}
         {% for field in creation_form %}
             <div class="wanted-form-field">
                 {{ field.label_tag }}
                 {{ field }}
+                {% if field.help_text %}<small class="wanted-form-help">{{ field.help_text }}</small>{% endif %}
                 {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
             </div>
         {% endfor %}
@@ -138,4 +122,5 @@
     })();
 </script>
 {% endif %}
+<script src="{% static 'js/wanted_board.js' %}" defer></script>
 {% endblock content %}
