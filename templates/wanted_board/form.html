@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block meta %}<title>{{ form_title }} | {{ name }}</title>{% endblock meta %}
+
+{% block content %}
+<main class="wanted-form-page" lang="en">
+    <a class="wanted-back" href="{% if wanted_post %}{% url 'wanted_board:wanted_detail' wanted_post.pk %}{% else %}{% url 'wanted_board:show_wanted' %}{% endif %}">← Cancel and go back</a>
+    <section class="wanted-form-card">
+        <span class="wanted-eyebrow">Wanted Board</span>
+        <h1>{{ form_title }}</h1>
+        <p>Add clear details so other users can easily recognize the item you need.</p>
+
+        <form class="wanted-form" method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="wanted-form-field">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
+                </div>
+            {% endfor %}
+            {% for error in form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+            <button class="wanted-button wanted-button-primary" type="submit">Save wanted post</button>
+        </form>
+    </section>
+</main>
+{% endblock content %}

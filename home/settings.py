@@ -29,7 +29,7 @@ PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-local-development-only')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = not PRODUCTION
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "muhammad-adib51-yelloved.pws.cs.ui.ac.id"]
 
@@ -62,6 +62,10 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'home.urls'
+
+# Keep the built-in authentication views on routes that exist in this project.
+LOGIN_REDIRECT_URL = 'account_profile:profile'
+LOGOUT_REDIRECT_URL = 'show_main'
 
 TEMPLATES = [
     {
@@ -143,6 +147,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration

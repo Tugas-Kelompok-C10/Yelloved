@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<main class="profile-page privacy-page">
+    <aside class="profile-sidebar" aria-label="Menu akun">
+        <div class="profile-identity">
+            <div class="profile-avatar" aria-hidden="true">
+                {% if profile.photo %}<img src="{{ profile.photo.url }}" alt="">{% else %}<img src="{% static 'img/Default_PP.png' %}" alt="">{% endif %}
+            </div>
+            <span>{{ user.get_full_name|default:user.username }}</span>
+        </div>
+        <nav class="profile-menu" aria-label="Navigasi akun">
+            <section>
+                <h2>Inbox</h2>
+                <a href="#chat">Chat</a>
+                <a href="{% url 'account_profile:reviews' %}">Ulasan</a>
+                <a href="{% url 'account_profile:help_messages' %}">Bantuan</a>
+            </section>
+            <section>
+                <h2>Purchase</h2>
+                <a href="{% url 'transactions:transaction_history' %}?status=pending">Awaiting payment</a>
+                <a href="{% url 'transactions:transaction_history' %}">Daftar Transaksi</a>
+            </section>
+        </nav>
+        <form action="{% url 'logout' %}" method="post" class="profile-logout">
+            {% csrf_token %}
+            <button type="submit">Log out</button>
+        </form>
+    </aside>
+
+    <section class="profile-content">
+        <h1 class="profile-heading"><span class="profile-heading-icon" aria-hidden="true">◎</span>{{ user.get_full_name|default:user.username }}</h1>
+        <div class="profile-panel privacy-panel">
+            <nav class="profile-tabs" aria-label="Pengaturan profil">
+                <a href="{% url 'account_profile:profile' %}">Biodata</a>
+                <a href="{% url 'account_profile:address_list' %}">Address List</a>
+                <a href="{% url 'account_profile:payment_methods' %}">Payment</a>
+                <a href="{% url 'account_profile:notifications' %}">Notification</a>
+                <a class="active" href="{% url 'account_profile:privacy_security' %}" aria-current="page">Privacy &amp; Security</a>
+            </nav>
+
+            <div class="privacy-page-content">
+                <div class="address-intro">
+                    <div>
+                        <h2>Privacy &amp; Security</h2>
+                        <p>Kelola akses akun dan jaga informasi pribadimu.</p>
+                    </div>
+                    <span class="notification-mark" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="4.5" y="10" width="15" height="11" rx="2" stroke="currentColor" stroke-width="1.7"/>
+                            <path d="M8 10V7a4 4 0 1 1 8 0v3M12 14v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                </div>
+
+                <section class="security-account-card">
+                    <div class="security-card-icon" aria-hidden="true">
+                        {% if profile.photo %}<img src="{{ profile.photo.url }}" alt="">{% else %}<img src="{% static 'img/Default_PP.png' %}" alt="">{% endif %}
+                    </div>
+                    <div>
+                        <h3>Akun kamu</h3>
+                        <p><span>Username</span><strong>{{ user.username }}</strong></p>
+                        <p><span>Email</span><strong>{{ user.email|default:"Belum ditambahkan" }}</strong></p>
+                    </div>
+                </section>
+
+                <section class="security-password-card">
+                    <div class="security-section-heading">
+                        <div>
+                            <h3>Ganti kata sandi</h3>
+                            <p>Gunakan kata sandi yang kuat dan tidak dipakai di tempat lain.</p>
+                        </div>
+                        <span class="security-lock-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="4.5" y="10" width="15" height="11" rx="2" stroke="currentColor" stroke-width="1.7"/>
+                                <path d="M8 10V7a4 4 0 1 1 8 0v3M12 14v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                            </svg>
+                        </span>
+                    </div>
+                    <form method="post" class="security-password-form">
+                        {% csrf_token %}
+                        {% for field in form %}
+                        <div class="security-field">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
+                            {% if field.help_text %}<small class="security-help">{{ field.help_text|safe }}</small>{% endif %}
+                        </div>
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+                        <button class="profile-save-button" type="submit">Perbarui Kata Sandi</button>
+                    </form>
+                </section>
+
+                <p class="privacy-note">Jangan pernah membagikan kata sandi atau kode keamanan kepada orang lain.</p>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock content %}

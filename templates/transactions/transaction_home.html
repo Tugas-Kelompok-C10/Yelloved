@@ -1,10 +1,12 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Transactions - Yelloved</title>
-</head>
-<body>
-    <h1>Payment & Transaction</h1>
+{% extends 'base.html' %}
+{% block meta %}<title>Transactions | {{ name }}</title>{% endblock meta %}
+{% block content %}
+<main class="container transaction-page">
+    <h1>Payment &amp; Transaction</h1>
     <p>Modul transaksi Yelloved berhasil terhubung!</p>
-</body>
-</html>
+    <nav class="transaction-links" aria-label="Navigasi transaksi">
+        <a href="{% url 'transactions:checkout' %}">Checkout</a>
+        <a href="{% url 'transactions:transaction_history' %}">Riwayat transaksi</a>
+    </nav>
+</main>
+{% endblock content %}

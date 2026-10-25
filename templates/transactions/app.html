@@ -1,0 +1,85 @@
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+    <title>Aplikasi Yelloved — Segera Hadir</title>
+    <meta name="description" content="Aplikasi Yelloved segera hadir untuk pengalaman sustainable shopping yang lebih mudah.">
+{% endblock meta %}
+
+{% block content %}
+<main class="app-page">
+    <section class="app-hero">
+        <div class="app-hero-content">
+            <span class="app-eyebrow">
+                <span class="app-status-dot"></span>
+                SOMETHING GOOD IS COMING
+            </span>
+
+            <div class="app-illustration">
+                <div class="app-icon-circle">
+                    <svg viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="1.7"
+                         stroke-linecap="round" stroke-linejoin="round"
+                         aria-hidden="true">
+                        <rect x="6" y="2" width="12" height="20" rx="3"/>
+                        <path d="M10 18h4"/>
+                    </svg>
+                </div>
+                <span class="app-sparkle app-sparkle-one">✦</span>
+                <span class="app-sparkle app-sparkle-two">✧</span>
+            </div>
+
+            <h1>Yelloved, soon<br>in your pocket.</h1>
+
+            <p class="app-description">
+                Pengalaman Yelloved di genggamanmu segera hadir!
+                Temukan cara yang lebih mudah untuk membeli,
+                menjual, dan menemukan barang preloved favoritmu.
+            </p>
+
+            <div class="app-coming-badge">
+                <span>✦</span> SEGERA HADIR <span>✦</span>
+            </div>
+
+            <a href="{% url 'items:explore_items' %}" class="app-cta">
+                Jelajahi Yelloved
+                <span aria-hidden="true">→</span>
+            </a>
+
+            <p class="app-footnote">
+                A little more conscious. A lot more convenient.
+            </p>
+        </div>
+
+        <div class="app-decoration app-decoration-one"></div>
+        <div class="app-decoration app-decoration-two"></div>
+    </section>
+
+    <section class="app-benefits">
+        <div class="app-benefit">
+            <span class="app-benefit-icon">♻</span>
+            <div>
+                <h2>Shop consciously</h2>
+                <p>Berikan barang preloved kesempatan kedua.</p>
+            </div>
+        </div>
+
+        <div class="app-benefit">
+            <span class="app-benefit-icon">♡</span>
+            <div>
+                <h2>Find your next love</h2>
+                <p>Temukan barang yang cocok untukmu.</p>
+            </div>
+        </div>
+
+        <div class="app-benefit">
+            <span class="app-benefit-icon">✦</span>
+            <div>
+                <h2>Coming your way</h2>
+                <p>Pengalaman baru Yelloved sedang disiapkan.</p>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock content %}

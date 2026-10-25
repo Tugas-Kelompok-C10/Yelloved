@@ -1,6 +1,141 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
+{% block meta %}
+<title>Wanted Board | {{ name }}</title>
+<meta name="description" content="Find and share preloved item requests around UI.">
+{% endblock meta %}
+
 {% block content %}
-    <main>
-        <h1>Wanted Post</h1>
-    </main>
+<main class="wanted-page" lang="en">
+    <section class="wanted-hero" aria-labelledby="wanted-title">
+        <div>
+            <h1 id="wanted-title">Looking for Something?</h1>
+            <p>Post what you need and let the UI<br>community help you find it!</p>
+        </div>
+        {% if user.is_authenticated %}
+            <a class="wanted-button wanted-button-primary" href="{% url 'wanted_board:create_wanted' %}" data-open-wanted-modal>Post What You Need</a>
+        {% else %}
+            <a class="wanted-button wanted-button-primary" href="{% url 'login' %}?next={% url 'wanted_board:create_wanted' %}">Log in to Post</a>
+        {% endif %}
+    </section>
+
+    <section class="wanted-board" aria-labelledby="wanted-board-title">
+        <div class="wanted-toolbar">
+            <h2 id="wanted-board-title">Search what people are looking for</h2>
+            <form class="wanted-filter" method="get" role="search">
+                <label class="sr-only" for="wanted-query">Search wanted posts</label>
+                <div class="wanted-search-bar">
+                    <input id="wanted-query" type="search" name="q" value="{{ query }}" placeholder="Search items">
+                    <button class="wanted-search-submit" type="submit" aria-label="Search wanted posts">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="11" cy="11" r="7"></circle>
+                            <path d="m16.5 16.5 4 4"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="wanted-filter-meta">
+                    <label class="sr-only" for="wanted-category">Choose a category</label>
+                    <select id="wanted-category" name="category" onchange="this.form.submit()">
+                        <option value="">All items</option>
+                        {% for value, label in categories %}
+                            <option value="{{ value }}"{% if selected_category == value %} selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <span>{{ wanted_posts|length }} request{{ wanted_posts|length|pluralize }} found</span>
+                </div>
+            </form>
+        </div>
+
+        <div class="wanted-grid">
+            {% for post in wanted_posts %}
+                <article class="wanted-card">
+                    <div class="wanted-card-topline">
+                        <span class="wanted-category">{{ post.get_category_display }}</span>
+                        <span class="wanted-status wanted-status-{{ post.status }}">{{ post.get_status_display }}</span>
+                    </div>
+                    <h3><a href="{% url 'wanted_board:wanted_detail' post.pk %}">{{ post.title }}</a></h3>
+                    <p class="wanted-card-description">{{ post.description|truncatewords:20 }}</p>
+                    <dl class="wanted-card-meta">
+                        <div>
+                            <dt>Budget</dt>
+                            <dd>{% if post.budget %}Rp{{ post.budget|floatformat:0 }}{% else %}Flexible{% endif %}</dd>
+                        </div>
+                        <div>
+                            <dt>Location</dt>
+                            <dd>{{ post.location|default:"Around UI" }}</dd>
+                        </div>
+                    </dl>
+                    <div class="wanted-card-footer">
+                        <span>by {{ post.requester.username }}</span>
+                        <a href="{% url 'wanted_board:wanted_detail' post.pk %}">View details →</a>
+                    </div>
+                </article>
+            {% empty %}
+                <div class="wanted-empty">
+                    <span aria-hidden="true">⌕</span>
+                    <h3>No matching wanted posts yet</h3>
+                    <p>Try another search or be the first to share a new request.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+
+{% if user.is_authenticated %}
+<dialog
+    class="wanted-modal"
+    id="create-wanted-modal"
+    aria-labelledby="create-wanted-title"
+    {% if open_create_modal %}data-auto-open="true"{% endif %}
+>
+    <div class="wanted-modal-header">
+        <div>
+            <span class="wanted-eyebrow">Wanted Board</span>
+            <h2 id="create-wanted-title">Create a wanted post</h2>
+        </div>
+        <form method="dialog">
+            <button class="wanted-modal-close" type="submit" aria-label="Close modal">×</button>
+        </form>
+    </div>
+    <p>Add clear details so other users can easily recognize the item you need.</p>
+
+    <form class="wanted-form" method="post" action="{% url 'wanted_board:create_wanted' %}">
+        {% csrf_token %}
+        {% for field in creation_form %}
+            <div class="wanted-form-field">
+                {{ field.label_tag }}
+                {{ field }}
+                {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
+            </div>
+        {% endfor %}
+        {% for error in creation_form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        <div class="wanted-modal-actions">
+            <button class="wanted-button wanted-button-secondary" type="button" data-close-wanted-modal>Cancel</button>
+            <button class="wanted-button wanted-button-primary" type="submit">Save wanted post</button>
+        </div>
+    </form>
+</dialog>
+
+<script>
+    (() => {
+        const modal = document.getElementById("create-wanted-modal");
+        if (!modal) return;
+
+        document.querySelector("[data-open-wanted-modal]")?.addEventListener("click", (event) => {
+            event.preventDefault();
+            modal.showModal();
+        });
+
+        modal.querySelector("[data-close-wanted-modal]")?.addEventListener("click", () => {
+            modal.close();
+        });
+
+        modal.addEventListener("click", (event) => {
+            if (event.target === modal) modal.close();
+        });
+
+        if (modal.dataset.autoOpen === "true") modal.showModal();
+    })();
+</script>
+{% endif %}
 {% endblock content %}
