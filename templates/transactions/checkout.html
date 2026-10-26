@@ -1,46 +1,126 @@
+
 {% extends 'base.html' %}
-{% block meta %}<title>Checkout | {{ name }}</title>{% endblock meta %}
+
+{% block meta %}
+<title>Checkout | {{ name }}</title>
+{% endblock meta %}
+
 {% block content %}
 <main class="container transaction-page">
-    <h1>Checkout</h1>
+    <div class="checkout-heading">
+        <span class="checkout-eyebrow">YELLOVED MARKETPLACE</span>
+        <h1>Checkout</h1>
+        <p>Lengkapi alamat pengiriman untuk melanjutkan pesananmu.</p>
+    </div>
+
     {% if errors %}
     <ul class="form-errors">
         {% for error in errors %}
-            <li>{{ error }}</li>
+        <li>{{ error }}</li>
         {% endfor %}
     </ul>
-{% endif %}
+    {% endif %}
 
-{% if submitted %}
-    <p>Alamat pengiriman berhasil divalidasi.</p>
-{% endif %}
+    {% if submitted %}
+    <p class="checkout-success">
+        Alamat pengiriman berhasil divalidasi.
+    </p>
+    {% endif %}
 
     <form class="checkout-form" method="post">
         {% csrf_token %}
-        
-        <h2>Alamat Pengiriman</h2>
-        <label for="recipient-name">Nama Penerima</label>
-        <input id="recipient-name" type="text" name="recipient_name">
 
-        <label for="phone">Nomor HP</label>
-        <input id="phone" type="tel" name="phone">
+        <h2>
+            <span class="checkout-section-icon">01</span>
+            Alamat Pengiriman
+        </h2>
 
-        <label for="province">Provinsi</label>
-        <select id="province" name="province"><option value="">Pilih Provinsi</option></select>
+        <div class="checkout-field">
+            <label for="recipient-name">Nama Penerima</label>
+            <input
+                id="recipient-name"
+                type="text"
+                name="recipient_name"
+                placeholder="Masukkan nama penerima"
+                autocomplete="name"
+                required
+            >
+        </div>
 
-        <label for="regency">Kota/Kabupaten</label>
-        <select id="regency" name="regency"><option value="">Pilih Kota/Kabupaten</option></select>
+        <div class="checkout-field">
+            <label for="phone">Nomor HP</label>
+            <input
+                id="phone"
+                type="tel"
+                name="phone"
+                placeholder="Contoh: 081234567890"
+                autocomplete="tel"
+                required
+            >
+        </div>
 
-        <label for="district">Kecamatan</label>
-        <select id="district" name="district"><option value="">Pilih Kecamatan</option></select>
+        <div class="checkout-field">
+            <label for="province">Provinsi</label>
+            <select id="province" name="province" required>
+                <option value="">Pilih Provinsi</option>
+            </select>
+        </div>
 
-        <label for="village">Kelurahan/Desa</label>
-        <select id="village" name="village"><option value="">Pilih Kelurahan/Desa</option></select>
+        <div class="checkout-field">
+            <label for="regency">Kota/Kabupaten</label>
+            <select id="regency" name="regency" disabled required>
+                <option value="">Pilih Kota/Kabupaten</option>
+            </select>
+        </div>
 
-        <label for="address">Alamat Lengkap</label>
-        <textarea id="address" name="address" rows="4"></textarea>
+        <div class="checkout-field">
+            <label for="district">Kecamatan</label>
+            <select id="district" name="district" disabled required>
+                <option value="">Pilih Kecamatan</option>
+            </select>
+        </div>
 
-        <button type="submit">Lanjut ke Pembayaran</button>
+        <div class="checkout-field">
+            <label for="village">Kelurahan/Desa</label>
+            <select id="village" name="village" disabled required>
+                <option value="">Pilih Kelurahan/Desa</option>
+            </select>
+        </div>
+
+        <div class="checkout-field">
+            <label for="postal-code">Kode Pos</label>
+            <input
+                id="postal-code"
+                type="text"
+                name="postal_code"
+                placeholder="Contoh: 16424"
+                inputmode="numeric"
+                pattern="[0-9]{5}"
+                maxlength="5"
+                autocomplete="postal-code"
+                required
+            >
+        </div>
+
+        <div class="checkout-field checkout-field-full">
+            <label for="address">Alamat Lengkap</label>
+            <textarea
+                id="address"
+                name="address"
+                rows="4"
+                placeholder="Nama jalan, nomor rumah, RT/RW, patokan, dan detail lainnya"
+                autocomplete="street-address"
+                required
+            ></textarea>
+        </div>
+
+        <div class="checkout-actions">
+            <p>Pastikan alamat dan nomor HP sudah benar.</p>
+            <button type="submit">
+                Lanjut ke Pembayaran
+                <span aria-hidden="true">→</span>
+            </button>
+        </div>
     </form>
 </main>
 
@@ -58,7 +138,10 @@
 
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error("Gagal mengambil data wilayah");
+
+            if (!response.ok) {
+                throw new Error("Gagal mengambil data wilayah");
+            }
 
             const regions = await response.json();
 
@@ -73,7 +156,8 @@
 
             select.disabled = false;
         } catch (error) {
-            select.innerHTML = `<option value="">Gagal memuat data</option>`;
+            select.innerHTML =
+                `<option value="">Gagal memuat data</option>`;
             console.error(error);
         }
     }
@@ -137,5 +221,4 @@
         }
     });
 </script>
-
 {% endblock content %}
