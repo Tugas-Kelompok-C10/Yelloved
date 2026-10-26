@@ -27,7 +27,7 @@
 
         <link
             rel="stylesheet"
-            href="{% static 'css/style.css' %}?v=auth-26"
+            href="{% static 'css/style.css' %}?v=auth-31"
         >
 
 
@@ -111,12 +111,27 @@
                     </a>
                 </div>
 
-                <a href="{% url 'account_profile:profile' %}" class="user-greeting">Hi, {{ user.username }}</a>
-
-                <form action="{% url 'logout' %}" method="post" class="nav-form">
-                    {% csrf_token %}
-                    <button type="submit" class="nav-button">Logout</button>
-                </form>
+                <div class="nav-profile-menu">
+                    <button type="button" class="nav-profile-trigger" aria-label="Menu profil {{ user.username }}" aria-haspopup="true" aria-expanded="false" aria-controls="profile-dropdown">
+                        <img src="{% static 'img/Default_PP.png' %}" alt="">
+                        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+                    </button>
+                    <section class="profile-dropdown" id="profile-dropdown" aria-label="Menu profil">
+                        <div class="profile-dropdown-heading">
+                            <img src="{% static 'img/Default_PP.png' %}" alt="">
+                            <div><strong>{{ user.username }}</strong><a href="{% url 'account_profile:user_profile' user.username %}">Lihat profil</a></div>
+                        </div>
+                        <div class="profile-dropdown-links">
+                            <a href="{% url 'transactions:transaction_history' %}">Pesanan</a>
+                            <a href="{% url 'items:item_create' %}"><span><strong>Mulai jualan</strong><small>Barang tak terpakai bisa jadi cuan</small></span></a>
+                            <a href="{% url 'account_profile:profile' %}">Settings</a>
+                        </div>
+                        <form action="{% url 'logout' %}" method="post" class="profile-dropdown-logout">
+                            {% csrf_token %}
+                            <button type="submit">Log out</button>
+                        </form>
+                    </section>
+                </div>
             {% else %}
                 <a href="{% url 'login' %}" class="nav-button">Login</a>
             {% endif %}
@@ -161,6 +176,8 @@
     <script>
         const notificationWrapper = document.querySelector(".nav-notification");
         const notificationTrigger = notificationWrapper?.querySelector(".nav-notification-trigger");
+        const profileMenu = document.querySelector(".nav-profile-menu");
+        const profileTrigger = profileMenu?.querySelector(".nav-profile-trigger");
 
         notificationTrigger?.addEventListener("click", () => {
             const shouldOpen = !notificationWrapper.classList.contains("is-open");
@@ -169,18 +186,42 @@
             notificationTrigger.setAttribute("aria-expanded", String(shouldOpen));
         });
 
+        profileTrigger?.addEventListener("click", () => {
+            const shouldOpen = !profileMenu.classList.contains("is-open");
+            profileMenu.classList.toggle("is-open", shouldOpen);
+            profileMenu.classList.toggle("is-dismissed", !shouldOpen);
+            profileTrigger.setAttribute("aria-expanded", String(shouldOpen));
+        });
+
+        profileMenu?.addEventListener("mouseleave", () => {
+            profileMenu.classList.remove("is-dismissed");
+        });
+
         document.addEventListener("click", (event) => {
-            if (!notificationWrapper || notificationWrapper.contains(event.target)) return;
-            notificationWrapper.classList.remove("is-open", "is-dismissed");
-            notificationTrigger?.setAttribute("aria-expanded", "false");
+            if (notificationWrapper && !notificationWrapper.contains(event.target)) {
+                notificationWrapper.classList.remove("is-open", "is-dismissed");
+                notificationTrigger?.setAttribute("aria-expanded", "false");
+            }
+            if (profileMenu && !profileMenu.contains(event.target)) {
+                profileMenu.classList.remove("is-open");
+                profileTrigger?.setAttribute("aria-expanded", "false");
+            }
         });
 
         document.addEventListener("keydown", (event) => {
-            if (event.key !== "Escape" || !notificationWrapper?.classList.contains("is-open")) return;
-            notificationWrapper.classList.remove("is-open");
-            notificationWrapper.classList.add("is-dismissed");
-            notificationTrigger.setAttribute("aria-expanded", "false");
-            notificationTrigger.focus();
+            if (event.key !== "Escape") return;
+            if (notificationWrapper?.classList.contains("is-open")) {
+                notificationWrapper.classList.remove("is-open");
+                notificationWrapper.classList.add("is-dismissed");
+                notificationTrigger.setAttribute("aria-expanded", "false");
+                notificationTrigger.focus();
+            }
+            if (profileMenu?.classList.contains("is-open")) {
+                profileMenu.classList.remove("is-open");
+                profileMenu.classList.add("is-dismissed");
+                profileTrigger.setAttribute("aria-expanded", "false");
+                profileTrigger.focus();
+            }
         });
     </script>
     </body>

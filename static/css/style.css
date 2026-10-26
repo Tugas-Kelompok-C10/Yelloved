@@ -172,6 +172,61 @@ main {
     color: #fff8b5;
 }
 
+.nav-profile-menu { position: relative; }
+.nav-profile-menu::after { position: absolute; top: 100%; right: 0; display: none; width: min(300px, calc(100vw - 24px)); height: 13px; content: ""; }
+.nav-profile-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+}
+.nav-profile-trigger img { width: 36px; height: 36px; border: 1px solid #ffffff70; border-radius: 50%; object-fit: cover; }
+.nav-profile-trigger svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+.nav-profile-trigger:hover { color: #fff8b5; }
+.profile-dropdown {
+    position: absolute;
+    top: calc(100% + 13px);
+    right: 0;
+    z-index: 1200;
+    display: none;
+    width: min(300px, calc(100vw - 24px));
+    padding: 15px 17px 10px;
+    border: 1px solid #eeeaf1;
+    border-radius: 16px;
+    background: #fff;
+    color: #211b24;
+    box-shadow: 0 12px 32px #1b102a25;
+}
+.nav-profile-menu:hover:not(.is-dismissed) .profile-dropdown,
+.nav-profile-menu:focus-within:not(.is-dismissed) .profile-dropdown,
+.nav-profile-menu.is-open .profile-dropdown { display: block; }
+.nav-profile-menu:hover:not(.is-dismissed)::after,
+.nav-profile-menu:focus-within:not(.is-dismissed)::after,
+.nav-profile-menu.is-open::after { display: block; }
+.profile-dropdown-heading { display: flex; align-items: center; gap: 12px; padding-bottom: 13px; border-bottom: 1px solid #e9e6eb; }
+.profile-dropdown-heading > img { width: 48px; height: 48px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; }
+.profile-dropdown-heading div { display: grid; min-width: 0; gap: 3px; }
+.profile-dropdown-heading strong { overflow: hidden; color: #211b24; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.profile-dropdown-heading a { color: #77717c; font-size: 12px; text-decoration: none; }
+.profile-dropdown-heading a:hover { color: var(--violet); text-decoration: underline; }
+.profile-dropdown-links { display: grid; }
+.profile-dropdown-links a,
+.profile-dropdown-logout button { display: flex; width: 100%; align-items: center; padding: 12px 0; border: 0; border-bottom: 1px solid #e9e6eb; background: transparent; color: #211b24; font: 500 14px "Sora", sans-serif; text-align: left; text-decoration: none; cursor: pointer; }
+.profile-dropdown-links a:hover,
+.profile-dropdown-logout button:hover { color: var(--violet); }
+.profile-dropdown-links a span { display: grid; gap: 4px; }
+.profile-dropdown-links a strong { font-size: 13px; }
+.profile-dropdown-links a small { color: #77717c; font-size: 11px; }
+.profile-dropdown-logout { margin: 0; }
+.profile-dropdown-logout button { border-bottom: 0; }
+.nav-profile-trigger:focus-visible,
+.profile-dropdown a:focus-visible,
+.profile-dropdown button:focus-visible { outline: 2px solid #805184; outline-offset: 3px; }
+
 .nav-form {
     display: inline;
     margin: 0;
@@ -1562,7 +1617,9 @@ body:has(.profile-page) .site-header {
 }
 
 .chat-list-header h1 { color: #49424c; font-size: 12px; font-weight: 700; }
-.chat-conversation-panel { min-width: 0; min-height: 0; }
+.chat-list-empty { display: grid; flex: 1; place-items: center; padding: 14px; color: #9992a3; font-size: 10px; text-align: center; }
+.chat-conversation-panel { display: grid; min-width: 0; min-height: 0; place-items: stretch; }
+.chat-empty-state { min-height: 100%; }
 
 @media (max-width: 700px) {
     .chat-profile-page { grid-template-columns: 1fr; }
@@ -3118,9 +3175,9 @@ body:has(.profile-page) .site-header {
 .nav-notification::after {
     position: absolute;
     top: 100%;
-    right: -106px;
+    right: 0;
     display: none;
-    width: min(430px, calc(100vw - 24px));
+    width: min(300px, calc(100vw - 24px));
     height: 14px;
     content: "";
 }
@@ -3158,18 +3215,18 @@ body:has(.profile-page) .site-header {
 .notification-popover {
     position: absolute;
     top: calc(100% + 14px);
-    right: -106px;
+    right: 0;
     z-index: 1100;
     display: none;
     flex-direction: column;
-    width: min(430px, calc(100vw - 24px));
-    max-height: min(620px, calc(100vh - 100px));
+    width: min(300px, calc(100vw - 24px));
+    max-height: min(460px, calc(100vh - 100px));
     overflow: hidden;
     border: 1px solid #e9e4d8;
-    border-radius: 0 0 16px 16px;
+    border-radius: 16px;
     background: #fff;
     color: #29232b;
-    box-shadow: 0 14px 36px #1b102a38;
+    box-shadow: 0 12px 32px #1b102a25;
 }
 
 .nav-notification:hover:not(.is-dismissed) .notification-popover,
@@ -3188,13 +3245,13 @@ body:has(.profile-page) .site-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    min-height: 68px;
-    padding: 0 22px;
+    min-height: 50px;
+    padding: 0 16px;
     border-bottom: 1px solid #eeeaf1;
 }
 
 .notification-popover-header h2 {
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 700;
 }
 
@@ -3204,51 +3261,51 @@ body:has(.profile-page) .site-header {
 }
 
 .notification-popover-header svg {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
 }
 
 .notification-empty-state {
     display: grid;
     justify-items: center;
     gap: 9px;
-    padding: 54px 24px;
+    padding: 28px 18px;
     text-align: center;
 }
 
 .notification-empty-state > span {
     display: grid;
-    width: 54px;
-    height: 54px;
+    width: 42px;
+    height: 42px;
     place-items: center;
     margin-bottom: 5px;
     border-radius: 50%;
     background: #f7f2e7;
     color: #70556e;
-    font-size: 25px;
+    font-size: 20px;
 }
 
 .notification-empty-state > span svg {
-    width: 27px;
-    height: 27px;
+    width: 22px;
+    height: 22px;
 }
 
 .notification-empty-state h3 {
-    font-size: 17px;
+    font-size: 14px;
 }
 
 .notification-empty-state p {
     color: #716b75;
-    font-size: 13px;
+    font-size: 11px;
 }
 
 .notification-popover-footer {
     display: flex;
     justify-content: center;
-    padding: 15px 22px;
+    padding: 11px 16px;
     border-top: 1px solid #eeeaf1;
     background: #fff;
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .notification-popover-footer a {

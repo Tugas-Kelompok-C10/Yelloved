@@ -28,7 +28,7 @@
 
         <div class="wanted-detail-content">
             <h1>{{ wanted_post.title }}</h1>
-            <p class="wanted-detail-classification">{{ wanted_post.get_category_display }} <span>·</span> {{ wanted_post.get_listing_type_display }}</p>
+            <p class="wanted-detail-classification">{{ wanted_post.get_category_display }} <span>·</span> {{ wanted_post.get_listing_type_display }} · <a href="{% url 'account_profile:user_profile' wanted_post.requester.username %}">{{ wanted_post.requester.username }}</a></p>
             <span class="wanted-detail-budget-label">Maximum budget</span>
             <strong class="wanted-detail-budget">{% if wanted_post.budget %}{{ wanted_post.budget|rupiah }}{% else %}Flexible budget{% endif %}</strong>
             <div class="wanted-detail-quick-info" aria-label="Item condition and location">

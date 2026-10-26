@@ -60,7 +60,8 @@ def item_detail(request, item_id):
 @login_required(login_url='login')
 @require_http_methods(['GET', 'POST'])
 def item_create(request):
-    form = ItemForm(request.POST if request.method == 'POST' else None)
+    form = ItemForm(request.POST if request.method == 'POST' else None,
+                    request.FILES if request.method == 'POST' else None)
     if request.method == 'POST' and form.is_valid():
         item = form.save(commit=False)
         item.owner = request.user
@@ -81,7 +82,8 @@ def owned_item(request, item_id):
 @require_http_methods(['GET', 'POST'])
 def item_update(request, item_id):
     item = owned_item(request, item_id)
-    form = ItemForm(request.POST if request.method == 'POST' else None, instance=item)
+    form = ItemForm(request.POST if request.method == 'POST' else None,
+                    request.FILES if request.method == 'POST' else None, instance=item)
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, 'Item berhasil diperbarui.')
