@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+{% block meta %}<title>Item Matching | {{ name }}</title><link rel="stylesheet" href="{% static 'css/explore.css' %}"><link rel="stylesheet" href="{% static 'css/item_matching.css' %}">{% endblock %}
+{% block content %}
+<main class="explore-page matching-page" lang="id">
+    <header class="matching-header">
+        <h1>Item Matching &amp; Exchange</h1>
+        <p>Kelola request barang dan penawaran barang untuk wanted post di satu tempat.</p>
+    </header>
+    <nav class="matching-tabs" aria-label="Bagian matching">
+        {% for key, label in tabs %}
+            <a href="?tab={{ key }}" class="matching-tab{% if key == tab %} is-active{% endif %}"{% if key == tab %} aria-current="page"{% endif %}>
+                {{ label }}{% for k, n in pending.items %}{% if k == key and n %} <span class="matching-badge">{{ n }}</span>{% endif %}{% endfor %}
+            </a>
+        {% endfor %}
+    </nav>
+
+    <section class="matching-list">
+    {% for row in rows %}
+        <article class="matching-card">
+            {% if tab == 'incoming' or tab == 'sent' %}
+                <div class="matching-card-main">
+                    <h2><a href="{{ row.item.get_absolute_url }}">{{ row.item.title }}</a></h2>
+                    <p class="matching-meta">
+                        {% if tab == 'incoming' %}Dari <strong>{{ row.requester.username }}</strong>{% else %}Pemilik: <strong>{{ row.item.owner.username }}</strong>{% endif %}
+                        · {{ row.created_at|date:'d M Y, H:i' }}
+                    </p>
+                    {% if row.offered_item %}<p class="matching-swap">Ditukar dengan: <a href="{{ row.offered_item.get_absolute_url }}">{{ row.offered_item.title }}</a></p>{% endif %}
+                    {% if row.message %}<p>{{ row.message|linebreaksbr }}</p>{% endif %}
+                </div>
+                <div class="matching-card-side">
+                    <span class="matching-status matching-status-{{ row.status }}">{{ row.get_status_display }}</span>
+                    {% if row.status == 'pending' %}
+                        {% if tab == 'incoming' %}
+                            <form method="post" action="{% url 'item_matching:request_accept' row.pk %}">{% csrf_token %}<button class="explore-button" type="submit">Terima</button></form>
+                            <form method="post" action="{% url 'item_matching:request_reject' row.pk %}">{% csrf_token %}<button class="explore-button explore-button-secondary" type="submit">Tolak</button></form>
+                        {% else %}
+                            <form method="post" action="{% url 'item_matching:request_cancel' row.pk %}">{% csrf_token %}<button class="explore-button explore-button-secondary" type="submit">Batalkan</button></form>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="matching-card-main">
+                    <h2><a href="{{ row.item.get_absolute_url }}">{{ row.item.title }}</a> <span class="matching-for">untuk</span> <a href="{% url 'wanted_board:wanted_detail' row.wanted_post.pk %}">{{ row.wanted_post.title }}</a></h2>
+                    <p class="matching-meta">
+                        {% if tab == 'offers_received' %}Dari <strong>{{ row.offerer.username }}</strong>{% else %}Untuk <strong>{{ row.wanted_post.requester.username }}</strong>{% endif %}
+                        · {{ row.created_at|date:'d M Y, H:i' }}
+                    </p>
+                    {% if row.message %}<p>{{ row.message|linebreaksbr }}</p>{% endif %}
+                </div>
+                <div class="matching-card-side">
+                    <span class="matching-status matching-status-{{ row.status }}">{{ row.get_status_display }}</span>
+                    {% if row.status == 'pending' %}
+                        {% if tab == 'offers_received' %}
+                            <form method="post" action="{% url 'item_matching:offer_accept' row.pk %}">{% csrf_token %}<button class="explore-button" type="submit">Terima</button></form>
+                            <form method="post" action="{% url 'item_matching:offer_reject' row.pk %}">{% csrf_token %}<button class="explore-button explore-button-secondary" type="submit">Tolak</button></form>
+                        {% else %}
+                            <form method="post" action="{% url 'item_matching:offer_withdraw' row.pk %}">{% csrf_token %}<button class="explore-button explore-button-secondary" type="submit">Tarik</button></form>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endif %}
+        </article>
+    {% empty %}
+        <p class="matching-empty">Belum Ada Pesanan.</p>
+    {% endfor %}
+    </section>
+</main>
+{% endblock %}

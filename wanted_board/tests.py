@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.urls import reverse
@@ -30,6 +31,10 @@ class WantedBoardModelTests(TestCase):
 
     def test_wanted_post_defaults_to_open(self):
         self.assertEqual(self.wanted_post.status, WantedPost.Status.OPEN)
+        self.assertEqual(
+            self.wanted_post.listing_type,
+            WantedPost.ListingType.SELL,
+        )
         self.assertEqual(str(self.wanted_post), "Looking for a study lamp")
 
     def test_offer_is_connected_to_post_and_user(self):
@@ -74,7 +79,7 @@ class WantedBoardViewTests(TestCase):
             title="Used calculus textbook",
             description="Looking for a clean copy with no missing pages.",
             category=WantedPost.Category.BOOKS,
-            preferred_condition=WantedPost.Condition.GOOD,
+            preferred_condition=WantedPost.Condition.WELL_USED,
             budget=Decimal("90000.00"),
             location="Kampus UI",
         )
@@ -82,12 +87,107 @@ class WantedBoardViewTests(TestCase):
     def test_board_lists_and_filters_posts(self):
         response = self.client.get(
             reverse("wanted_board:show_wanted"),
-            {"q": "calculus", "category": WantedPost.Category.BOOKS},
+            {
+                "q": "calculus",
+                "category": WantedPost.Category.BOOKS,
+                "condition": WantedPost.Condition.WELL_USED,
+            },
         )
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.wanted_post.title)
         self.assertEqual(list(response.context["wanted_posts"]), [self.wanted_post])
+        self.assertEqual(
+            response.context["selected_condition"],
+            WantedPost.Condition.WELL_USED,
+        )
+
+    def test_board_filters_posts_by_condition(self):
+        response = self.client.get(
+            reverse("wanted_board:show_wanted"),
+            {"condition": WantedPost.Condition.NEW},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["wanted_cards"], [])
+
+    def test_board_returns_filtered_card_markup_for_ajax_search(self):
+        response = self.client.get(
+            reverse("wanted_board:show_wanted"),
+            {
+                "q": "calculus",
+                "category": WantedPost.Category.BOOKS,
+                "condition": WantedPost.Condition.WELL_USED,
+            },
+            HTTP_ACCEPT="application/json",
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["selected_category"], WantedPost.Category.BOOKS)
+        self.assertEqual(
+            payload["selected_condition"],
+            WantedPost.Condition.WELL_USED,
+        )
+        self.assertEqual(payload["result_label"], "1 request found")
+        self.assertIn(self.wanted_post.title, payload["html"])
+        self.assertNotIn("Casio Scientific Calculator", payload["html"])
+
+    def test_board_includes_enough_sample_cards_for_see_more(self):
+        response = self.client.get(reverse("wanted_board:show_wanted"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["sample_posts"]), 26)
+        self.assertContains(response, "Casio Scientific Calcula…")
+        self.assertContains(response, "Mini Rice Cooker")
+        self.assertContains(response, "Portable Laptop Stand")
+        self.assertContains(response, "Canvas Tote Bag")
+        self.assertContains(response, "data-sample-card", count=26)
+        self.assertContains(response, "See More")
+        self.assertNotContains(response, "requests found")
+
+    def test_sample_card_has_a_detail_page(self):
+        response = self.client.get(
+            reverse(
+                "wanted_board:sample_wanted_detail",
+                args=["casio-scientific-calculator"],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Casio Scientific Calculator")
+        self.assertContains(response, "18 October 2026")
+        self.assertContains(response, "Well used")
+        self.assertContains(response, "Fasilkom UI")
+        self.assertContains(response, "Electronics")
+        self.assertContains(response, "Sell")
+        self.assertContains(response, "Rp 225.000")
+
+    def test_detail_displays_explore_style_information_and_formatted_budget(self):
+        response = self.client.get(
+            reverse("wanted_board:wanted_detail", args=[self.wanted_post.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Books &amp; Study")
+        self.assertContains(response, "Sell")
+        self.assertContains(response, "Well used")
+        self.assertContains(response, "Kampus UI")
+        self.assertContains(response, "Rp 90.000")
+        self.assertContains(response, "Maximum budget")
+        self.assertNotContains(response, "<dt>Status</dt>", html=True)
+
+    def test_offer_form_lets_user_set_their_price(self):
+        self.client.login(username="other", password="test-password")
+
+        response = self.client.get(
+            reverse("wanted_board:wanted_detail", args=[self.wanted_post.pk])
+        )
+
+        self.assertContains(response, "Make an Offer")
+        self.assertContains(response, "Your offer price")
+        self.assertContains(response, 'name="offered_price"')
 
     def test_create_requires_login_and_assigns_requester(self):
         create_url = reverse("wanted_board:create_wanted")
@@ -102,20 +202,49 @@ class WantedBoardViewTests(TestCase):
             create_url,
             {
                 "title": "Desk chair",
+                "image": SimpleUploadedFile(
+                    "desk-chair.png",
+                    b"reference-image",
+                    content_type="image/png",
+                ),
                 "description": "Need a compact chair for a dorm room.",
                 "category": WantedPost.Category.HOME,
-                "preferred_condition": WantedPost.Condition.ANY,
+                "listing_type": WantedPost.ListingType.SELL,
+                "preferred_condition": WantedPost.Condition.LIGHTLY_USED,
                 "budget": "200000",
                 "location": "Margonda",
             },
         )
 
         created_post = WantedPost.objects.get(title="Desk chair")
+        self.addCleanup(created_post.image.delete, save=False)
         self.assertRedirects(
             response,
             reverse("wanted_board:wanted_detail", args=[created_post.pk]),
         )
         self.assertEqual(created_post.requester, self.other_user)
+        self.assertEqual(created_post.listing_type, WantedPost.ListingType.SELL)
+        self.assertTrue(created_post.image.name.endswith("desk-chair.png"))
+
+    def test_create_requires_a_reference_image(self):
+        self.client.login(username="other", password="test-password")
+
+        response = self.client.post(
+            reverse("wanted_board:create_wanted"),
+            {
+                "title": "Desk chair",
+                "description": "Need a compact chair for a dorm room.",
+                "category": WantedPost.Category.HOME,
+                "preferred_condition": WantedPost.Condition.LIGHTLY_USED,
+                "budget": "200000",
+                "location": "Margonda",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("image", response.context["creation_form"].errors)
+        self.assertContains(response, "This picture is for reference only.")
+        self.assertFalse(WantedPost.objects.filter(requester=self.other_user).exists())
 
     def test_create_form_opens_as_modal_and_keeps_validation_errors(self):
         self.client.login(username="other", password="test-password")
@@ -132,6 +261,28 @@ class WantedBoardViewTests(TestCase):
         self.assertContains(invalid_response, 'id="create-wanted-modal"')
         self.assertContains(invalid_response, 'data-auto-open="true"')
         self.assertContains(invalid_response, "This field is required.")
+        self.assertFalse(WantedPost.objects.filter(requester=self.other_user).exists())
+
+    def test_create_rejects_item_name_longer_than_25_characters(self):
+        self.client.login(username="other", password="test-password")
+
+        response = self.client.post(
+            reverse("wanted_board:create_wanted"),
+            {
+                "title": "A" * 26,
+                "description": "A valid description for the requested item.",
+                "category": WantedPost.Category.OTHER,
+                "preferred_condition": WantedPost.Condition.LIGHTLY_USED,
+                "budget": "100000",
+                "location": "Kampus UI",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Ensure this value has at most 25 characters (it has 26).",
+        )
         self.assertFalse(WantedPost.objects.filter(requester=self.other_user).exists())
 
     def test_only_owner_can_edit_or_delete_post(self):
