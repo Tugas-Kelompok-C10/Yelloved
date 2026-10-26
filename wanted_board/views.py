@@ -12,23 +12,34 @@ from .models import Offer, WantedPost
 from .sample_data import SAMPLE_WANTED_POSTS
 
 
-def _sample_posts_for(query, category, condition):
+def _sample_posts_for(query, category, condition, listing_type):
     sample_posts = SAMPLE_WANTED_POSTS
     if query:
         normalized_query = query.casefold()
-        sample_posts = tuple(
-            post
-            for post in sample_posts
-            if normalized_query
-            in " ".join(
-                (
-                    post["title"],
-                    post["description"],
-                    post["location"],
-                    post["poster"],
-                )
-            ).casefold()
-        )
+        if normalized_query in WantedPost.ListingType.values:
+            sample_posts = tuple(
+                post
+                for post in sample_posts
+                if post["listing_type"] == normalized_query
+            )
+        else:
+            sample_posts = tuple(
+                post
+                for post in sample_posts
+                if normalized_query
+                in " ".join(
+                    (
+                        post["title"],
+                        post["description"],
+                        post["location"],
+                        post["poster"],
+                        post["listing_type_label"],
+                        post["category_label"],
+                        post["condition_label"],
+                        post["source_category"],
+                    )
+                ).casefold()
+            )
     if category in WantedPost.Category.values:
         sample_posts = tuple(
             post for post in sample_posts if post["category"] == category
@@ -36,6 +47,12 @@ def _sample_posts_for(query, category, condition):
     if condition in WantedPost.Condition.values:
         sample_posts = tuple(
             post for post in sample_posts if post["condition"] == condition
+        )
+    if listing_type in WantedPost.ListingType.values:
+        sample_posts = tuple(
+            post
+            for post in sample_posts
+            if post["listing_type"] == listing_type
         )
     return sample_posts
 
@@ -77,20 +94,28 @@ def _board_context(request, creation_form=None, open_create_modal=False):
     query = request.GET.get("q", "").strip()
     category = request.GET.get("category", "").strip()
     condition = request.GET.get("condition", "").strip()
+    listing_type = request.GET.get("listing_type", "").strip()
 
     wanted_posts = WantedPost.objects.select_related("requester")
     if query:
-        wanted_posts = wanted_posts.filter(
-            Q(title__icontains=query)
-            | Q(description__icontains=query)
-            | Q(location__icontains=query)
-        )
+        normalized_query = query.casefold()
+        if normalized_query in WantedPost.ListingType.values:
+            wanted_posts = wanted_posts.filter(listing_type=normalized_query)
+        else:
+            wanted_posts = wanted_posts.filter(
+                Q(title__icontains=query)
+                | Q(description__icontains=query)
+                | Q(location__icontains=query)
+                | Q(listing_type__icontains=query)
+            )
     if category in WantedPost.Category.values:
         wanted_posts = wanted_posts.filter(category=category)
     if condition in WantedPost.Condition.values:
         wanted_posts = wanted_posts.filter(preferred_condition=condition)
+    if listing_type in WantedPost.ListingType.values:
+        wanted_posts = wanted_posts.filter(listing_type=listing_type)
 
-    sample_posts = _sample_posts_for(query, category, condition)
+    sample_posts = _sample_posts_for(query, category, condition, listing_type)
     wanted_cards = _wanted_cards(wanted_posts, sample_posts)
 
     return {
@@ -99,8 +124,10 @@ def _board_context(request, creation_form=None, open_create_modal=False):
         "query": query,
         "selected_category": category,
         "selected_condition": condition,
+        "selected_listing_type": listing_type,
         "categories": WantedPost.Category.choices,
         "conditions": WantedPost.Condition.choices,
+        "listing_types": WantedPost.ListingType.choices,
         "sample_posts": sample_posts,
         "wanted_cards": wanted_cards,
         "total_count": len(wanted_cards),
@@ -131,6 +158,7 @@ def show_wanted(request):
                 ),
                 "selected_category": context["selected_category"],
                 "selected_condition": context["selected_condition"],
+                "selected_listing_type": context["selected_listing_type"],
             }
         )
     return render(request, "wanted_post.html", context)
