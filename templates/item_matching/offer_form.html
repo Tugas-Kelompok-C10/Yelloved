@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+{% block meta %}<title>Tawarkan barang | {{ name }}</title><link rel="stylesheet" href="{% static 'css/explore.css' %}"><link rel="stylesheet" href="{% static 'css/item_matching.css' %}">{% endblock %}
+{% block content %}
+<main class="explore-page matching-page" lang="id">
+    <a class="explore-back" href="{% url 'wanted_board:wanted_detail' wanted_post.pk %}">← Kembali ke wanted post</a>
+    <section class="matching-form-card">
+        <h1>Tawarkan barang</h1>
+        <p class="matching-meta">Untuk: <strong>{{ wanted_post.title }}</strong> · oleh {{ wanted_post.requester.username }}</p>
+        {% if fits %}
+            <div class="matching-fits">
+                <h2>Barangmu yang cocok</h2>
+                <ul>{% for m in fits %}<li><strong>{{ m.item.title }}</strong> <span class="matching-meta">— {{ m.reasons|join:', ' }}</span></li>{% endfor %}</ul>
+            </div>
+        {% endif %}
+        <form method="post" class="matching-form">
+            {% csrf_token %}
+            {% for error in form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+            {% for field in form %}
+                <div class="matching-field">
+                    {{ field.label_tag }}{{ field }}
+                    {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
+                </div>
+            {% endfor %}
+            {% if not form.fields.item.queryset.exists %}
+                <p class="form-error">Kamu belum punya barang yang tersedia. <a href="{% url 'items:item_create' %}">Tambah barang dulu</a>.</p>
+            {% endif %}
+            <button class="explore-button" type="submit">Kirim penawaran</button>
+        </form>
+    </section>
+</main>
+{% endblock %}

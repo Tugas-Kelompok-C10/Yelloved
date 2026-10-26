@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static %}
+{% block meta %}<title>Request {{ item.title }} | {{ name }}</title><link rel="stylesheet" href="{% static 'css/explore.css' %}"><link rel="stylesheet" href="{% static 'css/item_matching.css' %}">{% endblock %}
+{% block content %}
+<main class="explore-page matching-page" lang="id">
+    <a class="explore-back" href="{{ item.get_absolute_url }}">← Kembali ke barang</a>
+    <section class="matching-form-card">
+        <h1>Request barang</h1>
+        <p class="matching-meta"><strong>{{ item.title }}</strong> · {{ item.get_listing_type_display }} · {{ item.price_display }}</p>
+        <form method="post" class="matching-form">
+            {% csrf_token %}
+            {% for error in form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+            {% for field in form %}
+                <div class="matching-field">
+                    {{ field.label_tag }}{{ field }}
+                    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                    {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
+                </div>
+            {% endfor %}
+            {% if item.listing_type == 'swap' and not form.offered_item.field.queryset.exists %}
+                <p class="form-error">Kamu belum punya barang tersedia untuk ditukar. <a href="{% url 'items:item_create' %}">Tambah barang dulu</a>.</p>
+            {% endif %}
+            <button class="explore-button" type="submit">Kirim request</button>
+        </form>
+    </section>
+</main>
+{% endblock %}
