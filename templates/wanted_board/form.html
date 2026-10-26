@@ -6,7 +6,6 @@
 <main class="wanted-form-page" lang="en">
     <a class="wanted-back" href="{% if wanted_post %}{% url 'wanted_board:wanted_detail' wanted_post.pk %}{% else %}{% url 'wanted_board:show_wanted' %}{% endif %}">← Cancel and go back</a>
     <section class="wanted-form-card">
-        <span class="wanted-eyebrow">Wanted Board</span>
         <h1>{{ form_title }}</h1>
         <p>Add clear details so other users can easily recognize the item you need.</p>
 

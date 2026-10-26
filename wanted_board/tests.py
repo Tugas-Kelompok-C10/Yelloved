@@ -7,6 +7,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from .models import Offer, WantedPost
+from .sample_data import DUMMYJSON_PRODUCTS_URL, SAMPLE_WANTED_POSTS
 
 
 class WantedBoardModelTests(TestCase):
@@ -190,12 +191,12 @@ class WantedBoardViewTests(TestCase):
         response = self.client.get(reverse("wanted_board:show_wanted"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.context["sample_posts"]), 26)
-        self.assertContains(response, "Casio Scientific Calcula…")
-        self.assertContains(response, "Mini Rice Cooker")
-        self.assertContains(response, "Portable Laptop Stand")
-        self.assertContains(response, "Canvas Tote Bag")
-        self.assertContains(response, "data-sample-card", count=26)
+        self.assertEqual(len(response.context["sample_posts"]), 30)
+        self.assertContains(response, "Essence Mascara Lash Princess")
+        self.assertContains(response, "Annibale Colombo Bed")
+        self.assertContains(response, "Cooking Oil")
+        self.assertContains(response, "Kiwi")
+        self.assertContains(response, "data-sample-card", count=30)
         self.assertContains(response, "See More")
         self.assertNotContains(response, "requests found")
 
@@ -203,18 +204,34 @@ class WantedBoardViewTests(TestCase):
         response = self.client.get(
             reverse(
                 "wanted_board:sample_wanted_detail",
-                args=["casio-scientific-calculator"],
+                args=["dummyjson-1-essence-mascara-lash-princess"],
             )
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Casio Scientific Calculator")
-        self.assertContains(response, "18 October 2026")
+        self.assertContains(response, "Essence Mascara Lash Princess")
+        self.assertContains(response, "9 October 2025")
         self.assertContains(response, "Well used")
         self.assertContains(response, "Fasilkom UI")
-        self.assertContains(response, "Electronics")
+        self.assertContains(response, "Fashion")
         self.assertContains(response, "Sell")
-        self.assertContains(response, "Rp 225.000")
+        self.assertContains(response, "Rp 160.000")
+        self.assertContains(
+            response,
+            "https://cdn.dummyjson.com/product-images/beauty/"
+            "essence-mascara-lash-princess/thumbnail.webp",
+        )
+
+    def test_sample_data_uses_all_30_dummyjson_products(self):
+        self.assertEqual(DUMMYJSON_PRODUCTS_URL, "https://dummyjson.com/products?limit=30")
+        self.assertEqual(len(SAMPLE_WANTED_POSTS), 30)
+        self.assertEqual(
+            {post["source_id"] for post in SAMPLE_WANTED_POSTS},
+            set(range(1, 31)),
+        )
+        self.assertTrue(
+            all(post["source"] == "DummyJSON" for post in SAMPLE_WANTED_POSTS)
+        )
 
     def test_detail_displays_explore_style_information_and_formatted_budget(self):
         response = self.client.get(
@@ -228,6 +245,9 @@ class WantedBoardViewTests(TestCase):
         self.assertContains(response, "Kampus UI")
         self.assertContains(response, "Rp 90.000")
         self.assertContains(response, "Maximum budget")
+        self.assertContains(response, "Make an Offer")
+        self.assertContains(response, "Chat")
+        self.assertNotContains(response, ">Buy</a>")
         self.assertNotContains(response, "<dt>Status</dt>", html=True)
 
     def test_offer_form_lets_user_set_their_price(self):
@@ -313,15 +333,22 @@ class WantedBoardViewTests(TestCase):
         self.assertContains(invalid_response, 'id="create-wanted-modal"')
         self.assertContains(invalid_response, 'data-auto-open="true"')
         self.assertContains(invalid_response, "This field is required.")
+        self.assertContains(invalid_response, "Your location")
+        self.assertContains(invalid_response, ">Save</button>")
+        self.assertNotContains(invalid_response, "Save wanted post")
+        self.assertNotContains(
+            invalid_response,
+            '<span class="wanted-eyebrow">Wanted Board</span>',
+        )
         self.assertFalse(WantedPost.objects.filter(requester=self.other_user).exists())
 
-    def test_create_rejects_item_name_longer_than_25_characters(self):
+    def test_create_rejects_item_name_longer_than_50_characters(self):
         self.client.login(username="other", password="test-password")
 
         response = self.client.post(
             reverse("wanted_board:create_wanted"),
             {
-                "title": "A" * 26,
+                "title": "A" * 51,
                 "description": "A valid description for the requested item.",
                 "category": WantedPost.Category.OTHER,
                 "preferred_condition": WantedPost.Condition.LIGHTLY_USED,
@@ -333,7 +360,7 @@ class WantedBoardViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(
             response,
-            "Ensure this value has at most 25 characters (it has 26).",
+            "Ensure this value has at most 50 characters (it has 51).",
         )
         self.assertFalse(WantedPost.objects.filter(requester=self.other_user).exists())
 

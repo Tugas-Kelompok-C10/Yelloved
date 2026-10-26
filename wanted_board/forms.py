@@ -24,7 +24,7 @@ class WantedPostForm(forms.ModelForm):
             "listing_type": "Offer type",
             "preferred_condition": "Preferred condition",
             "budget": "Maximum budget",
-            "location": "Location",
+            "location": "Your location",
         }
         help_texts = {
             "image": "This picture is for reference only. Upload a JPG, JPEG, PNG, or WEBP image.",

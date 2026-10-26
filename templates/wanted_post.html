@@ -80,7 +80,6 @@
 >
     <div class="wanted-modal-header">
         <div>
-            <span class="wanted-eyebrow">Wanted Board</span>
             <h2 id="create-wanted-title">Create a wanted post</h2>
         </div>
         <form method="dialog">
@@ -102,7 +101,7 @@
         {% for error in creation_form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
         <div class="wanted-modal-actions">
             <button class="wanted-button wanted-button-secondary" type="button" data-close-wanted-modal>Cancel</button>
-            <button class="wanted-button wanted-button-primary" type="submit">Save wanted post</button>
+            <button class="wanted-button wanted-button-primary" type="submit">Save</button>
         </div>
     </form>
 </dialog>

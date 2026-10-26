@@ -16,20 +16,30 @@ def _sample_posts_for(query, category, condition, listing_type):
     sample_posts = SAMPLE_WANTED_POSTS
     if query:
         normalized_query = query.casefold()
-        sample_posts = tuple(
-            post
-            for post in sample_posts
-            if normalized_query
-            in " ".join(
-                (
-                    post["title"],
-                    post["description"],
-                    post["location"],
-                    post["poster"],
-                    post["listing_type_label"],
-                )
-            ).casefold()
-        )
+        if normalized_query in WantedPost.ListingType.values:
+            sample_posts = tuple(
+                post
+                for post in sample_posts
+                if post["listing_type"] == normalized_query
+            )
+        else:
+            sample_posts = tuple(
+                post
+                for post in sample_posts
+                if normalized_query
+                in " ".join(
+                    (
+                        post["title"],
+                        post["description"],
+                        post["location"],
+                        post["poster"],
+                        post["listing_type_label"],
+                        post["category_label"],
+                        post["condition_label"],
+                        post["source_category"],
+                    )
+                ).casefold()
+            )
     if category in WantedPost.Category.values:
         sample_posts = tuple(
             post for post in sample_posts if post["category"] == category
@@ -88,12 +98,16 @@ def _board_context(request, creation_form=None, open_create_modal=False):
 
     wanted_posts = WantedPost.objects.select_related("requester")
     if query:
-        wanted_posts = wanted_posts.filter(
-            Q(title__icontains=query)
-            | Q(description__icontains=query)
-            | Q(location__icontains=query)
-            | Q(listing_type__icontains=query)
-        )
+        normalized_query = query.casefold()
+        if normalized_query in WantedPost.ListingType.values:
+            wanted_posts = wanted_posts.filter(listing_type=normalized_query)
+        else:
+            wanted_posts = wanted_posts.filter(
+                Q(title__icontains=query)
+                | Q(description__icontains=query)
+                | Q(location__icontains=query)
+                | Q(listing_type__icontains=query)
+            )
     if category in WantedPost.Category.values:
         wanted_posts = wanted_posts.filter(category=category)
     if condition in WantedPost.Condition.values:

@@ -8,7 +8,7 @@
                     <span>{{ card.listing_type_label }}</span>
                 </div>
                 {% if card.image_url %}
-                    <img src="{{ card.image_url }}" alt="Reference for {{ card.title }}">
+                    <img src="{{ card.image_url }}" alt="Reference for {{ card.title }}" loading="lazy" referrerpolicy="no-referrer">
                 {% else %}
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                         <rect x="3" y="4" width="18" height="16" rx="2"></rect>
@@ -18,8 +18,8 @@
                 {% endif %}
             </div>
             <div class="wanted-card-body">
-                <h3>{{ card.title|truncatechars:25 }}</h3>
-                <strong class="wanted-card-budget">{% if card.budget %}{{ card.budget|rupiah }}{% else %}Flexible{% endif %}</strong>
+                <h3 title="{{ card.title }}">{{ card.title }}</h3>
+                <strong class="wanted-card-budget">{% if card.listing_type_label == "Free" %}Free{% elif card.budget %}{{ card.budget|rupiah }}{% else %}Flexible{% endif %}</strong>
                 <p class="wanted-card-location">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path>
