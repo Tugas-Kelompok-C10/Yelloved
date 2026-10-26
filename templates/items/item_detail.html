@@ -1,21 +1,24 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static items_ui %}
 {% block meta %}<script src="{% static 'js/items/images.js' %}" defer></script><title>{{ item.title }} | Yelloved</title><link rel="stylesheet" href="{% static 'css/explore.css' %}">{% endblock %}
 {% block content %}
 <main class="explore-page item-detail-page" lang="id">
-    <a class="explore-back" href="{% url 'items:explore_items' %}">← Kembali ke Explore</a>
+    <a class="explore-back" href="{% url 'items:explore_items' %}">‹ <span>Back</span></a>
     <article class="explore-detail">
-        <div class="explore-image explore-detail-image"><img src="{{ item.display_image_url }}" data-fallback="{{ item.fallback_image_url }}" alt="{{ item.title }}" width="480" height="360" referrerpolicy="no-referrer"></div>
+        <figure class="explore-detail-media">
+            <div class="explore-image explore-detail-image">{% include 'items/_item_image.html' with detail=True %}</div>
+            <figcaption>Diposting {{ item.created_at|date:'d F Y' }}</figcaption>
+        </figure>
         <div class="explore-detail-body">
-            <p class="explore-category">{{ item.get_category_display }} · {{ item.get_listing_type_display }}</p>
-            <h1>{{ item.title }}</h1><p class="explore-price">{{ item.price_display }}</p>
+            <h1>{{ item.title }}</h1>
+            <p class="explore-category">{{ item.get_category_display }} · {{ item.listing_type|listing_badge }}</p>
+            <p class="explore-price">{{ item.price_display }}</p>
             <dl class="explore-specs">
                 <div><dt>Kondisi</dt><dd>{{ item.get_condition_display }}</dd></div>
                 <div><dt>Lokasi</dt><dd>{{ item.location }}</dd></div>
                 <div><dt>Status</dt><dd>{{ item.get_status_display }}</dd></div>
-                <div><dt>Ditambahkan</dt><dd>{{ item.created_at|date:'d M Y' }}</dd></div>
             </dl>
-            <h2>Tentang barang ini</h2><p class="explore-description">{{ item.description|linebreaksbr }}</p>
+            <h2>Description</h2><p class="explore-description">{{ item.description|linebreaksbr }}</p>
             <div class="explore-detail-note">
                 {% if item.source == 'dummyjson' %}Koleksi inspirasi preloved untuk mahasiswa dan penghuni kos.
                 {% elif user.is_authenticated %}{% if item.owner %}Penjual: {{ item.owner.username }}{% else %}Akun penjual sudah tidak tersedia.{% endif %}

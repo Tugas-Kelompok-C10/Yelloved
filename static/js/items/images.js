@@ -4,7 +4,8 @@
         const source = image.dataset.fallback;
         if (!source) return;
         delete image.dataset.fallback;
-        image.src = source;
+        image.hidden = true;
+        image.closest('.explore-image')?.classList.add('explore-image-failed');
     }
     // Capture also handles catalog cards inserted by AJAX.
     document.addEventListener('error', event => {
