@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+{% block meta %}<title>Rekomendasi | {{ name }}</title><link rel="stylesheet" href="{% static 'css/explore.css' %}"><link rel="stylesheet" href="{% static 'css/item_matching.css' %}">{% endblock %}
+{% block content %}
+<main class="explore-page matching-page" lang="id">
+    {% if mode == 'wanted' %}
+        <a class="explore-back" href="{% url 'wanted_board:wanted_detail' wanted_post.pk %}">← Kembali ke wanted post</a>
+        <header class="matching-header"><h1>Barang yang cocok</h1><p>Rekomendasi untuk “{{ wanted_post.title }}”.</p></header>
+    {% else %}
+        <a class="explore-back" href="{{ item.get_absolute_url }}">← Kembali ke barang</a>
+        <header class="matching-header"><h1>Wanted post yang cocok</h1><p>Orang yang mungkin membutuhkan “{{ item.title }}”.</p></header>
+    {% endif %}
+    <section class="matching-list">
+    {% for m in matches %}
+        <article class="matching-card">
+            <div class="matching-card-main">
+                {% if mode == 'wanted' %}
+                    <h2><a href="{{ m.item.get_absolute_url }}">{{ m.item.title }}</a></h2>
+                    <p class="matching-meta">{{ m.item.price_display }} · {{ m.item.get_condition_display }} · {{ m.item.location }}</p>
+                {% else %}
+                    <h2><a href="{% url 'wanted_board:wanted_detail' m.wanted_post.pk %}">{{ m.wanted_post.title }}</a></h2>
+                    <p class="matching-meta">Dicari {{ m.wanted_post.requester.username }}{% if m.wanted_post.budget %} · budget Rp{{ m.wanted_post.budget|floatformat:0 }}{% endif %}</p>
+                {% endif %}
+                <p>{{ m.reasons|join:' · ' }}</p>
+            </div>
+            <div class="matching-card-side">
+                <span class="matching-badge">Skor {{ m.score }}</span>
+                {% if mode == 'item' %}<a class="explore-button" href="{% url 'item_matching:offer_create' m.wanted_post.pk %}">Tawarkan</a>{% endif %}
+            </div>
+        </article>
+    {% empty %}
+        <p class="matching-empty">Belum ada yang cocok saat ini. Coba lagi nanti.</p>
+    {% endfor %}
+    </section>
+</main>
+{% endblock %}

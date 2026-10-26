@@ -49,6 +49,7 @@
 
                 
             {% if user.is_authenticated %}
+                <a href="{% url 'item_matching:dashboard' %}">Item Matching</a>
                 <a href="{% url 'transactions:transaction_history' %}">
                     Transaction
                 </a>
