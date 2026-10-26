@@ -14,6 +14,7 @@ urlpatterns = [
     path('transactions/', include('transactions.urls')),
     path('account/', include('account_profile.urls')),
     path('wanted-post/', include('wanted_board.urls')),
+    path('item-matching/', include('item_matching.urls')),
     path("", show_main, name="show_main"),
 ]
 

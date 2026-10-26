@@ -62,6 +62,9 @@
                     <button class="wanted-button wanted-action-secondary" type="button" data-offer-toggle aria-controls="wanted-offer-form" aria-expanded="false">Make an Offer</button>
                 {% endif %}
                 <a class="wanted-button wanted-action-secondary" href="{% url 'transactions:pesan' %}">Chat</a>
+                {% if user.is_authenticated and user != wanted_post.requester and wanted_post.status == "open" %}
+                    <a class="wanted-button wanted-action-secondary" href="{% url 'item_matching:offer_create' wanted_post.pk %}">Offer an Item</a>
+                {% endif %}
             </div>
 
             {% if user.is_authenticated and user != wanted_post.requester and wanted_post.status == "open" and not has_offered %}
@@ -83,6 +86,7 @@
             {% if user == wanted_post.requester %}
                 <div class="wanted-owner-actions">
                     <a class="wanted-button wanted-button-secondary" href="{% url 'wanted_board:edit_wanted' wanted_post.pk %}">Edit post</a>
+                    <a class="wanted-button wanted-button-secondary" href="{% url 'item_matching:wanted_suggestions' wanted_post.pk %}">Suggested items</a>
                     <form method="post" action="{% url 'wanted_board:update_status' wanted_post.pk %}">
                         {% csrf_token %}
                         {% if wanted_post.status == "open" %}
