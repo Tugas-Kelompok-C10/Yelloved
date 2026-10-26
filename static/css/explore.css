@@ -208,3 +208,39 @@
     .explore-page.explore-catalog-page .explore-filter-toggle { grid-column: 1; justify-self: end; }
     .explore-page.explore-catalog-page .explore-search { padding: 18px; }
 }
+
+/* Detail-only layout and integration actions; match the existing header container. */
+.item-detail-page.explore-page { width: min(1280px, 100%); margin: 24px auto; }
+.item-detail-page .explore-detail {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    padding: 28px;
+    gap: 32px;
+}
+.item-detail-page .explore-detail-image { aspect-ratio: 4 / 3; }
+.item-detail-page .explore-detail-image img { width: 100%; height: 100%; object-fit: cover; }
+.item-detail-page .explore-detail-body { padding: 0; }
+.item-detail-page .explore-detail h1 { font-size: clamp(26px, 2.8vw, 38px); }
+.item-detail-page .item-detail-action-row { display: flex; gap: 10px; margin-top: 22px; }
+.item-detail-page .item-detail-action-row .explore-button {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 42px;
+    padding: 10px 8px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+.item-detail-page .item-detail-action-row button:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 800px) {
+    .item-detail-page .explore-detail { grid-template-columns: minmax(0, 1fr); gap: 22px; padding: 20px; }
+}
+@media (max-width: 400px) {
+    .item-detail-page .item-detail-action-row { gap: 6px; }
+    .item-detail-page .item-detail-action-row .explore-button { padding-inline: 5px; font-size: 11px; }
+}
+
+.item-detail-page .item-posted-by { display: flex; align-items: flex-start; gap: 14px; margin: 18px 0 0; }
+.item-detail-page .item-poster-avatar { display: grid; place-items: center; flex: 0 0 52px; width: 52px; height: 52px; border-radius: 50%; background: var(--violet); color: var(--paper); font-size: 16px; font-weight: 750; }
+.item-detail-page .item-poster-info { display: grid; gap: 3px; min-width: 0; }
+.item-detail-page .item-poster-label { color: #827b80; font-size: 12px; }
+.item-detail-page .item-poster-info strong, .item-detail-page .item-poster-info a { color: var(--violet); font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+.item-detail-page .item-poster-info time { margin-top: 5px; color: #765779; font-size: 12px; }
