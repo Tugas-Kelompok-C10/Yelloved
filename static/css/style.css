@@ -1935,8 +1935,8 @@ body:has(.profile-page) .site-header {
     position: relative;
     overflow: hidden;
     aspect-ratio: 4 / 3;
-    background: var(--violet);
-    color: var(--text);
+    background: var(--light-paper);
+    color: var(--violet);
 }
 
 .wanted-card-badges {
@@ -2171,7 +2171,7 @@ body:has(.profile-page) .site-header {
     display: grid;
     grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
     overflow: hidden;
-    background: var(--card);
+    background: var(--light-paper);
 }
 
 .wanted-detail-visual {
@@ -2184,7 +2184,8 @@ body:has(.profile-page) .site-header {
     min-height: 430px;
     aspect-ratio: 4 / 3;
     border: 0;
-    background: var(--violet);
+    background: var(--light-paper);
+    color: var(--violet);
 }
 
 .wanted-detail-card .wanted-detail-media img {
@@ -2229,10 +2230,64 @@ body:has(.profile-page) .site-header {
     stroke-width: 1.8;
 }
 
-.wanted-detail-posted {
-    margin: 10px 4px 0px;
+.wanted-detail-poster {
+    margin: 14px 4px 0;
+}
+
+.wanted-detail-poster-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     color: var(--violet);
+    text-decoration: none;
+}
+
+.wanted-detail-poster-link:hover strong {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.wanted-detail-avatar {
+    display: grid;
+    flex: none;
+    width: 42px;
+    height: 42px;
+    overflow: hidden;
+    border-radius: 50%;
+    background: var(--violet);
+    color: var(--paper);
     font-size: 12px;
+    font-weight: 700;
+    place-items: center;
+}
+
+.wanted-detail-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.wanted-detail-poster-link small,
+.wanted-detail-poster-link strong {
+    display: block;
+}
+
+.wanted-detail-poster-link small {
+    margin-bottom: 2px;
+    color: var(--gray);
+    font-size: 10px;
+}
+
+.wanted-detail-poster-link strong {
+    color: var(--violet);
+    font-size: 13px;
+}
+
+.wanted-detail-posted {
+    display: block;
+    margin: 5px 0 0 52px;
+    color: var(--violet);
+    font-size: 10px;
 }
 
 .wanted-detail-content {
@@ -2337,20 +2392,145 @@ body:has(.profile-page) .site-header {
     transform: none;
 }
 
-.wanted-inline-offer {
-    margin-top: 24px;
-    padding-top: 24px;
-    border-top: 1px solid var(--text-hover);
+.wanted-offer-modal {
+    width: min(560px, calc(100% - 24px));
+    max-height: calc(100dvh - 24px);
+    margin: auto;
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border: 1px solid var(--text-hover);
+    border-radius: var(--radius);
+    background: var(--paper);
+    color: var(--violet);
+    box-shadow: 0 18px 48px var(--violet);
 }
 
-.wanted-inline-offer .wanted-form {
-    margin-top: 0;
+.wanted-offer-modal::backdrop {
+    background: var(--violet);
+    opacity: 0.72;
 }
 
-.wanted-inline-offer .wanted-form > .wanted-button {
+.wanted-offer-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 22px 24px;
+    border-bottom: 1px solid var(--text-hover);
+}
+
+.wanted-offer-modal-header h2 {
+    color: var(--violet);
+    font-size: clamp(18px, 4vw, 22px);
+}
+
+.wanted-offer-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 28px 24px 22px;
+}
+
+.wanted-offer-thumbnail {
+    display: grid;
+    flex: none;
+    width: 82px;
+    height: 82px;
+    overflow: hidden;
+    border: 1px solid var(--text-hover);
+    border-radius: var(--radius);
+    background: var(--light-paper);
+    color: var(--violet);
+    place-items: center;
+}
+
+.wanted-offer-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.wanted-offer-thumbnail svg {
+    width: 30px;
+    height: 30px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.6;
+}
+
+.wanted-offer-item h3 {
+    margin-bottom: 8px;
+    color: var(--violet);
+    font-size: 16px;
+    line-height: 1.4;
+}
+
+.wanted-offer-item span,
+.wanted-offer-item strong {
+    display: block;
+    color: var(--violet);
+}
+
+.wanted-offer-item span {
+    margin-bottom: 2px;
+    font-size: 11px;
+}
+
+.wanted-offer-item strong {
+    font-size: 14px;
+}
+
+.wanted-offer-modal-form {
+    display: grid;
+    gap: 24px;
+    padding: 0 24px 26px;
+}
+
+.wanted-offer-price-control {
+    display: flex;
+    align-items: center;
+    min-height: 50px;
+    padding: 0 14px;
+    border: 1px solid var(--text-hover);
+    border-radius: var(--radius);
+    background: var(--light-paper);
+    color: var(--violet);
+}
+
+.wanted-offer-price-control:focus-within {
+    border-color: var(--violet);
+    outline: 2px solid var(--violet-light-hover);
+    outline-offset: 2px;
+}
+
+.wanted-offer-price-control > span {
+    flex: none;
+    padding-right: 10px;
+    font-weight: 700;
+}
+
+.wanted-offer-price-control input {
+    width: 100%;
+    min-width: 0;
+    min-height: 48px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--violet);
+    font: inherit;
+}
+
+.wanted-offer-submit {
     width: 100%;
     background: var(--violet);
     color: var(--paper);
+}
+
+.wanted-offer-submit:hover {
+    background: var(--violet-hover);
 }
 
 .wanted-owner-actions,
@@ -2412,6 +2592,98 @@ body:has(.profile-page) .site-header {
 .wanted-offer-card strong {
     color: var(--violet);
     font-size: 14px;
+}
+
+
+/* Public requester profile */
+
+.public-profile-page {
+    width: min(1280px, calc(100% - 40px));
+    margin: 0 auto;
+    padding: 40px 0 72px;
+}
+
+.public-profile-card {
+    padding: 36px;
+    border: 1px solid var(--text-hover);
+    border-radius: var(--radius);
+    background: var(--light-paper);
+}
+
+.public-profile-identity {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.public-profile-avatar {
+    display: grid;
+    flex: none;
+    width: 82px;
+    height: 82px;
+    overflow: hidden;
+    border-radius: 50%;
+    background: var(--violet);
+    color: var(--paper);
+    font-size: 22px;
+    font-weight: 700;
+    place-items: center;
+}
+
+.public-profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.public-profile-identity small {
+    color: var(--gray);
+    font-size: 11px;
+}
+
+.public-profile-identity h1 {
+    margin-top: 4px;
+    color: var(--violet);
+    font-size: clamp(24px, 4vw, 34px);
+}
+
+.public-profile-posts {
+    margin-top: 32px;
+    padding-top: 26px;
+    border-top: 1px solid var(--text-hover);
+}
+
+.public-profile-posts h2 {
+    margin-bottom: 16px;
+    color: var(--violet);
+    font-size: 18px;
+}
+
+.public-profile-posts > div {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.public-profile-posts a {
+    display: grid;
+    gap: 6px;
+    padding: 16px;
+    border: 1px solid var(--text-hover);
+    border-radius: var(--radius);
+    background: var(--paper);
+    color: var(--violet);
+    text-decoration: none;
+}
+
+.public-profile-posts a:hover {
+    background: var(--violet-light-hover);
+}
+
+.public-profile-posts a span,
+.public-profile-posts p {
+    color: var(--gray);
+    font-size: 12px;
 }
 
 
@@ -2622,7 +2894,8 @@ body:has(.profile-page) .site-header {
 @media (max-width: 640px) {
     .wanted-page,
     .wanted-detail-page,
-    .wanted-form-page {
+    .wanted-form-page,
+    .public-profile-page {
         width: min(100% - 24px, 1280px);
     }
 
@@ -2652,6 +2925,49 @@ body:has(.profile-page) .site-header {
         padding: 30px 22px;
     }
 
+    .wanted-offer-modal {
+        width: calc(100% - 20px);
+        max-height: calc(100dvh - 20px);
+    }
+
+    .wanted-offer-modal-header {
+        padding: 16px 18px;
+    }
+
+    .wanted-offer-modal .wanted-modal-close {
+        width: 34px;
+        height: 34px;
+        font-size: 20px;
+    }
+
+    .wanted-offer-item {
+        gap: 12px;
+        padding: 20px 18px 18px;
+    }
+
+    .wanted-offer-thumbnail {
+        width: 66px;
+        height: 66px;
+    }
+
+    .wanted-offer-item h3 {
+        margin-bottom: 5px;
+        font-size: 14px;
+    }
+
+    .wanted-offer-modal-form {
+        gap: 18px;
+        padding: 0 18px 20px;
+    }
+
+    .wanted-offer-price-control {
+        min-height: 46px;
+    }
+
+    .wanted-offer-price-control input {
+        min-height: 44px;
+    }
+
     .wanted-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         width: 100%;
@@ -2664,6 +2980,40 @@ body:has(.profile-page) .site-header {
     .wanted-offer-card > div {
         align-items: flex-start;
         flex-direction: column;
+    }
+
+    .public-profile-card {
+        padding: 24px 20px;
+    }
+
+    .public-profile-avatar {
+        width: 64px;
+        height: 64px;
+        font-size: 18px;
+    }
+
+    .public-profile-posts > div {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-height: 600px) {
+    .wanted-offer-modal-header {
+        padding-block: 14px;
+    }
+
+    .wanted-offer-item {
+        padding-block: 16px;
+    }
+
+    .wanted-offer-thumbnail {
+        width: 60px;
+        height: 60px;
+    }
+
+    .wanted-offer-modal-form {
+        gap: 14px;
+        padding-bottom: 16px;
     }
 }
 

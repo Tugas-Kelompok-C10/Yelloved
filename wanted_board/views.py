@@ -166,7 +166,9 @@ def show_wanted(request):
 
 def wanted_detail(request, pk):
     wanted_post = get_object_or_404(
-        WantedPost.objects.select_related("requester").prefetch_related(
+        WantedPost.objects.select_related(
+            "requester", "requester__account_profile"
+        ).prefetch_related(
             "offers__offerer"
         ),
         pk=pk,
@@ -196,6 +198,33 @@ def sample_wanted_detail(request, slug):
         request,
         "wanted_board/sample_detail.html",
         {"name": "Yelloved", "wanted_post": sample_post},
+    )
+
+
+def sample_poster_profile(request, slug):
+    sample_post = next(
+        (post for post in SAMPLE_WANTED_POSTS if post["slug"] == slug),
+        None,
+    )
+    if sample_post is None:
+        raise Http404("Sample wanted post not found")
+
+    poster_posts = tuple(
+        post
+        for post in SAMPLE_WANTED_POSTS
+        if post["poster"] == sample_post["poster"]
+    )
+    return render(
+        request,
+        "account_profile/public_profile.html",
+        {
+            "name": "Yelloved",
+            "profile_name": sample_post["poster"],
+            "profile_initials": sample_post["poster_initials"],
+            "profile_photo_url": "",
+            "profile_posts": poster_posts,
+            "sample_profile": True,
+        },
     )
 
 
@@ -295,6 +324,7 @@ def create_offer(request, pk):
             offer = form.save(commit=False)
             offer.wanted_post = wanted_post
             offer.offerer = request.user
+            offer.message = ""
             offer.save()
             messages.success(request, "Your offer has been sent.")
         else:

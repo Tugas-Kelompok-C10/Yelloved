@@ -23,7 +23,16 @@
                     </svg>
                 {% endif %}
             </div>
-            <p class="wanted-detail-posted">{{ wanted_post.posted_on }}</p>
+            <div class="wanted-detail-poster">
+                <a class="wanted-detail-poster-link" href="{% url 'wanted_board:sample_poster_profile' wanted_post.slug %}">
+                    <span class="wanted-detail-avatar">{{ wanted_post.poster_initials }}</span>
+                    <span>
+                        <small>Posted by</small>
+                        <strong>@{{ wanted_post.poster }}</strong>
+                    </span>
+                </a>
+                <time class="wanted-detail-posted">{{ wanted_post.posted_on }}</time>
+            </div>
         </div>
 
         <div class="wanted-detail-content">
@@ -53,10 +62,11 @@
                 <p>{{ wanted_post.description }}</p>
             </section>
             <div class="wanted-detail-actions" aria-label="Item actions">
-                <a class="wanted-button wanted-action-offer" href="{% url 'login' %}?next={{ request.path }}">Make an Offer</a>
+                <button class="wanted-button wanted-action-offer" type="button" data-offer-toggle aria-controls="wanted-offer-modal" aria-expanded="false">Make an Offer</button>
                 <a class="wanted-button wanted-action-secondary" href="{% url 'transactions:pesan' %}">Chat</a>
             </div>
         </div>
     </article>
 </main>
+{% include "wanted_board/_offer_modal.html" with sample_offer=True %}
 {% endblock content %}

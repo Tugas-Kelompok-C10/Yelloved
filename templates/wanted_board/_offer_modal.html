@@ -1,0 +1,72 @@
+{% load wanted_board_tags %}
+<dialog class="wanted-offer-modal" id="wanted-offer-modal" aria-labelledby="wanted-offer-title">
+    <div class="wanted-offer-modal-header">
+        <h4 id="wanted-offer-title">Make an Offer</h4>
+        <button class="wanted-modal-close" type="button" data-close-offer-modal aria-label="Close offer modal">×</button>
+    </div>
+
+    <div class="wanted-offer-item">
+        <div class="wanted-offer-thumbnail">
+            {% if wanted_post.image %}
+                <img src="{{ wanted_post.image.url }}" alt="Reference for {{ wanted_post.title }}">
+            {% elif wanted_post.image_url %}
+                <img src="{{ wanted_post.image_url }}" alt="Reference for {{ wanted_post.title }}" referrerpolicy="no-referrer">
+            {% else %}
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                    <circle cx="8.5" cy="9" r="1.5"></circle>
+                    <path d="m5 17 4.5-4 3.5 3 2.5-2 3.5 3"></path>
+                </svg>
+            {% endif %}
+        </div>
+        <div>
+            <h3>{{ wanted_post.title }}</h3>
+            <span>Maximum budget</span>
+            <strong>{% if wanted_post.listing_type == "free" %}Free{% elif wanted_post.budget %}{{ wanted_post.budget|rupiah }}{% else %}Flexible budget{% endif %}</strong>
+        </div>
+    </div>
+
+    <form class="wanted-offer-modal-form" method="{% if sample_offer %}get{% else %}post{% endif %}" action="{% if sample_offer %}{% url 'login' %}{% else %}{% url 'wanted_board:create_offer' wanted_post.pk %}{% endif %}">
+        {% if sample_offer %}
+            <input type="hidden" name="next" value="{{ request.path }}">
+            <div class="wanted-form-field">
+                <label for="sample-offered-price">Your offer price</label>
+                <div class="wanted-offer-price-control">
+                    <span>Rp</span>
+                    <input id="sample-offered-price" type="number" name="offered_price" min="0" step="1000" placeholder="125000" inputmode="numeric" required>
+                </div>
+            </div>
+        {% else %}
+            {% csrf_token %}
+            <div class="wanted-form-field">
+                {{ offer_form.offered_price.label_tag }}
+                <div class="wanted-offer-price-control">
+                    <span>Rp</span>
+                    {{ offer_form.offered_price }}
+                </div>
+                {% for error in offer_form.offered_price.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
+            </div>
+        {% endif %}
+        <button class="wanted-button wanted-offer-submit" type="submit">Send Offer</button>
+    </form>
+</dialog>
+
+<script>
+    (() => {
+        const toggle = document.querySelector("[data-offer-toggle]");
+        const modal = document.getElementById("wanted-offer-modal");
+        if (!toggle || !modal) return;
+
+        const closeModal = () => modal.close();
+        toggle.addEventListener("click", () => {
+            modal.showModal();
+            toggle.setAttribute("aria-expanded", "true");
+            modal.querySelector('input[name="offered_price"]')?.focus();
+        });
+        modal.querySelector("[data-close-offer-modal]")?.addEventListener("click", closeModal);
+        modal.addEventListener("click", (event) => {
+            if (event.target === modal) closeModal();
+        });
+        modal.addEventListener("close", () => toggle.setAttribute("aria-expanded", "false"));
+    })();
+</script>

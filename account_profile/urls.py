@@ -15,6 +15,7 @@ urlpatterns = [
     path("api/notifications/", api.notifications_api, name="api_notifications"),
     path("api/change-password/", api.change_password_api, name="api_change_password"),
     path("register/", views.register, name="register"),
+    path("users/<str:username>/", views.public_profile, name="public_profile"),
     path("", views.show_account_profile, name="profile"),
     path("addresses/", views.show_address_list, name="address_list"),
     path("addresses/<int:address_id>/edit/", views.edit_address, name="edit_address"),

@@ -52,19 +52,21 @@ class WantedPostForm(forms.ModelForm):
 class OfferForm(forms.ModelForm):
     class Meta:
         model = Offer
-        fields = ("offered_price", "message")
+        fields = ("offered_price",)
         labels = {
-            "message": "Offer message",
             "offered_price": "Your offer price",
         }
         widgets = {
-            "message": forms.Textarea(
+            "offered_price": forms.NumberInput(
                 attrs={
-                    "placeholder": "Add item details and how the requester can contact you.",
-                    "rows": 4,
+                    "min": 0,
+                    "step": 1000,
+                    "placeholder": "125000",
+                    "inputmode": "numeric",
                 }
             ),
-            "offered_price": forms.NumberInput(
-                attrs={"min": 0, "step": 1000, "placeholder": "125000"}
-            ),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["offered_price"].required = True

@@ -216,6 +216,14 @@ class WantedBoardViewTests(TestCase):
         self.assertContains(response, "Fashion")
         self.assertContains(response, "Sell")
         self.assertContains(response, "Rp 160.000")
+        self.assertContains(response, "@Essence")
+        self.assertContains(
+            response,
+            reverse(
+                "wanted_board:sample_poster_profile",
+                args=["dummyjson-1-essence-mascara-lash-princess"],
+            ),
+        )
         self.assertContains(
             response,
             "https://cdn.dummyjson.com/product-images/beauty/"
@@ -247,6 +255,11 @@ class WantedBoardViewTests(TestCase):
         self.assertContains(response, "Maximum budget")
         self.assertContains(response, "Make an Offer")
         self.assertContains(response, "Chat")
+        self.assertContains(response, "@owner")
+        self.assertContains(
+            response,
+            reverse("account_profile:public_profile", args=["owner"]),
+        )
         self.assertNotContains(response, ">Buy</a>")
         self.assertNotContains(response, "<dt>Status</dt>", html=True)
 
@@ -260,6 +273,31 @@ class WantedBoardViewTests(TestCase):
         self.assertContains(response, "Make an Offer")
         self.assertContains(response, "Your offer price")
         self.assertContains(response, 'name="offered_price"')
+        self.assertContains(response, 'id="wanted-offer-modal"')
+        self.assertContains(response, "Send Offer")
+        self.assertNotContains(response, 'name="message"')
+
+    def test_requester_username_links_to_a_public_profile(self):
+        response = self.client.get(
+            reverse("account_profile:public_profile", args=["owner"])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "@owner")
+        self.assertContains(response, self.wanted_post.title)
+        self.assertNotContains(response, "Phone number")
+
+    def test_sample_requester_has_a_profile_page(self):
+        response = self.client.get(
+            reverse(
+                "wanted_board:sample_poster_profile",
+                args=["dummyjson-1-essence-mascara-lash-princess"],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "@Essence")
+        self.assertContains(response, "Essence Mascara Lash Princess")
 
     def test_create_requires_login_and_assigns_requester(self):
         create_url = reverse("wanted_board:create_wanted")
@@ -404,7 +442,6 @@ class WantedBoardViewTests(TestCase):
         response = self.client.post(
             reverse("wanted_board:create_offer", args=[self.wanted_post.pk]),
             {
-                "message": "I have a clean copy.",
                 "offered_price": "75000",
             },
         )
@@ -416,13 +453,24 @@ class WantedBoardViewTests(TestCase):
         offer = Offer.objects.get(wanted_post=self.wanted_post)
         self.assertEqual(offer.offerer, self.other_user)
         self.assertEqual(offer.offered_price, Decimal("75000"))
+        self.assertEqual(offer.message, "")
+
+    def test_offer_requires_a_price(self):
+        self.client.login(username="other", password="test-password")
+
+        self.client.post(
+            reverse("wanted_board:create_offer", args=[self.wanted_post.pk]),
+            {},
+        )
+
+        self.assertFalse(Offer.objects.exists())
 
     def test_owner_and_duplicate_offer_are_rejected(self):
         offer_url = reverse(
             "wanted_board:create_offer",
             args=[self.wanted_post.pk],
         )
-        payload = {"message": "Offer message", "offered_price": "75000"}
+        payload = {"offered_price": "75000"}
 
         self.client.login(username="owner", password="test-password")
         self.client.post(offer_url, payload)

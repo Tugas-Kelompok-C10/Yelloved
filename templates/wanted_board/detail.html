@@ -23,7 +23,22 @@
                     </svg>
                 {% endif %}
             </div>
-            <p class="wanted-detail-posted">{{ wanted_post.created_at|date:"d M Y, H:i" }}</p>
+            <div class="wanted-detail-poster">
+                <a class="wanted-detail-poster-link" href="{% url 'account_profile:public_profile' wanted_post.requester.username %}">
+                    <span class="wanted-detail-avatar">
+                        {% if wanted_post.requester.account_profile.photo %}
+                            <img src="{{ wanted_post.requester.account_profile.photo.url }}" alt="Profile picture of {{ wanted_post.requester.username }}">
+                        {% else %}
+                            {{ wanted_post.requester.username|first|upper }}
+                        {% endif %}
+                    </span>
+                    <span>
+                        <small>Posted by</small>
+                        <strong>@{{ wanted_post.requester.username }}</strong>
+                    </span>
+                </a>
+                <time class="wanted-detail-posted" datetime="{{ wanted_post.created_at|date:'c' }}">{{ wanted_post.created_at|date:"d M Y, H:i" }}</time>
+            </div>
         </div>
 
         <div class="wanted-detail-content">
@@ -58,29 +73,13 @@
                 {% elif user == wanted_post.requester or wanted_post.status != "open" or has_offered %}
                     <button class="wanted-button wanted-action-offer" type="button" disabled>Make an Offer</button>
                 {% else %}
-                    <button class="wanted-button wanted-action-offer" type="button" data-offer-toggle aria-controls="wanted-offer-form" aria-expanded="false">Make an Offer</button>
+                    <button class="wanted-button wanted-action-offer" type="button" data-offer-toggle aria-controls="wanted-offer-modal" aria-expanded="false">Make an Offer</button>
                 {% endif %}
                 <a class="wanted-button wanted-action-secondary" href="{% url 'transactions:pesan' %}">Chat</a>
                 {% if user.is_authenticated and user != wanted_post.requester and wanted_post.status == "open" %}
                     <a class="wanted-button wanted-action-secondary" href="{% url 'item_matching:offer_create' wanted_post.pk %}">Offer an Item</a>
                 {% endif %}
             </div>
-
-            {% if user.is_authenticated and user != wanted_post.requester and wanted_post.status == "open" and not has_offered %}
-                <div class="wanted-inline-offer" id="wanted-offer-form" hidden>
-                    <form class="wanted-form" method="post" action="{% url 'wanted_board:create_offer' wanted_post.pk %}">
-                        {% csrf_token %}
-                        {% for field in offer_form %}
-                            <div class="wanted-form-field">
-                                {{ field.label_tag }}
-                                {{ field }}
-                                {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
-                            </div>
-                        {% endfor %}
-                        <button class="wanted-button wanted-button-primary" type="submit">Send offer</button>
-                    </form>
-                </div>
-            {% endif %}
 
             {% if user == wanted_post.requester %}
                 <div class="wanted-owner-actions">
@@ -115,7 +114,7 @@
                             <h3>{{ offer.offerer.username }}</h3>
                             <time datetime="{{ offer.created_at|date:'c' }}">{{ offer.created_at|date:"d M Y, H:i" }}</time>
                         </div>
-                        <p>{{ offer.message|linebreaksbr }}</p>
+                        {% if offer.message %}<p>{{ offer.message|linebreaksbr }}</p>{% endif %}
                         <strong>{% if offer.offered_price %}{{ offer.offered_price|rupiah }}{% else %}Price negotiable{% endif %}</strong>
                     </article>
                 {% empty %}
@@ -126,18 +125,6 @@
     {% endif %}
 </main>
 {% if user.is_authenticated and user != wanted_post.requester and wanted_post.status == "open" and not has_offered %}
-<script>
-    (() => {
-        const toggle = document.querySelector("[data-offer-toggle]");
-        const form = document.getElementById("wanted-offer-form");
-        if (!toggle || !form) return;
-
-        toggle.addEventListener("click", () => {
-            form.hidden = !form.hidden;
-            toggle.setAttribute("aria-expanded", String(!form.hidden));
-            if (!form.hidden) form.querySelector("input")?.focus();
-        });
-    })();
-</script>
+    {% include "wanted_board/_offer_modal.html" %}
 {% endif %}
 {% endblock content %}
