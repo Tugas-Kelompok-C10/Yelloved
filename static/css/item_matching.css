@@ -1,0 +1,193 @@
+/* maaf bikin halaman baru. karena style.css-nya udah 3000 line lebih :') */
+.matching-page .matching-header {
+  margin-bottom: 20px;
+}
+
+.matching-page .matching-header h1 {
+  font-size: clamp(24px, 3.5vw, 36px);
+  letter-spacing: -1px;
+}
+
+.matching-page .matching-header p,
+.matching-page .matching-meta {
+  font-size: 13px;
+  opacity: .8;
+}
+
+.matching-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.matching-tab {
+  padding: 8px 16px;
+  border: 1px solid var(--violet);
+  border-radius: 999px;
+  color: var(--violet);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.matching-tab.is-active {
+  background: var(--violet);
+  color: var(--text);
+}
+
+.matching-badge {
+  display: inline-block;
+  min-width: 20px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--violet);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.matching-tab.is-active .matching-badge {
+  background: var(--text);
+}
+
+.matching-list {
+  display: grid;
+  gap: 12px;
+}
+
+.matching-card {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--light-paper);
+}
+
+.matching-card-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.matching-card h2 {
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.matching-card a {
+  color: var(--violet);
+}
+
+.matching-for {
+  font-weight: 400;
+  opacity: .7;
+}
+
+.matching-swap {
+  font-size: 13px;
+}
+
+.matching-card-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.matching-card-side .explore-button {
+  min-height: 38px;
+  padding: 6px 18px;
+}
+
+.matching-status {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--blue);
+  color: var(--violet);
+}
+
+.matching-status-accepted {
+  background: #cfe8c8;
+}
+
+.matching-status-rejected,
+.matching-status-cancelled,
+.matching-status-withdrawn {
+  background: var(--violet-light-hover);
+}
+
+.matching-empty {
+  padding: 40px 0;
+  text-align: center;
+  opacity: .7;
+}
+
+.matching-form-card {
+  max-width: 640px;
+  margin: 24px auto;
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--light-paper);
+}
+
+.matching-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.matching-field {
+  display: grid;
+  gap: 6px;
+}
+
+.matching-field label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.matching-field select,
+.matching-field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--paper);
+  font: inherit;
+  color: var(--violet);
+}
+
+.matching-field small {
+  font-size: 12px;
+  opacity: .8;
+}
+
+.matching-fits {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--blue);
+  font-size: 13px;
+}
+
+.matching-fits ul {
+  margin: 6px 0 0 18px;
+}
+
+@media (max-width: 640px) {
+  .matching-card {
+    flex-direction: column;
+  }
+  
+  .matching-card-side {
+    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}

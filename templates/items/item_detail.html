@@ -23,13 +23,19 @@
             </div>
             {% if can_manage %}<div class="explore-owner-actions"><a class="explore-button" href="{% url 'items:item_update' item.pk %}">Edit Item / Status</a><a class="explore-reset" href="{% url 'items:item_delete' item.pk %}">Hapus Item</a></div>{% endif %}
             <div class="explore-detail-actions">
-                <button class="explore-button" id="explore-interest-button" type="button" aria-controls="explore-interest-message">Tertarik dengan Item Ini</button>
+                {% if item.source == 'user' and item.owner %}
+                    {% if item.owner_id == user.pk %}
+                        <a class="explore-button" href="{% url 'item_matching:item_suggestions' item.pk %}">Lihat Wanted Post yang Cocok</a>
+                    {% elif item.status == 'available' %}
+                        <a class="explore-button" href="{% url 'item_matching:request_create' item.pk %}">Tertarik dengan Item Ini</a>
+                    {% else %}
+                        <button class="explore-button" type="button" disabled>Barang Tidak Tersedia</button>
+                    {% endif %}
+                {% endif %}
                 <a class="explore-button explore-button-secondary" href="{% url 'items:explore_items' %}">Kembali ke Explore</a>
             </div>
-            <p class="explore-interest-message" id="explore-interest-message" role="status"></p>
         </div>
     </article>
     {% if item.source == 'dummyjson' %}<p class="explore-photo-credit"><a href="{% static 'img/items/SOURCES.md' %}">Sumber dan lisensi foto katalog</a></p>{% endif %}
 </main>
-<script>document.getElementById('explore-interest-button').addEventListener('click', function () { document.getElementById('explore-interest-message').textContent = 'Fitur pengajuan request akan segera tersedia.'; });</script>
 {% endblock %}

@@ -27,7 +27,7 @@
 
         <link
             rel="stylesheet"
-            href="{% static 'css/style.css' %}?v=auth-16"
+            href="{% static 'css/style.css' %}?v=auth-26"
         >
 
 
@@ -49,6 +49,7 @@
 
                 
             {% if user.is_authenticated %}
+                <a href="{% url 'item_matching:dashboard' %}">Item Matching</a>
                 <a href="{% url 'transactions:transaction_history' %}">
                     Transaction
                 </a>
