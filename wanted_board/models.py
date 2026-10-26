@@ -30,7 +30,7 @@ class WantedPost(models.Model):
         on_delete=models.CASCADE,
         related_name="wanted_posts",
     )
-    title = models.CharField(max_length=25)
+    title = models.CharField(max_length=50)
     image = models.FileField(
         upload_to="wanted_references/",
         validators=[

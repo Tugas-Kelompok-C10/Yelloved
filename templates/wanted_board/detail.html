@@ -30,7 +30,7 @@
             <h1>{{ wanted_post.title }}</h1>
             <p class="wanted-detail-classification">{{ wanted_post.get_category_display }} <span>·</span> {{ wanted_post.get_listing_type_display }}</p>
             <span class="wanted-detail-budget-label">Maximum budget</span>
-            <strong class="wanted-detail-budget">{% if wanted_post.budget %}{{ wanted_post.budget|rupiah }}{% else %}Flexible budget{% endif %}</strong>
+            <strong class="wanted-detail-budget">{% if wanted_post.listing_type == "free" %}Free{% elif wanted_post.budget %}{{ wanted_post.budget|rupiah }}{% else %}Flexible budget{% endif %}</strong>
             <div class="wanted-detail-quick-info" aria-label="Item condition and location">
                 <span>
                     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -53,13 +53,12 @@
                 <p>{{ wanted_post.description|linebreaksbr }}</p>
             </section>
             <div class="wanted-detail-actions" aria-label="Item actions">
-                <a class="wanted-button wanted-action-buy" href="{% url 'transactions:checkout' %}">Buy</a>
                 {% if not user.is_authenticated %}
-                    <a class="wanted-button wanted-action-secondary" href="{% url 'login' %}?next={{ request.path }}">Make an Offer</a>
+                    <a class="wanted-button wanted-action-offer" href="{% url 'login' %}?next={{ request.path }}">Make an Offer</a>
                 {% elif user == wanted_post.requester or wanted_post.status != "open" or has_offered %}
-                    <button class="wanted-button wanted-action-secondary" type="button" disabled>Make an Offer</button>
+                    <button class="wanted-button wanted-action-offer" type="button" disabled>Make an Offer</button>
                 {% else %}
-                    <button class="wanted-button wanted-action-secondary" type="button" data-offer-toggle aria-controls="wanted-offer-form" aria-expanded="false">Make an Offer</button>
+                    <button class="wanted-button wanted-action-offer" type="button" data-offer-toggle aria-controls="wanted-offer-form" aria-expanded="false">Make an Offer</button>
                 {% endif %}
                 <a class="wanted-button wanted-action-secondary" href="{% url 'transactions:pesan' %}">Chat</a>
             </div>
