@@ -1,0 +1,1261 @@
+
+/* ========================================
+   YELLOVED - CHECKOUT
+   Theme: Purple, Cream, Soft Yellow
+======================================== */
+
+.checkout-page {
+    width: min(100% - 40px, 1240px);
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 30px 0 48px;
+    color: #351039;
+}
+
+/* Heading */
+
+.checkout-heading {
+    margin-bottom: 24px;
+    text-align: left;
+}
+
+.checkout-eyebrow {
+    display: inline-block;
+    margin-bottom: 10px;
+    padding: 7px 12px;
+    color: #8055b8;
+    background: #f3eaf5;
+    border: 1px solid #ead9ed;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+}
+
+.checkout-heading h1 {
+    margin: 0 0 8px;
+    color: #351039;
+    font-size: clamp(28px, 3vw, 36px);
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.checkout-heading p {
+    margin: 0;
+    color: #776d7c;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+/* Alerts */
+
+.checkout-alert {
+    margin-bottom: 18px;
+    padding: 13px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+}
+
+.checkout-alert p {
+    margin: 4px 0;
+}
+
+.checkout-alert-error {
+    color: #923737;
+    background: #fff0ef;
+    border: 1px solid #edcfcc;
+}
+
+.checkout-alert-success {
+    color: #286d4b;
+    background: #eef8ef;
+    border: 1px solid #d0e7d0;
+}
+
+/* Main address card */
+
+.checkout-address-card {
+    position: relative;
+    padding: 24px;
+    background: #fffdf5;
+    border: 1px solid #e5dca4;
+    border-radius: 20px;
+    box-shadow: none;
+}
+
+.checkout-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.checkout-section-icon {
+    display: grid;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    place-items: center;
+    color: #f5edb9;
+    background: #421044;
+    border-radius: 11px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.checkout-card-heading h2 {
+    margin: 0;
+    color: #351039;
+    font-size: 18px;
+    font-weight: 650;
+}
+
+/* Selected address */
+
+.selected-address {
+    padding: 18px;
+    background: #fbf8ed;
+    border: 1px solid #eee6c6;
+    border-radius: 14px;
+}
+
+.selected-address-person,
+.address-pick-person {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+}
+
+.selected-address-person strong,
+.address-pick-person strong {
+    color: #351039;
+    font-size: 14px;
+    font-weight: 650;
+}
+
+.selected-address-person > span,
+.address-pick-person > span {
+    color: #796e7e;
+    font-size: 13px;
+}
+
+.selected-address-detail,
+.address-pick-detail {
+    margin: 10px 0 0;
+    color: #776d7c;
+    font-size: 13px;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+}
+
+.address-label {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 4px 9px;
+    color: #4b1b4e;
+    background: #f1e5f1;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.address-empty {
+    margin: 0 0 16px;
+    color: #776d7c;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.address-change-button {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 0;
+    color: #672a75;
+    background: transparent;
+    border: 0;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.address-change-button:hover {
+    color: #351039;
+    text-decoration: underline;
+}
+
+/* Buttons */
+
+.checkout-primary-button,
+.checkout-secondary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 11px 18px;
+    border-radius: 24px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.checkout-primary-button {
+    color: #f7efbd;
+    background: #421044;
+    border: 1px solid #421044;
+}
+
+.checkout-primary-button:hover {
+    color: #fff;
+    background: #5b205f;
+    border-color: #5b205f;
+}
+
+.checkout-secondary-button {
+    color: #421044;
+    background: #fffdf5;
+    border: 1px solid #e5dca4;
+}
+
+.checkout-secondary-button:hover {
+    background: #f8f0d8;
+}
+
+.checkout-note {
+    margin: 14px 2px 0;
+    color: #8a8090;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+/* Modal overlay */
+
+.address-modal-overlay {
+    position: fixed;
+    z-index: 1000;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgb(35 13 39 / 58%);
+    backdrop-filter: blur(3px);
+}
+
+.address-modal-overlay.is-open {
+    display: flex;
+}
+
+.address-modal {
+    width: 100%;
+    max-width: 620px;
+    max-height: min(82vh, 720px);
+    overflow-y: auto;
+    background: #fffdf5;
+    border: 1px solid #e5dca4;
+    border-radius: 18px;
+    box-shadow: 0 18px 55px rgb(35 13 39 / 20%);
+    animation: checkout-modal-in 0.2s ease-out;
+}
+
+.new-address-modal {
+    max-width: 680px;
+}
+
+@keyframes checkout-modal-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.address-modal-header {
+    position: sticky;
+    z-index: 2;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 24px;
+    background: #421044;
+    border-bottom: 1px solid #421044;
+}
+
+.address-modal-header h2 {
+    margin: 0;
+    color: #f7efbd;
+    font-size: 18px;
+    font-weight: 650;
+}
+
+.address-modal-close {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    place-items: center;
+    color: #f7efbd;
+    background: rgb(255 255 255 / 10%);
+    border: 0;
+    border-radius: 50%;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.address-modal-close:hover {
+    color: #421044;
+    background: #f7efbd;
+}
+
+/* Saved address list */
+
+.address-modal-list {
+    padding: 8px 24px;
+}
+
+.address-modal-item {
+    margin: 0;
+    border-bottom: 1px solid #eee6c6;
+}
+
+.address-pick-button {
+    display: flex;
+    width: 100%;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 20px 4px;
+    color: inherit;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+}
+
+.address-pick-button:hover {
+    background: #faf5e6;
+}
+
+.address-radio {
+    display: grid;
+    width: 19px;
+    height: 19px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    place-items: center;
+    border: 1.5px solid #b7a5bd;
+    border-radius: 50%;
+}
+
+.address-radio > span {
+    width: 9px;
+    height: 9px;
+    background: #672a75;
+    border-radius: 50%;
+}
+
+.address-pick-content {
+    display: block;
+    min-width: 0;
+    flex: 1;
+}
+
+.address-modal-footer {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 18px 24px;
+    background: #fffdf5;
+    border-top: 1px solid #eee6c6;
+}
+
+/* New address form */
+
+.new-address-form {
+    padding: 24px;
+}
+
+.new-address-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.checkout-field {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.checkout-field label {
+    color: #421044;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.checkout-field input,
+.checkout-field select,
+.checkout-field textarea {
+    width: 100%;
+    min-height: 44px;
+    padding: 11px 12px;
+    color: #351039;
+    background: #fffef9;
+    border: 1px solid #e2d9b9;
+    border-radius: 10px;
+    outline: none;
+    font-family: inherit;
+    font-size: 13px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.checkout-field textarea {
+    min-height: 94px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.checkout-field input::placeholder,
+.checkout-field textarea::placeholder {
+    color: #a59aa7;
+}
+
+.checkout-field input:focus,
+.checkout-field select:focus,
+.checkout-field textarea:focus {
+    border-color: #8055a0;
+    box-shadow: 0 0 0 3px rgb(103 42 117 / 10%);
+}
+
+.checkout-field select:disabled {
+    color: #a29baa;
+    background: #f5f1e7;
+    cursor: not-allowed;
+}
+
+.address-default-option {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0 0 22px;
+    color: #5f5263;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.address-default-option input {
+    width: 16px;
+    height: 16px;
+    accent-color: #672a75;
+    cursor: pointer;
+}
+
+.new-address-form .address-modal-footer {
+    margin: 0 -24px -24px;
+}
+
+/* Modal open state */
+
+body.address-modal-open {
+    overflow: hidden;
+}
+
+/* Responsive */
+
+@media (max-width: 600px) {
+    .checkout-page {
+        width: calc(100% - 32px);
+        padding: 24px 0 36px;
+    }
+
+    .checkout-heading {
+        margin-bottom: 20px;
+    }
+
+    .checkout-address-card {
+        padding: 18px 14px;
+        border-radius: 15px;
+    }
+
+    .checkout-card-heading h2 {
+        font-size: 16px;
+    }
+
+    .selected-address {
+        padding: 14px;
+    }
+
+    .address-modal-overlay {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .address-modal,
+    .new-address-modal {
+        width: 100%;
+        max-width: none;
+        max-height: 88vh;
+        border-radius: 18px 18px 0 0;
+    }
+
+    .address-modal-header {
+        padding: 17px 18px;
+    }
+
+    .address-modal-list {
+        padding: 6px 18px;
+    }
+
+    .address-modal-footer {
+        padding: 16px 18px;
+    }
+
+    .new-address-form {
+        padding: 20px 18px;
+    }
+
+    .new-address-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .new-address-form .address-modal-footer {
+        margin: 0 -18px -20px;
+    }
+
+    .address-modal-footer .checkout-primary-button,
+    .address-modal-footer .checkout-secondary-button {
+        flex: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .address-modal {
+        animation: none;
+    }
+
+    .checkout-primary-button,
+    .checkout-secondary-button,
+    .address-change-button {
+        transition: none;
+    }
+}
+
+
+/* =========================================
+   YELLOVED CHECKOUT PAGE
+========================================= */
+
+.checkout-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 36px 24px 56px;
+    color: #351039;
+}
+
+.checkout-heading {
+    margin-bottom: 26px;
+}
+
+.checkout-eyebrow {
+    display: inline-block;
+    padding: 7px 13px;
+    margin-bottom: 12px;
+    border-radius: 30px;
+    background: #f3e8f4;
+    color: #8056a5;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+}
+
+.checkout-heading h1 {
+    margin: 0 0 5px;
+    color: #351039;
+    font-size: clamp(30px, 4vw, 46px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -1.5px;
+}
+
+.checkout-heading p {
+    margin: 0;
+    color: #81778b;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+/* Kartu utama */
+
+.checkout-address-card {
+    margin-bottom: 18px;
+    padding: 24px;
+    border: 1px solid #e9dfa9;
+    border-radius: 20px;
+    background: #fffdf6;
+}
+
+.checkout-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    margin-bottom: 20px;
+}
+
+.checkout-section-icon {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    place-items: center;
+    border-radius: 12px;
+    background: #421044;
+    color: #f7edb0;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.checkout-card-heading h2 {
+    margin: 0;
+    color: #421044;
+    font-size: 19px;
+    font-weight: 750;
+}
+
+/* Alamat terpilih */
+
+.selected-address {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px;
+    border: 1px solid #f0e7c5;
+    border-radius: 15px;
+    background: #faf7eb;
+}
+
+.selected-address-person {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+}
+
+.selected-address-person strong {
+    color: #421044;
+    font-size: 14px;
+}
+
+.selected-address-person > span {
+    color: #81778b;
+    font-size: 13px;
+}
+
+.selected-address-detail {
+    flex-basis: 100%;
+    margin: 0;
+    color: #766d80;
+    font-size: 13px;
+    line-height: 1.8;
+    overflow-wrap: anywhere;
+}
+
+.address-label {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 6px;
+    background: #421044;
+    color: #fff6c7;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .5px;
+}
+
+.address-label-category {
+    background: #eee3f0;
+    color: #684273;
+}
+
+.address-empty {
+    margin: 0 0 16px;
+    color: #81778b;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.address-change-button {
+    margin-top: 15px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #6e347a;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.address-change-button:hover {
+    color: #421044;
+    text-decoration: underline;
+}
+
+/* Tombol */
+
+.checkout-primary-button,
+.checkout-secondary-button {
+    display: inline-flex;
+    min-height: 43px;
+    align-items: center;
+    justify-content: center;
+    padding: 11px 18px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 750;
+    cursor: pointer;
+    transition: background .2s ease, transform .2s ease;
+}
+
+.checkout-primary-button {
+    background: #421044;
+    color: #fff3b1;
+}
+
+.checkout-primary-button:hover {
+    background: #5a205e;
+    transform: translateY(-1px);
+}
+
+.checkout-secondary-button {
+    border-color: #e4d9e8;
+    background: #fffdf6;
+    color: #421044;
+}
+
+.checkout-secondary-button:hover {
+    background: #f5edf7;
+}
+
+/* Alert */
+
+.checkout-alert {
+    margin-bottom: 18px;
+    padding: 14px 17px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.checkout-alert p {
+    margin: 0;
+}
+
+.checkout-alert p + p {
+    margin-top: 5px;
+}
+
+.checkout-alert-error {
+    border: 1px solid #edc5c5;
+    background: #fff1f1;
+    color: #922c35;
+}
+
+.checkout-alert-success {
+    border: 1px solid #c8e3ce;
+    background: #effaf1;
+    color: #28643b;
+}
+
+/* =========================================
+   MODAL ALAMAT
+========================================= */
+
+.address-modal-overlay {
+    position: fixed;
+    z-index: 9999;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+    background: rgb(35 15 38 / 55%);
+    backdrop-filter: blur(4px);
+}
+
+.address-modal-overlay.is-open {
+    display: flex;
+}
+
+body.address-modal-open {
+    overflow: hidden;
+}
+
+.address-modal {
+    width: 100%;
+    max-width: 620px;
+    max-height: min(85vh, 760px);
+    overflow-y: auto;
+    border: 1px solid #eee3b8;
+    border-radius: 20px;
+    background: #fffdf6;
+    box-shadow: 0 22px 70px rgb(30 10 35 / 20%);
+    animation: checkout-modal-in .2s ease-out;
+}
+
+@keyframes checkout-modal-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.address-modal-header {
+    position: sticky;
+    z-index: 2;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 23px;
+    border-bottom: 1px solid #eee5c9;
+    background: #fffdf6;
+}
+
+.address-modal-header h2 {
+    margin: 0;
+    color: #421044;
+    font-size: 19px;
+    font-weight: 800;
+}
+
+.address-modal-close {
+    display: grid;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: #f2e8f3;
+    color: #421044;
+    font-size: 25px;
+    cursor: pointer;
+}
+
+.address-modal-close:hover {
+    background: #e8d9eb;
+}
+
+.address-modal-list {
+    display: grid;
+    gap: 12px;
+    padding: 20px 23px;
+}
+
+.address-modal-item {
+    padding: 14px;
+    border: 1px solid #eae0c0;
+    border-radius: 14px;
+    background: #fffef9;
+}
+
+.address-select-form {
+    margin: 0;
+}
+
+.address-pick-button {
+    display: flex;
+    width: 100%;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.address-radio {
+    display: grid;
+    width: 19px;
+    height: 19px;
+    flex-shrink: 0;
+    place-items: center;
+    margin-top: 2px;
+    border: 1.5px solid #b6a5bb;
+    border-radius: 50%;
+}
+
+.address-radio > span {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #421044;
+}
+
+.address-pick-content {
+    display: grid;
+    flex: 1;
+    gap: 9px;
+    min-width: 0;
+}
+
+.address-pick-person {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 13px;
+    align-items: center;
+}
+
+.address-pick-person strong {
+    color: #421044;
+    font-size: 13px;
+}
+
+.address-pick-person > span,
+.address-pick-detail {
+    color: #81778b;
+    font-size: 12px;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+.address-pick-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.address-item-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 13px;
+    padding-left: 31px;
+}
+
+.address-default-form {
+    margin: 0;
+}
+
+.address-action-button {
+    padding: 4px 0;
+    border: 0;
+    background: transparent;
+    color: #70417b;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.address-action-button:hover {
+    color: #421044;
+    text-decoration: underline;
+}
+
+.address-modal-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 17px 23px 22px;
+    border-top: 1px solid #eee5c9;
+}
+
+/* =========================================
+   FORM TAMBAH / EDIT ALAMAT
+========================================= */
+
+.new-address-modal {
+    max-width: 680px;
+}
+
+.new-address-form {
+    display: grid;
+    gap: 17px;
+    padding: 22px 23px 24px;
+}
+
+.new-address-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+}
+
+.checkout-field {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+}
+
+.checkout-field label,
+.payment-bank-selection label {
+    color: #421044;
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.checkout-field input,
+.checkout-field select,
+.checkout-field textarea,
+.payment-bank-selection select {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 11px 12px;
+    border: 1px solid #e3d9bb;
+    border-radius: 10px;
+    outline: none;
+    background: #fffef9;
+    color: #351039;
+    font-family: inherit;
+    font-size: 13px;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.checkout-field textarea {
+    min-height: 90px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.checkout-field input:focus,
+.checkout-field select:focus,
+.checkout-field textarea:focus,
+.payment-bank-selection select:focus {
+    border-color: #8056a5;
+    box-shadow: 0 0 0 3px rgb(128 86 165 / 12%);
+}
+
+.checkout-field select:disabled {
+    cursor: not-allowed;
+    background: #f2efe7;
+    color: #99909a;
+}
+
+.address-default-option {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #59465e;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.address-default-option input {
+    width: 16px;
+    height: 16px;
+    accent-color: #421044;
+}
+
+/* =========================================
+   METODE PEMBAYARAN
+========================================= */
+
+.checkout-payment-card {
+    margin-top: 0;
+}
+
+.payment-description {
+    margin: -7px 0 18px;
+    color: #81778b;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.payment-options {
+    display: grid;
+    gap: 12px;
+}
+
+.payment-option {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 15px;
+    border: 1px solid #e9dfa9;
+    border-radius: 14px;
+    background: #fffef9;
+    cursor: pointer;
+    transition: border-color .2s ease, background .2s ease;
+}
+
+.payment-option:hover {
+    border-color: #bba1c6;
+}
+
+.payment-option:has(input:checked) {
+    border-color: #8056a5;
+    background: #f6eff7;
+}
+
+.payment-option > input {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    margin: 0;
+    accent-color: #421044;
+}
+
+.payment-option-icon {
+    display: grid;
+    width: 43px;
+    height: 43px;
+    flex-shrink: 0;
+    place-items: center;
+    border-radius: 12px;
+    background: #421044;
+    color: #fff3b1;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.payment-option-content {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.payment-option-content strong {
+    color: #421044;
+    font-size: 14px;
+}
+
+.payment-option-content small {
+    color: #81778b;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.payment-bank-selection {
+    display: grid;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.payment-bank-selection[hidden] {
+    display: none !important;
+}
+
+#payment-method-form > .checkout-primary-button {
+    margin-top: 18px;
+}
+
+.checkout-note {
+    margin: 16px 2px 0;
+    color: #94889b;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 640px) {
+    .checkout-page {
+        padding: 26px 15px 38px;
+    }
+
+    .checkout-heading {
+        margin-bottom: 22px;
+    }
+
+    .checkout-address-card {
+        padding: 18px 15px;
+        border-radius: 16px;
+    }
+
+    .checkout-card-heading {
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .checkout-card-heading h2 {
+        font-size: 16px;
+    }
+
+    .checkout-section-icon {
+        width: 34px;
+        height: 34px;
+    }
+
+    .selected-address {
+        padding: 14px;
+    }
+
+    .selected-address-person {
+        gap: 7px 11px;
+    }
+
+    .new-address-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .address-modal-overlay {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .address-modal {
+        max-height: 90vh;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .address-modal-header {
+        padding: 17px;
+    }
+
+    .address-modal-list {
+        padding: 15px;
+    }
+
+    .new-address-form {
+        padding: 18px 17px 22px;
+    }
+
+    .address-modal-footer {
+        padding: 15px 17px 20px;
+    }
+
+    .address-modal-footer > button {
+        flex: 1;
+    }
+
+    .payment-option {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .payment-option-icon {
+        width: 38px;
+        height: 38px;
+    }
+}

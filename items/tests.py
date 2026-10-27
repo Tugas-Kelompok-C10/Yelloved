@@ -13,6 +13,23 @@ from .models import Item
 
 
 class ItemsTests(TestCase):
+    def test_items_ui_library_is_registered_and_renders(self):
+        from django.template import engines
+
+        template = engines['django'].from_string(
+            '{% load items_ui %}{{ condition|condition_badge }} / {{ listing|listing_badge }}'
+        )
+        self.assertEqual(
+            template.render({'condition': 'good', 'listing': 'sale'}),
+            'WELL USED / SELL',
+        )
+        self.assertEqual(
+            template.render({'condition': 'like_new', 'listing': 'free'}),
+            'LIGHTLY USED / FREE',
+        )
+        self.assertContains(self.client.get(reverse('items:explore_items')), 'WELL USED')
+        self.assertEqual(self.client.get(self.item.get_absolute_url()).status_code, 200)
+
     def setUp(self):
         self.owner = get_user_model().objects.create_user(username='seller_private', email='private@example.com', password='test-password')
         self.other = get_user_model().objects.create_user(username='other', password='test-password')

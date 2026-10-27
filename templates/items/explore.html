@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
-{% block meta %}<script src="{% static 'js/items/images.js' %}" defer></script>
+{% block meta %}<script src="{% static 'js/items/images.js' %}?v=explore-20261026-4" defer></script>
 <title>Explore Items | Yelloved</title>
-<link rel="stylesheet" href="{% static 'css/explore.css' %}">
-<script src="{% static 'js/items/explore.js' %}" defer></script>
+<link rel="stylesheet" href="{% static 'css/explore.css' %}?v=explore-20261026-4">
+<script src="{% static 'js/items/explore.js' %}?v=explore-20261026-4" defer></script>
 {% endblock %}
 {% block content %}
-<main class="explore-page" lang="id">
+<main class="explore-page explore-catalog-page" lang="id">
     <section class="explore-hero" aria-labelledby="explore-title">
         <span class="explore-eyebrow">DARI SEKITAR KAMPUS, UNTUK KAMU</span>
         <h1 id="explore-title">Barang lama, cerita baru.</h1>
@@ -20,12 +20,33 @@
             {% else %}<a class="explore-button" href="{% url 'login' %}?next={% url 'items:item_create' %}">+ Jual Barang</a>{% endif %}
         </div>
         <form id="explore-filters" class="explore-search" action="{% url 'items:explore_items' %}" data-endpoint="{% url 'items:items_json' %}" method="get" role="search">
-            <div class="explore-field explore-query"><label for="{{ filter_form.q.id_for_label }}">Cari judul atau deskripsi</label>{{ filter_form.q }}</div>
-            {% for field in filter_form %}{% if field.name != 'q' %}
-            <div class="explore-field"><label for="{{ field.id_for_label }}">{% if field.name == 'category' %}Kategori{% elif field.name == 'condition' %}Kondisi{% elif field.name == 'listing_type' %}Tipe listing{% else %}Status{% endif %}</label>{{ field }}</div>
-            {% endif %}{% endfor %}
-            <button class="explore-button" type="submit">Cari barang</button>
-            <a class="explore-reset" href="{% url 'items:explore_items' %}">Reset filter</a>
+            <div class="explore-field explore-query">
+                <label for="id_q">Search Items</label>
+                <input id="id_q" name="q" type="search" maxlength="200" value="{{ filter_form.q.value|default_if_none:'' }}" placeholder="Looking for Something?">
+            </div>
+            <div class="explore-primary-filters">
+                <div class="explore-field"><label for="{{ filter_form.category.id_for_label }}">Category</label>{{ filter_form.category }}</div>
+                <div class="explore-field"><label for="{{ filter_form.condition.id_for_label }}">Condition</label>{{ filter_form.condition }}</div>
+                <div class="explore-field">
+                    <label for="id_listing_type">Listing Type</label>
+                    <select id="id_listing_type" name="listing_type">
+                        <option value="">All listing types</option>
+                        <option value="sale"{% if filter_form.listing_type.value == 'sale' %} selected{% endif %}>Sell</option>
+                        <option value="free"{% if filter_form.listing_type.value == 'free' %} selected{% endif %}>Free</option>
+                        <option value="swap"{% if filter_form.listing_type.value == 'swap' %} selected{% endif %}>Exchange</option>
+                    </select>
+                </div>
+                <button class="explore-filter-toggle" id="explore-reset-filters" type="button" aria-label="Reset filters" title="Reset filters">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6"/></svg>
+                </button>
+            </div>
+            <details class="explore-advanced-filters"{% if filter_form.status.value %} open{% endif %}>
+                <summary>More filters</summary>
+                <div class="explore-more-filters">
+                    <div class="explore-field"><label for="{{ filter_form.status.id_for_label }}">Status</label>{{ filter_form.status }}</div>
+                    <div class="explore-filter-actions"><button class="explore-button" type="submit">Cari barang</button></div>
+                </div>
+            </details>
         </form>
         {% if filter_form.errors %}<p class="explore-feedback">Filter tidak valid. Silakan reset filter.</p>{% endif %}
         <p id="explore-loading" role="status" hidden>Memuat barang…</p>
