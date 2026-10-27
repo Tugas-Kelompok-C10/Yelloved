@@ -3,10 +3,6 @@
     <article class="wanted-card"{% if card.is_sample %} data-sample-card{% endif %}>
         <a class="wanted-card-link" href="{{ card.detail_url }}">
             <div class="wanted-card-media">
-                <div class="wanted-card-badges">
-                    <span>{{ card.condition_label }}</span>
-                    <span>{{ card.listing_type_label }}</span>
-                </div>
                 {% if card.image_url %}
                     <img src="{{ card.image_url }}" alt="Reference for {{ card.title }}" loading="lazy" referrerpolicy="no-referrer">
                 {% else %}
@@ -19,7 +15,8 @@
             </div>
             <div class="wanted-card-body">
                 <h3 title="{{ card.title }}">{{ card.title }}</h3>
-                <strong class="wanted-card-budget">{% if card.listing_type_label == "Free" %}Free{% elif card.budget %}{{ card.budget|rupiah }}{% else %}Flexible{% endif %}</strong>
+                <span class="wanted-card-budget-label">Maximum price</span>
+                <strong class="wanted-card-budget">{% if card.budget %}{{ card.budget|rupiah }}{% else %}Flexible{% endif %}</strong>
                 <p class="wanted-card-location">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path>

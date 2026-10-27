@@ -32,9 +32,12 @@ class WantedBoardModelTests(TestCase):
 
     def test_wanted_post_defaults_to_open(self):
         self.assertEqual(self.wanted_post.status, WantedPost.Status.OPEN)
-        self.assertEqual(
-            self.wanted_post.listing_type,
-            WantedPost.ListingType.SELL,
+        self.assertFalse(hasattr(self.wanted_post, "listing_type"))
+        self.assertFalse(hasattr(self.wanted_post, "preferred_condition"))
+        self.assertIn(WantedPost.Category.SKINCARE, WantedPost.Category.values)
+        self.assertIn(
+            WantedPost.Category.KITCHEN_HOUSEWARE,
+            WantedPost.Category.values,
         )
         self.assertEqual(str(self.wanted_post), "Looking for a study lamp")
 
@@ -80,7 +83,6 @@ class WantedBoardViewTests(TestCase):
             title="Used calculus textbook",
             description="Looking for a clean copy with no missing pages.",
             category=WantedPost.Category.BOOKS,
-            preferred_condition=WantedPost.Condition.WELL_USED,
             budget=Decimal("90000.00"),
             location="Kampus UI",
         )
@@ -91,54 +93,15 @@ class WantedBoardViewTests(TestCase):
             {
                 "q": "calculus",
                 "category": WantedPost.Category.BOOKS,
-                "condition": WantedPost.Condition.WELL_USED,
-                "listing_type": WantedPost.ListingType.SELL,
             },
         )
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.wanted_post.title)
         self.assertEqual(list(response.context["wanted_posts"]), [self.wanted_post])
-        self.assertEqual(
-            response.context["selected_condition"],
-            WantedPost.Condition.WELL_USED,
-        )
-        self.assertEqual(
-            response.context["selected_listing_type"],
-            WantedPost.ListingType.SELL,
-        )
-
-    def test_board_filters_posts_by_condition(self):
-        response = self.client.get(
-            reverse("wanted_board:show_wanted"),
-            {"condition": WantedPost.Condition.NEW},
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(list(response.context["wanted_posts"]), [])
-        self.assertTrue(response.context["wanted_cards"])
-        self.assertTrue(
-            all(
-                card["condition_label"] == "New"
-                for card in response.context["wanted_cards"]
-            )
-        )
-
-    def test_board_filters_posts_by_listing_type(self):
-        response = self.client.get(
-            reverse("wanted_board:show_wanted"),
-            {"listing_type": WantedPost.ListingType.FREE},
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(list(response.context["wanted_posts"]), [])
-        self.assertTrue(response.context["sample_posts"])
-        self.assertTrue(
-            all(
-                post["listing_type"] == WantedPost.ListingType.FREE
-                for post in response.context["sample_posts"]
-            )
-        )
+        self.assertEqual(response.context["selected_category"], WantedPost.Category.BOOKS)
+        self.assertNotContains(response, 'name="condition"')
+        self.assertNotContains(response, 'name="listing_type"')
 
     def test_board_returns_filtered_card_markup_for_ajax_search(self):
         response = self.client.get(
@@ -146,8 +109,6 @@ class WantedBoardViewTests(TestCase):
             {
                 "q": "calculus",
                 "category": WantedPost.Category.BOOKS,
-                "condition": WantedPost.Condition.WELL_USED,
-                "listing_type": WantedPost.ListingType.SELL,
             },
             HTTP_ACCEPT="application/json",
             HTTP_X_REQUESTED_WITH="XMLHttpRequest",
@@ -156,36 +117,11 @@ class WantedBoardViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         payload = response.json()
         self.assertEqual(payload["selected_category"], WantedPost.Category.BOOKS)
-        self.assertEqual(
-            payload["selected_condition"],
-            WantedPost.Condition.WELL_USED,
-        )
-        self.assertEqual(
-            payload["selected_listing_type"],
-            WantedPost.ListingType.SELL,
-        )
+        self.assertNotIn("selected_condition", payload)
+        self.assertNotIn("selected_listing_type", payload)
         self.assertEqual(payload["result_label"], "1 request found")
         self.assertIn(self.wanted_post.title, payload["html"])
         self.assertNotIn("Casio Scientific Calculator", payload["html"])
-
-    def test_search_matches_sell_and_free_listing_types(self):
-        sell_response = self.client.get(
-            reverse("wanted_board:show_wanted"),
-            {"q": "sell"},
-        )
-        free_response = self.client.get(
-            reverse("wanted_board:show_wanted"),
-            {"q": "free"},
-        )
-
-        self.assertTrue(sell_response.context["wanted_cards"])
-        self.assertTrue(free_response.context["wanted_cards"])
-        self.assertTrue(
-            all(
-                card["listing_type_label"] == "Free"
-                for card in free_response.context["wanted_cards"]
-            )
-        )
 
     def test_board_includes_enough_sample_cards_for_see_more(self):
         response = self.client.get(reverse("wanted_board:show_wanted"))
@@ -211,18 +147,14 @@ class WantedBoardViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Essence Mascara Lash Princess")
         self.assertContains(response, "9 October 2025")
-        self.assertContains(response, "Well used")
         self.assertContains(response, "Fasilkom UI")
-        self.assertContains(response, "Fashion")
-        self.assertContains(response, "Sell")
+        self.assertContains(response, "Skincare")
         self.assertContains(response, "Rp 160.000")
+        self.assertContains(response, "Offer an Item")
         self.assertContains(response, "@Essence")
         self.assertContains(
             response,
-            reverse(
-                "wanted_board:sample_poster_profile",
-                args=["dummyjson-1-essence-mascara-lash-princess"],
-            ),
+            reverse("transactions:pesan"),
         )
         self.assertContains(
             response,
@@ -248,56 +180,33 @@ class WantedBoardViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Books &amp; Study")
-        self.assertContains(response, "Sell")
-        self.assertContains(response, "Well used")
         self.assertContains(response, "Kampus UI")
         self.assertContains(response, "Rp 90.000")
         self.assertContains(response, "Maximum budget")
-        self.assertContains(response, "Make an Offer")
+        self.assertContains(response, "Offer an Item")
         self.assertContains(response, "Chat")
         self.assertContains(response, "@owner")
         self.assertContains(
             response,
-            reverse("account_profile:public_profile", args=["owner"]),
+            reverse("transactions:pesan"),
         )
         self.assertNotContains(response, ">Buy</a>")
         self.assertNotContains(response, "<dt>Status</dt>", html=True)
 
-    def test_offer_form_lets_user_set_their_price(self):
+    def test_offer_item_button_opens_short_offer_modal(self):
         self.client.login(username="other", password="test-password")
 
         response = self.client.get(
             reverse("wanted_board:wanted_detail", args=[self.wanted_post.pk])
         )
 
-        self.assertContains(response, "Make an Offer")
-        self.assertContains(response, "Your offer price")
-        self.assertContains(response, 'name="offered_price"')
-        self.assertContains(response, 'id="wanted-offer-modal"')
-        self.assertContains(response, "Send Offer")
-        self.assertNotContains(response, 'name="message"')
-
-    def test_requester_username_links_to_a_public_profile(self):
-        response = self.client.get(
-            reverse("account_profile:public_profile", args=["owner"])
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "@owner")
-        self.assertContains(response, self.wanted_post.title)
-        self.assertNotContains(response, "Phone number")
-
-    def test_sample_requester_has_a_profile_page(self):
-        response = self.client.get(
-            reverse(
-                "wanted_board:sample_poster_profile",
-                args=["dummyjson-1-essence-mascara-lash-princess"],
-            )
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "@Essence")
-        self.assertContains(response, "Essence Mascara Lash Princess")
+        self.assertContains(response, "Offer an Item")
+        self.assertContains(response, 'id="item-offer-modal"')
+        self.assertContains(response, 'name="image"')
+        self.assertContains(response, 'name="price"')
+        self.assertContains(response, 'name="description"')
+        self.assertContains(response, "Submit Offer")
+        self.assertNotContains(response, "item-matching/wanted/")
 
     def test_create_requires_login_and_assigns_requester(self):
         create_url = reverse("wanted_board:create_wanted")
@@ -319,8 +228,6 @@ class WantedBoardViewTests(TestCase):
                 ),
                 "description": "Need a compact chair for a dorm room.",
                 "category": WantedPost.Category.HOME,
-                "listing_type": WantedPost.ListingType.SELL,
-                "preferred_condition": WantedPost.Condition.LIGHTLY_USED,
                 "budget": "200000",
                 "location": "Margonda",
             },
@@ -333,7 +240,6 @@ class WantedBoardViewTests(TestCase):
             reverse("wanted_board:wanted_detail", args=[created_post.pk]),
         )
         self.assertEqual(created_post.requester, self.other_user)
-        self.assertEqual(created_post.listing_type, WantedPost.ListingType.SELL)
         self.assertTrue(created_post.image.name.endswith("desk-chair.png"))
 
     def test_create_requires_a_reference_image(self):
@@ -345,7 +251,6 @@ class WantedBoardViewTests(TestCase):
                 "title": "Desk chair",
                 "description": "Need a compact chair for a dorm room.",
                 "category": WantedPost.Category.HOME,
-                "preferred_condition": WantedPost.Condition.LIGHTLY_USED,
                 "budget": "200000",
                 "location": "Margonda",
             },
@@ -389,7 +294,6 @@ class WantedBoardViewTests(TestCase):
                 "title": "A" * 51,
                 "description": "A valid description for the requested item.",
                 "category": WantedPost.Category.OTHER,
-                "preferred_condition": WantedPost.Condition.LIGHTLY_USED,
                 "budget": "100000",
                 "location": "Kampus UI",
             },
@@ -411,7 +315,6 @@ class WantedBoardViewTests(TestCase):
                 "title": "Changed by someone else",
                 "description": self.wanted_post.description,
                 "category": self.wanted_post.category,
-                "preferred_condition": self.wanted_post.preferred_condition,
             },
         )
         delete_response = self.client.post(
@@ -425,6 +328,20 @@ class WantedBoardViewTests(TestCase):
 
     def test_owner_can_update_post_status(self):
         self.client.login(username="owner", password="test-password")
+        detail_response = self.client.get(
+            reverse("wanted_board:wanted_detail", args=[self.wanted_post.pk])
+        )
+
+        self.assertContains(detail_response, ">Edit</button>")
+        self.assertContains(detail_response, 'id="edit-wanted-modal"')
+        self.assertContains(detail_response, 'id="delete-wanted-modal"')
+        self.assertContains(detail_response, ">Save</button>")
+        self.assertNotContains(detail_response, "Mark as fulfilled")
+        self.assertNotContains(detail_response, "Suggested items")
+        self.assertNotContains(detail_response, "Incoming offers")
+        self.assertNotContains(detail_response, "Offer an Item")
+        self.assertNotContains(detail_response, ">Chat</a>")
+
         response = self.client.post(
             reverse("wanted_board:update_status", args=[self.wanted_post.pk]),
             {"status": WantedPost.Status.FULFILLED},
@@ -484,8 +401,16 @@ class WantedBoardViewTests(TestCase):
     def test_owner_can_delete_post(self):
         self.client.login(username="owner", password="test-password")
         response = self.client.post(
-            reverse("wanted_board:delete_wanted", args=[self.wanted_post.pk])
+            reverse("wanted_board:delete_wanted", args=[self.wanted_post.pk]),
+            follow=True,
         )
 
-        self.assertRedirects(response, reverse("wanted_board:show_wanted"))
+        self.assertRedirects(
+            response,
+            reverse("wanted_board:show_wanted"),
+            status_code=302,
+            target_status_code=200,
+        )
+        self.assertContains(response, "Your wanted post has been deleted.")
+        self.assertContains(response, 'data-toast-duration="3000"')
         self.assertFalse(WantedPost.objects.filter(pk=self.wanted_post.pk).exists())

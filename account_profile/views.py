@@ -1,6 +1,5 @@
 from django.contrib import messages
 from django.contrib.auth import login
-from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.decorators import login_required
@@ -38,22 +37,6 @@ def show_account_profile(request):
         "name": "Yelloved",
         "profile": profile,
         "form": form,
-    })
-
-
-def public_profile(request, username):
-    profile_user = get_object_or_404(get_user_model(), username=username)
-    profile = Profile.objects.filter(user=profile_user).first()
-    initials = "".join(
-        part[0] for part in profile_user.username.split()[:2]
-    ).upper() or "U"
-    return render(request, "account_profile/public_profile.html", {
-        "name": "Yelloved",
-        "profile_name": profile_user.username,
-        "profile_initials": initials,
-        "profile_photo_url": profile.photo.url if profile and profile.photo else "",
-        "profile_posts": profile_user.wanted_posts.all()[:10],
-        "sample_profile": False,
     })
 
 

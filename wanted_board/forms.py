@@ -11,8 +11,6 @@ class WantedPostForm(forms.ModelForm):
             "image",
             "description",
             "category",
-            "listing_type",
-            "preferred_condition",
             "budget",
             "location",
         )
@@ -21,8 +19,6 @@ class WantedPostForm(forms.ModelForm):
             "image": "Reference picture",
             "description": "What do you need?",
             "category": "Category",
-            "listing_type": "Offer type",
-            "preferred_condition": "Preferred condition",
             "budget": "Maximum budget",
             "location": "Your location",
         }

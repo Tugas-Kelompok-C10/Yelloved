@@ -2,19 +2,26 @@
     const form = document.querySelector("[data-ajax-search]");
     const grid = document.querySelector(".wanted-grid");
     const queryInput = document.getElementById("wanted-query");
-    const categorySelect = document.getElementById("wanted-category");
-    const conditionSelect = document.getElementById("wanted-condition");
-    const listingTypeSelect = document.getElementById("wanted-listing-type");
-    const resetButton = document.getElementById("wanted-filter-reset");
+    const categoryChips = [...document.querySelectorAll("[data-category-chip]")];
     const seeMoreButton = document.querySelector(".wanted-see-more");
 
-    if (!form || !grid || !queryInput || !categorySelect || !conditionSelect || !listingTypeSelect || !resetButton || !seeMoreButton) return;
+    if (!form || !grid || !queryInput || !categoryChips.length || !seeMoreButton) return;
 
     const debounceDelay = 300;
     let debounceTimer;
     let activeRequest;
     let resizeTimer;
     let expanded = false;
+    let selectedCategory = categoryChips.find((chip) => chip.classList.contains("is-active"))?.dataset.categoryChip || "";
+
+    const updateCategoryChips = (category) => {
+        selectedCategory = category;
+        categoryChips.forEach((chip) => {
+            const isActive = chip.dataset.categoryChip === category;
+            chip.classList.toggle("is-active", isActive);
+            chip.setAttribute("aria-pressed", String(isActive));
+        });
+    };
 
     const applyCardLimit = () => {
         const cards = [...grid.querySelectorAll(".wanted-card")];
@@ -42,9 +49,7 @@
         const query = queryInput.value.trim();
 
         if (query) url.searchParams.set("q", query);
-        if (categorySelect.value) url.searchParams.set("category", categorySelect.value);
-        if (conditionSelect.value) url.searchParams.set("condition", conditionSelect.value);
-        if (listingTypeSelect.value) url.searchParams.set("listing_type", listingTypeSelect.value);
+        if (selectedCategory) url.searchParams.set("category", selectedCategory);
 
         return url;
     };
@@ -72,9 +77,7 @@
             grid.innerHTML = data.html;
             expanded = false;
             applyCardLimit();
-            categorySelect.value = data.selected_category;
-            conditionSelect.value = data.selected_condition;
-            listingTypeSelect.value = data.selected_listing_type;
+            updateCategoryChips(data.selected_category);
             window.history.replaceState({}, "", url);
         } catch (error) {
             if (error.name !== "AbortError") window.location.assign(url);
@@ -91,20 +94,12 @@
         debounceTimer = window.setTimeout(loadResults, debounceDelay);
     });
 
-    [categorySelect, conditionSelect, listingTypeSelect].forEach((select) => {
-        select.addEventListener("change", () => {
+    categoryChips.forEach((chip) => {
+        chip.addEventListener("click", () => {
             window.clearTimeout(debounceTimer);
+            updateCategoryChips(chip.dataset.categoryChip);
             loadResults();
         });
-    });
-
-    resetButton.addEventListener("click", () => {
-        window.clearTimeout(debounceTimer);
-        queryInput.value = "";
-        categorySelect.value = "";
-        conditionSelect.value = "";
-        listingTypeSelect.value = "";
-        loadResults();
     });
 
     form.addEventListener("submit", (event) => {

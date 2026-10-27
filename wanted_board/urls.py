@@ -8,11 +8,6 @@ urlpatterns = [
     path("", views.show_wanted, name="show_wanted"),
     path("create/", views.create_wanted, name="create_wanted"),
     path(
-        "sample/<slug:slug>/poster/",
-        views.sample_poster_profile,
-        name="sample_poster_profile",
-    ),
-    path(
         "sample/<slug:slug>/",
         views.sample_wanted_detail,
         name="sample_wanted_detail",
