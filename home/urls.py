@@ -4,7 +4,7 @@ from django.contrib.auth.views import LoginView
 from django.conf import settings
 from django.conf.urls.static import static
 
-from home.views import show_main
+from home.views import send_love, show_main
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -15,6 +15,7 @@ urlpatterns = [
     path('account/', include('account_profile.urls')),
     path('wanted-post/', include('wanted_board.urls')),
     path('item-matching/', include('item_matching.urls')),
+    path("love/", send_love, name="send_love"),
     path("", show_main, name="show_main"),
 ]
 

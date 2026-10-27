@@ -32,6 +32,7 @@ html {
     --blue-hover: #8BAEB9;
     --gray: #68838B;
     --radius: 20px;
+    --radius-pill: 999px;
     --gradient: linear-gradient(to right, #320c35, #4f1353);
 }
 
@@ -183,7 +184,7 @@ main {
     display: inline-block;
     padding: 9px 18px;
     border: none;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: var(--text);
     color: var(--violet);
     font-family: inherit;
@@ -201,7 +202,7 @@ main {
 
 .site-header nav .register-button {
     padding: 9px 18px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: #f7f2a4;
     color: #430442;
     font-weight: 700;
