@@ -23,7 +23,6 @@ LOCATIONS = (
 )
 
 FASHION_CATEGORIES = {
-    "beauty",
     "fragrances",
     "mens-shirts",
     "mens-shoes",
@@ -33,6 +32,7 @@ FASHION_CATEGORIES = {
     "womens-jewellery",
     "womens-shoes",
 }
+SKINCARE_CATEGORIES = {"beauty", "skin-care"}
 BOOK_CATEGORIES = {"books"}
 ELECTRONICS_CATEGORIES = {
     "laptops",
@@ -43,11 +43,15 @@ ELECTRONICS_CATEGORIES = {
 HOME_CATEGORIES = {
     "furniture",
     "home-decoration",
-    "kitchen-accessories",
 }
+KITCHEN_HOUSEWARE_CATEGORIES = {"kitchen-accessories", "groceries"}
 
 
 def _wanted_category(source_category):
+    if source_category in SKINCARE_CATEGORIES:
+        return "skincare", "Skincare"
+    if source_category in KITCHEN_HOUSEWARE_CATEGORIES:
+        return "kitchen_houseware", "Kitchen & Houseware"
     if source_category in FASHION_CATEGORIES:
         return "fashion", "Fashion"
     if source_category in BOOK_CATEGORIES:
@@ -57,15 +61,6 @@ def _wanted_category(source_category):
     if source_category in HOME_CATEGORIES:
         return "home", "Home & Living"
     return "other", "Other"
-
-
-def _wanted_condition(rating):
-    rating = Decimal(str(rating or 0))
-    if rating >= Decimal("4.5"):
-        return "new", "New"
-    if rating >= Decimal("3.5"):
-        return "lightly_used", "Lightly used"
-    return "well_used", "Well used"
 
 
 def _rupiah_budget(price):
@@ -90,9 +85,7 @@ def _poster_details(product):
 
 def _adapt_product(product, index):
     category, category_label = _wanted_category(product.get("category", ""))
-    condition, condition_label = _wanted_condition(product.get("rating"))
     price = Decimal(str(product.get("price") or 0))
-    is_free = price < Decimal("3")
     poster, poster_initials = _poster_details(product)
     product_id = int(product["id"])
 
@@ -104,11 +97,7 @@ def _adapt_product(product, index):
         "description": product["description"],
         "category": category,
         "category_label": category_label,
-        "listing_type": "free" if is_free else "sell",
-        "listing_type_label": "Free" if is_free else "Sell",
-        "condition": condition,
-        "condition_label": condition_label,
-        "budget": None if is_free else _rupiah_budget(price),
+        "budget": _rupiah_budget(price),
         "location": LOCATIONS[index % len(LOCATIONS)],
         "poster": poster,
         "poster_initials": poster_initials,

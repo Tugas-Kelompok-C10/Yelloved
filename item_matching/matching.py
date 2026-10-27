@@ -11,11 +11,10 @@ CATEGORY_MAP = {
     Item.Category.ELECTRONICS: WantedPost.Category.ELECTRONICS,
     Item.Category.BOOKS: WantedPost.Category.BOOKS,
     Item.Category.HOME: WantedPost.Category.HOME,
+    Item.Category.SKINCARE: WantedPost.Category.SKINCARE,
+    Item.Category.KITCHEN_HOUSEWARE: WantedPost.Category.KITCHEN_HOUSEWARE,
     Item.Category.ACCESSORIES: WantedPost.Category.OTHER,
 }
-ITEM_CONDITION_RANK = {Item.Condition.LIKE_NEW: 0, Item.Condition.GOOD: 1, Item.Condition.FAIR: 2}
-WANTED_CONDITION_RANK = {WantedPost.Condition.NEW: 0, WantedPost.Condition.LIGHTLY_USED: 1,
-                         WantedPost.Condition.WELL_USED: 2}
 STOPWORDS = {'yang', 'dan', 'untuk', 'dengan', 'atau', 'cari', 'butuh', 'mencari', 'the', 'for',
              'and', 'with', 'looking', 'need', 'bekas', 'second', 'preloved', 'barang'}
 MIN_SCORE = 3
@@ -51,11 +50,8 @@ def evaluate(item, wanted_post):
     if item.status != Item.Status.AVAILABLE or wanted_post.status != WantedPost.Status.OPEN:
         return None
 
-    # Hard filters: what the requester is willing to pay for.
-    if wanted_post.listing_type == WantedPost.ListingType.FREE:
-        if item.listing_type != Item.ListingType.FREE:
-            return None
-    elif item.listing_type == Item.ListingType.SWAP:
+    # A wanted post only describes the requested item and maximum budget.
+    if item.listing_type == Item.ListingType.SWAP:
         return None
     price = price_in_idr(item)
     if wanted_post.budget is not None and price is not None and price > wanted_post.budget:
@@ -76,9 +72,6 @@ def evaluate(item, wanted_post):
         reasons.append('Deskripsi mirip')
     if not shared_title and not shared_desc and score == 0:
         return None
-    if ITEM_CONDITION_RANK[item.condition] <= WANTED_CONDITION_RANK[wanted_post.preferred_condition]:
-        score += 1
-        reasons.append('Kondisi sesuai')
     if wanted_post.budget is not None and price is not None:
         score += 1
         reasons.append('Sesuai budget')

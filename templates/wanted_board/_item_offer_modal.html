@@ -1,0 +1,54 @@
+<dialog class="wanted-modal wanted-item-offer-modal" id="item-offer-modal" aria-labelledby="item-offer-title">
+    <div class="wanted-modal-header">
+        <h2 id="item-offer-title">Offer an Item</h2>
+        <button class="wanted-modal-close" type="button" data-close-item-offer-modal aria-label="Close offer modal">×</button>
+    </div>
+    <p>Share a few details about the item you would like to offer.</p>
+
+    <form class="wanted-form" data-item-offer-form enctype="multipart/form-data">
+        <div class="wanted-form-field">
+            <label for="offered-item-photo">Reference photo *</label>
+            <input id="offered-item-photo" type="file" name="image" accept=".jpg,.jpeg,.png,.webp" required>
+            <small class="wanted-form-help">Upload a clear JPG, JPEG, PNG, or WEBP image.</small>
+        </div>
+        <div class="wanted-form-field">
+            <label for="offered-item-price">Offered price *</label>
+            <input id="offered-item-price" type="number" name="price" min="0" step="1000" inputmode="numeric" placeholder="150000" required>
+        </div>
+        <div class="wanted-form-field">
+            <label for="offered-item-description">Short description *</label>
+            <textarea id="offered-item-description" name="description" rows="3" maxlength="240" placeholder="Briefly describe the item and its condition." required></textarea>
+        </div>
+        <div class="wanted-modal-actions wanted-modal-actions-split">
+            <button class="wanted-button wanted-action-secondary" type="button" data-close-item-offer-modal>Cancel</button>
+            <button class="wanted-button wanted-action-offer" type="submit">Submit Offer</button>
+        </div>
+    </form>
+</dialog>
+
+<script>
+    (() => {
+        const modal = document.getElementById("item-offer-modal");
+        const openButton = document.querySelector("[data-open-item-offer-modal]");
+        if (!modal || !openButton) return;
+
+        openButton.addEventListener("click", () => modal.showModal());
+        modal.querySelectorAll("[data-close-item-offer-modal]").forEach((button) => {
+            button.addEventListener("click", () => modal.close());
+        });
+        modal.addEventListener("click", (event) => {
+            if (event.target === modal) modal.close();
+        });
+        modal.querySelector("[data-item-offer-form]")?.addEventListener("submit", (event) => {
+            event.preventDefault();
+            event.currentTarget.reset();
+            modal.close();
+            window.YellovedToast?.show({
+                title: "Offer submitted",
+                message: "Your item details were added to this request.",
+                type: "success",
+                duration: 3000,
+            });
+        });
+    })();
+</script>

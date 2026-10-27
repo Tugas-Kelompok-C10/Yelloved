@@ -18,7 +18,7 @@ SEED_CATALOG = (
     ('fashion', 'Ransel Kuliah', 65000),
     ('fashion', 'Sepatu Kanvas', 80000),
     ('fashion', 'Kemeja Lengan Panjang', 40000),
-    ('fashion', 'Kaos Olahraga', 15000),
+    ('skincare', 'Facial Cleanser', 35000),
     ('fashion', 'Celana Jeans', 60000),
     ('fashion', 'Jaket Hujan Ringkas', 35000),
     ('fashion', 'Sweater Rajut', 55000),
@@ -55,7 +55,7 @@ SEED_CATALOG = (
     ('home', 'Organizer Meja', 25000),
     ('home', 'Dispenser Air Meja', 150000),
     ('home', 'Rice Cooker Kecil', 175000),
-    ('home', 'Set Alat Makan', 30000),
+    ('kitchen_houseware', 'Set Alat Masak', 70000),
     ('home', 'Lemari Kain untuk Kos', 120000),
     ('home', 'Rak Sepatu Ringkas', 45000),
     ('home', 'Kotak Penyimpanan Buku', 25000),
@@ -94,7 +94,9 @@ def is_eligible(product):
 
 @lru_cache(maxsize=1)
 def catalog_photos():
-    return json.loads(Path(__file__).with_name('catalog_photos.json').read_text())
+    return json.loads(
+        Path(__file__).with_name('catalog_photos.json').read_text(encoding='utf-8')
+    )
 
 
 def localize_product(product, index=0):

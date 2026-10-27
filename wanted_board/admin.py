@@ -11,7 +11,7 @@ class OfferInline(admin.TabularInline):
 @admin.register(WantedPost)
 class WantedPostAdmin(admin.ModelAdmin):
     list_display = ("title", "requester", "category", "status", "created_at")
-    list_filter = ("status", "category", "preferred_condition")
+    list_filter = ("status", "category")
     search_fields = ("title", "description", "requester__username")
     inlines = (OfferInline,)
 

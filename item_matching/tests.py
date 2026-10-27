@@ -25,8 +25,7 @@ def make_item(owner, **kw):
 
 def make_post(requester, **kw):
     data = dict(title='Lampu belajar', description='Butuh lampu meja kecil', category='home',
-                listing_type='sell', preferred_condition='lightly_used', budget=Decimal('100000'),
-                location='Kukusan', image='wanted_references/x.png')
+                budget=Decimal('100000'), location='Kukusan', image='wanted_references/x.png')
     data.update(kw)
     return WantedPost.objects.create(requester=requester, **data)
 
@@ -211,9 +210,7 @@ class MatchingScoreTests(Base):
         self.assertIsNone(evaluate(make_item(self.owner, listing_type='swap', price=None), post))
         self.assertIsNone(evaluate(make_item(self.owner, status='sold'), post))
         self.assertIsNone(evaluate(make_item(self.buyer), post))                             # own item
-        free_post = make_post(self.buyer, listing_type='free', title='Lampu gratis')
-        self.assertIsNone(evaluate(make_item(self.owner), free_post))                        # not free
-        self.assertIsNotNone(evaluate(make_item(self.owner, listing_type='free', price=None), free_post))
+        self.assertIsNotNone(evaluate(make_item(self.owner, listing_type='free', price=None), post))
 
     def test_unrelated_item_does_not_match(self):
         item = make_item(self.owner, title='Kemeja flanel', description='Kemeja kotak', category='fashion')
