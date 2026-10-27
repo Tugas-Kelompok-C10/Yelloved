@@ -4,116 +4,151 @@
 
 {% block meta %}
 <title>Pesanan Saya | Yelloved</title>
+<link rel="stylesheet" href="{% static 'css/transaction_history.css' %}?v=4">
 {% endblock meta %}
 
 {% block content %}
 <main class="container orders-page">
-    <section class="orders-heading">
-        <div>
-            <span class="orders-eyebrow">YOUR YELLOVED JOURNEY</span>
-            <h1>Pesanan Saya</h1>
-            <p>Pantau pembelian barang preloved kamu di satu tempat.</p>
-        </div>
-        <a href="{% url 'items:explore_items' %}" class="orders-explore">
-            <span aria-hidden="true">＋</span> Jelajahi Barang
-        </a>
-    </section>
 
-    <nav class="orders-tabs" aria-label="Filter pesanan">
-        <a href="?status=all"
-           class="{% if active_status == 'all' %}active{% endif %}">
-            Semua
-        </a>
-        <a href="?status=pending"
-           class="{% if active_status == 'pending' %}active{% endif %}">
-            Menunggu Pembayaran
-        </a>
-        <a href="?status=processing"
-           class="{% if active_status == 'processing' %}active{% endif %}">
-            Diproses
-        </a>
-        <a href="?status=completed"
-           class="{% if active_status == 'completed' %}active{% endif %}">
-            Selesai
-        </a>
-        <a href="?status=cancelled"
-           class="{% if active_status == 'cancelled' %}active{% endif %}">
-            Dibatalkan
-        </a>
-    </nav>
+    <section class="orders-layout">
 
-    {% if transactions %}
-        <section class="orders-list">
-            {% for transaction in transactions %}
-                <article class="order-card">
-                    <div class="order-card-top">
-                        <div class="order-reference">
-                            <span class="order-icon" aria-hidden="true">♡</span>
-                            <div>
-                                <span class="order-label">ID Pesanan</span>
-                                <strong>{{ transaction.order_id }}</strong>
-                            </div>
-                        </div>
+        
+        <!-- Sidebar -->
+        <aside class="orders-sidebar">
+            <a href="?type=sold&status={{ active_status|default:'all' }}"
+            class="orders-sidebar-link {% if active_type == 'sold' %}active{% endif %}">
+                <span class="sidebar-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.8"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 10h18l-2-6H5l-2 6Z"/>
+                        <path d="M5 10v10h14V10"/>
+                        <path d="M9 20v-6h6v6"/>
+                    </svg>
+                </span>
+                <span>Terjual</span>
+            </a>
 
-                        <span class="order-date">
-                            {{ transaction.created_at|date:"d M Y, H:i" }}
-                        </span>
-                    </div>
+            <a href="?type=bought&status={{ active_status|default:'all' }}"
+            class="orders-sidebar-link {% if active_type != 'sold' %}active{% endif %}">
+                <span class="sidebar-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.8"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 8h14l1 12H4L5 8Z"/>
+                        <path d="M9 9V6a3 3 0 0 1 6 0v3"/>
+                    </svg>
+                </span>
+                <span>Dibeli</span>
+            </a>
+        </aside>
 
-                    <div class="order-card-body">
-                        <div class="order-product-placeholder"
-                            aria-hidden="true">♧</div>
 
-                        <div class="order-product-info">
-                            <h2>{{ transaction.item_name }}</h2>
-                            <p>{{ transaction.quantity }} barang</p>
+        <!-- Konten pesanan -->
+        <section class="orders-content">
 
-                            <div class="order-statuses">
-                                <span class="order-status status-{{ transaction.payment_status }}">
-                                    Pembayaran: {{ transaction.get_payment_status_display }}
+            <header class="orders-content-header">
+                <nav class="orders-tabs" aria-label="Filter pesanan">
+                    <a href="?type={{ active_type|default:'bought' }}&status=all"
+                       class="{% if active_status == 'all' %}active{% endif %}">
+                        Semua
+                    </a>
+
+                    <a href="?type={{ active_type|default:'bought' }}&status=processing"
+                       class="{% if active_status == 'processing' %}active{% endif %}">
+                        Dalam Proses
+                    </a>
+
+                    <a href="?type={{ active_type|default:'bought' }}&status=cancelled"
+                       class="{% if active_status == 'cancelled' %}active{% endif %}">
+                        Dibatalkan
+                    </a>
+
+                    <a href="?type={{ active_type|default:'bought' }}&status=completed"
+                       class="{% if active_status == 'completed' %}active{% endif %}">
+                        Selesai
+                    </a>
+                </nav>
+            </header>
+
+            {% if transactions %}
+                <section class="orders-list">
+                    {% for transaction in transactions %}
+                        <article class="order-card">
+
+                            <div class="order-card-top">
+                                <div class="order-reference">
+                                    <span class="order-icon" aria-hidden="true">♡</span>
+                                    <div>
+                                        <span class="order-label">ID Pesanan</span>
+                                        <strong>{{ transaction.order_id }}</strong>
+                                    </div>
+                                </div>
+
+                                <span class="order-date">
+                                    {{ transaction.created_at|date:"d M Y, H:i" }}
                                 </span>
-                                <span class="order-status status-{{ transaction.transaction_status }}">
-                                    Pesanan: {{ transaction.get_transaction_status_display }}
-                                </span>
                             </div>
-                        </div>
 
-                        <div class="order-total">
-                            <span>Total Belanja</span>
-                            <strong>Rp {{ transaction.total_amount|floatformat:0 }}</strong>
-                        </div>
-                    </div>
+                            <div class="order-card-body">
+                                <div class="order-product-placeholder"
+                                     aria-hidden="true">♧</div>
 
-                    <div class="order-card-footer">
-                        <span>Terima kasih telah memilih preloved.</span>
-                    </div>
-                </article>
-            {% endfor %}
-        </section>
-    {% else %}
-        <section class="orders-empty">
-            <div class="empty-illustration" aria-hidden="true">🛍️</div>
-            {% if active_status == 'pending' %}
-                <h2>Tidak Ada Pembayaran Tertunda</h2>
-                <p>Kamu tidak memiliki pesanan yang menunggu pembayaran saat ini.</p>
-            {% elif active_status == 'processing' %}
-                <h2>Belum Ada Pesanan Diproses</h2>
-                <p>Pesanan yang sedang diproses akan muncul di sini.</p>
-            {% elif active_status == 'completed' %}
-                <h2>Belum Ada Pesanan Selesai</h2>
-                <p>Pesanan yang sudah selesai akan muncul di sini.</p>
-            {% elif active_status == 'cancelled' %}
-                <h2>Belum Ada Pesanan Dibatalkan</h2>
-                <p>Pesanan yang dibatalkan akan muncul di sini.</p>
+                                <div class="order-product-info">
+                                    <h2>{{ transaction.item_name }}</h2>
+                                    <p>{{ transaction.quantity }} barang</p>
+
+                                    <div class="order-statuses">
+                                        <span class="order-status status-{{ transaction.payment_status }}">
+                                            Pembayaran: {{ transaction.get_payment_status_display }}
+                                        </span>
+                                        <span class="order-status status-{{ transaction.transaction_status }}">
+                                            Pesanan: {{ transaction.get_transaction_status_display }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="order-total">
+                                    <span>Total Belanja</span>
+                                    <strong>Rp {{ transaction.total_amount|floatformat:0 }}</strong>
+                                </div>
+                            </div>
+
+                            <div class="order-card-footer">
+                                <span>Terima kasih telah memilih preloved.</span>
+                            </div>
+
+                        </article>
+                    {% endfor %}
+                </section>
+
             {% else %}
-                <h2>Belum Ada Pesanan</h2>
-                <p>Perjalanan preloved kamu dimulai di sini. Temukan barang favoritmu!</p>
+                <section class="orders-empty">
+                    <div class="empty-illustration" aria-hidden="true">🛒</div>
+
+                    {% if active_type == 'sold' %}
+                        <h2>Belum Ada Penjualan</h2>
+                        <p>Kalau kamu jual barang, bakal muncul di sini.</p>
+                    {% elif active_status == 'pending' %}
+                        <h2>Menunggu Pembayaran</h2>
+                        <p>Pesanan yang menunggu pembayaran akan muncul di sini.</p>
+                    {% elif active_status == 'processing' %}
+                        <h2>Belum Ada Pesanan Diproses</h2>
+                        <p>Pesanan yang sedang diproses akan muncul di sini.</p>
+                    {% elif active_status == 'completed' %}
+                        <h2>Belum Ada Pesanan Selesai</h2>
+                        <p>Pesanan yang sudah selesai akan muncul di sini.</p>
+                    {% elif active_status == 'cancelled' %}
+                        <h2>Belum Ada Pesanan Dibatalkan</h2>
+                        <p>Pesanan yang dibatalkan akan muncul di sini.</p>
+                    {% else %}
+                        <h2>Belum Ada Pesanan</h2>
+                        <p>Kalau kamu membeli barang, pesananmu bakal muncul di sini.</p>
+                    {% endif %}
+                </section>
             {% endif %}
 
-            <a href="{% url 'items:explore_items' %}" class="orders-explore">
-                Jelajahi Barang
-            </a>
         </section>
-    {% endif %}
+    </section>
 </main>
 {% endblock content %}
