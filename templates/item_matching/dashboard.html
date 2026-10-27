@@ -1,69 +1,122 @@
 {% extends "base.html" %}
 {% load static %}
-{% block meta %}<title>Item Matching | {{ name }}</title><link rel="stylesheet" href="{% static 'css/explore.css' %}"><link rel="stylesheet" href="{% static 'css/item_matching.css' %}">{% endblock %}
+{% block meta %}<title>Item Matching | {{ name }}</title><link rel="stylesheet" href="{% static 'css/item_matching.css' %}">{% endblock %}
 {% block content %}
-<main class="explore-page matching-page" lang="id">
-    <header class="matching-header">
-        <h1>Item Matching &amp; Exchange</h1>
-        <p>Kelola request barang dan penawaran barang untuk wanted post di satu tempat.</p>
-    </header>
-    <nav class="matching-tabs" aria-label="Bagian matching">
-        {% for key, label in tabs %}
-            <a href="?tab={{ key }}" class="matching-tab{% if key == tab %} is-active{% endif %}"{% if key == tab %} aria-current="page"{% endif %}>
-                {{ label }}{% for k, n in pending.items %}{% if k == key and n %} <span class="matching-badge">{{ n }}</span>{% endif %}{% endfor %}
+<main class="container orders-page matching-page" lang="id">
+    <section class="orders-heading">
+        <div>
+            <span class="orders-eyebrow">YOUR YELLOVED EXCHANGE</span>
+            <h1>Item Matching &amp; Exchange</h1>
+            <p>Kelola request barang dan penawaran barang untuk wanted post di satu tempat.</p>
+        </div>
+        <a href="{% url 'items:explore_items' %}" class="orders-explore">
+            <span aria-hidden="true">＋</span> Jelajahi Barang
+        </a>
+    </section>
+
+    <nav class="orders-tabs" aria-label="Bagian matching">
+        {% for t in tabs %}
+            <a href="?tab={{ t.key }}" class="{% if t.key == tab %}active{% endif %}"{% if t.key == tab %} aria-current="page"{% endif %}>
+                {{ t.label }}{% if t.pending %} <span class="matching-badge">{{ t.pending }}</span>{% endif %}
             </a>
         {% endfor %}
     </nav>
 
-    <section class="matching-list">
-    {% for row in rows %}
-        <article class="matching-card">
-            {% if tab == 'incoming' or tab == 'sent' %}
-                <div class="matching-card-main">
-                    <h2><a href="{{ row.item.get_absolute_url }}">{{ row.item.title }}</a></h2>
-                    <p class="matching-meta">
-                        {% if tab == 'incoming' %}Dari <strong>{{ row.requester.username }}</strong>{% else %}Pemilik: <strong>{{ row.item.owner.username }}</strong>{% endif %}
-                        · {{ row.created_at|date:'d M Y, H:i' }}
-                    </p>
-                    {% if row.offered_item %}<p class="matching-swap">Ditukar dengan: <a href="{{ row.offered_item.get_absolute_url }}">{{ row.offered_item.title }}</a></p>{% endif %}
-                    {% if row.message %}<p>{{ row.message|linebreaksbr }}</p>{% endif %}
-                </div>
-                <div class="matching-card-side">
-                    <span class="matching-status matching-status-{{ row.status }}">{{ row.get_status_display }}</span>
-                    {% if row.status == 'pending' %}
-                        {% if tab == 'incoming' %}
-                            <form method="post" action="{% url 'item_matching:request_accept' row.pk %}">{% csrf_token %}<button class="explore-button" type="submit">Terima</button></form>
-                            <form method="post" action="{% url 'item_matching:request_reject' row.pk %}">{% csrf_token %}<button class="explore-button explore-button-secondary" type="submit">Tolak</button></form>
-                        {% else %}
-                            <form method="post" action="{% url 'item_matching:request_cancel' row.pk %}">{% csrf_token %}<button class="explore-button explore-button-secondary" type="submit">Batalkan</button></form>
-                        {% endif %}
-                    {% endif %}
-                </div>
-            {% else %}
-                <div class="matching-card-main">
-                    <h2><a href="{{ row.item.get_absolute_url }}">{{ row.item.title }}</a> <span class="matching-for">untuk</span> <a href="{% url 'wanted_board:wanted_detail' row.wanted_post.pk %}">{{ row.wanted_post.title }}</a></h2>
-                    <p class="matching-meta">
-                        {% if tab == 'offers_received' %}Dari <strong>{{ row.offerer.username }}</strong>{% else %}Untuk <strong>{{ row.wanted_post.requester.username }}</strong>{% endif %}
-                        · {{ row.created_at|date:'d M Y, H:i' }}
-                    </p>
-                    {% if row.message %}<p>{{ row.message|linebreaksbr }}</p>{% endif %}
-                </div>
-                <div class="matching-card-side">
-                    <span class="matching-status matching-status-{{ row.status }}">{{ row.get_status_display }}</span>
-                    {% if row.status == 'pending' %}
-                        {% if tab == 'offers_received' %}
-                            <form method="post" action="{% url 'item_matching:offer_accept' row.pk %}">{% csrf_token %}<button class="explore-button" type="submit">Terima</button></form>
-                            <form method="post" action="{% url 'item_matching:offer_reject' row.pk %}">{% csrf_token %}<button class="explore-button explore-button-secondary" type="submit">Tolak</button></form>
-                        {% else %}
-                            <form method="post" action="{% url 'item_matching:offer_withdraw' row.pk %}">{% csrf_token %}<button class="explore-button explore-button-secondary" type="submit">Tarik</button></form>
-                        {% endif %}
-                    {% endif %}
-                </div>
-            {% endif %}
-        </article>
-    {% empty %}
-        <p class="matching-empty">Belum Ada Pesanan.</p>
-    {% endfor %}
+    <section class="matching-tab-intro" aria-labelledby="matching-tab-title">
+        <div class="matching-tab-intro-top">
+            <h2 id="matching-tab-title">{{ active.label }}</h2>
+            <span class="matching-tab-count">{{ active.total }} data{% if active.pending %} · {{ active.pending }} menunggu{% endif %}</span>
+        </div>
+        <p>{{ active.description }}</p>
     </section>
+
+    {% if rows %}
+        <section class="orders-list">
+            {% for row in rows %}
+                <article class="order-card">
+                    <div class="order-card-top">
+                        <div class="order-reference">
+                            <span class="order-icon" aria-hidden="true">{% if is_request_tab %}♡{% else %}⇄{% endif %}</span>
+                            <div>
+                                <span class="order-label">{% if is_request_tab %}ID Request{% else %}ID Penawaran{% endif %}</span>
+                                <strong>{% if is_request_tab %}RQ{% else %}OF{% endif %}-{{ row.pk|stringformat:"04d" }}</strong>
+                            </div>
+                        </div>
+                        <span class="order-date">{{ row.created_at|date:"d M Y, H:i" }}</span>
+                    </div>
+
+                    <div class="order-card-body">
+                        <div class="order-product-placeholder{% if row.item.display_image_url %} has-image{% endif %}">
+                            {% if row.item.display_image_url %}
+                                <img src="{{ row.item.display_image_url }}" alt="" loading="lazy"
+                                     onerror="this.hidden = true; this.parentElement.classList.remove('has-image'); this.nextElementSibling.hidden = false;">
+                                <span aria-hidden="true" hidden>♧</span>
+                            {% else %}<span aria-hidden="true">♧</span>{% endif %}
+                        </div>
+
+                        <div class="order-product-info">
+                            <h2><a href="{{ row.item.get_absolute_url }}">{{ row.item.title }}</a></h2>
+                            <p class="matching-meta">
+                                {% if tab == 'incoming' %}Diminta oleh <strong>{{ row.requester.username }}</strong>
+                                {% elif tab == 'sent' %}Pemilik: <strong>{{ row.item.owner.username }}</strong>
+                                {% elif tab == 'offers_received' %}Ditawarkan oleh <strong>{{ row.offerer.username }}</strong>
+                                {% else %}Untuk <strong>{{ row.wanted_post.requester.username }}</strong>{% endif %}
+                                · {{ row.item.get_listing_type_display }}
+                            </p>
+                            {% if row.offered_item %}<p class="matching-note">Ditukar dengan: <a href="{{ row.offered_item.get_absolute_url }}">{{ row.offered_item.title }}</a></p>{% endif %}
+                            {% if not is_request_tab %}<p class="matching-note">Untuk wanted post: <a href="{% url 'wanted_board:wanted_detail' row.wanted_post.pk %}">{{ row.wanted_post.title }}</a></p>{% endif %}
+                            {% if row.message %}<p class="matching-message">{{ row.message|linebreaksbr }}</p>{% endif %}
+                            <div class="order-statuses">
+                                <span class="order-status status-{{ row.status }}">Status: {{ row.get_status_display }}</span>
+                            </div>
+                        </div>
+
+                        <div class="order-total">
+                            <span>Harga</span>
+                            <strong>{{ row.item.price_display }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="order-card-footer matching-footer">
+                        <div class="matching-footer-main">
+                            {% if row.status == 'pending' %}
+                                {% if tab == 'incoming' %}Menunggu keputusanmu.
+                                {% elif tab == 'sent' %}Menunggu keputusan pemilik barang.
+                                {% elif tab == 'offers_received' %}Menunggu keputusanmu.
+                                {% else %}Menunggu keputusan pembuat wanted post.{% endif %}
+                            {% elif row.status == 'accepted' %}
+                                {% include 'item_matching/_accepted.html' %}
+                            {% elif row.status == 'rejected' %}
+                                {% if is_request_tab %}Request ini ditolak.{% else %}Penawaran ini ditolak.{% endif %}
+                            {% elif row.status == 'cancelled' %}Request ini dibatalkan.
+                            {% else %}Penawaran ini ditarik.{% endif %}
+                        </div>
+                        {% if row.status == 'pending' %}
+                            <div class="matching-actions">
+                                {% if tab == 'incoming' %}
+                                    <form method="post" action="{% url 'item_matching:request_accept' row.pk %}">{% csrf_token %}<button class="matching-action" type="submit">Terima</button></form>
+                                    <form method="post" action="{% url 'item_matching:request_reject' row.pk %}">{% csrf_token %}<button class="matching-action matching-action-secondary" type="submit">Tolak</button></form>
+                                {% elif tab == 'sent' %}
+                                    <form method="post" action="{% url 'item_matching:request_cancel' row.pk %}">{% csrf_token %}<button class="matching-action matching-action-secondary" type="submit">Batalkan</button></form>
+                                {% elif tab == 'offers_received' %}
+                                    <form method="post" action="{% url 'item_matching:offer_accept' row.pk %}">{% csrf_token %}<button class="matching-action" type="submit">Terima</button></form>
+                                    <form method="post" action="{% url 'item_matching:offer_reject' row.pk %}">{% csrf_token %}<button class="matching-action matching-action-secondary" type="submit">Tolak</button></form>
+                                {% else %}
+                                    <form method="post" action="{% url 'item_matching:offer_withdraw' row.pk %}">{% csrf_token %}<button class="matching-action matching-action-secondary" type="submit">Tarik</button></form>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        </section>
+    {% else %}
+        <section class="orders-empty">
+            <div class="empty-illustration" aria-hidden="true">🤝</div>
+            <h2>Belum Ada Pesanan.</h2>
+            <p>{{ active.empty }}</p>
+            <a href="{% url 'items:explore_items' %}" class="orders-explore">Jelajahi Barang</a>
+        </section>
+    {% endif %}
 </main>
 {% endblock %}

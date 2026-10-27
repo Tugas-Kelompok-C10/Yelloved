@@ -1,5 +1,6 @@
 """State transitions for requests and offers. Views stay thin; rules live here."""
 from django.db import transaction
+from django.utils import timezone
 
 from items.models import Item
 from wanted_board.models import WantedPost
@@ -11,18 +12,29 @@ class MatchingError(Exception):
     """A transition was refused; the message is safe to show to the user."""
 
 
+def release_item(item):
+    """Drop pending proposals that depend on `item` once it is no longer available."""
+    ItemRequest.objects.filter(item=item, status=ItemRequest.Status.PENDING).update(
+        status=ItemRequest.Status.REJECTED, updated_at=timezone.now())
+    ItemRequest.objects.filter(offered_item=item, status=ItemRequest.Status.PENDING).update(
+        status=ItemRequest.Status.CANCELLED, updated_at=timezone.now())
+    ItemOffer.objects.filter(item=item, status=ItemOffer.Status.PENDING).update(
+        status=ItemOffer.Status.WITHDRAWN, updated_at=timezone.now())
+
+
+def close_offers_for(wanted_post):
+    """A wanted post that is no longer open cannot keep pending item offers."""
+    ItemOffer.objects.filter(wanted_post=wanted_post, status=ItemOffer.Status.PENDING).update(
+        status=ItemOffer.Status.REJECTED, updated_at=timezone.now())
+
+
 def _reserve(*items):
     """Take items off the market and drop pending proposals that depended on them."""
     for item in items:
         if item is None:
             continue
         Item.objects.filter(pk=item.pk).update(status=Item.Status.UNAVAILABLE)
-        ItemRequest.objects.filter(item=item, status=ItemRequest.Status.PENDING).update(
-            status=ItemRequest.Status.REJECTED)
-        ItemRequest.objects.filter(offered_item=item, status=ItemRequest.Status.PENDING).update(
-            status=ItemRequest.Status.CANCELLED)
-        ItemOffer.objects.filter(item=item, status=ItemOffer.Status.PENDING).update(
-            status=ItemOffer.Status.WITHDRAWN)
+        release_item(item)
 
 
 def _lock(model, pk):
@@ -40,6 +52,8 @@ def accept_request(request_id, user):
     if item.status != Item.Status.AVAILABLE:
         raise MatchingError('Barang ini sudah tidak tersedia.')
     swap_item = req.offered_item
+    if item.listing_type == Item.ListingType.SWAP and swap_item is None:
+        raise MatchingError('Barang tukar dari peminta sudah tidak ada.')
     if swap_item is not None and swap_item.status != Item.Status.AVAILABLE:
         raise MatchingError('Barang tukar dari peminta sudah tidak tersedia.')
     req.status = ItemRequest.Status.ACCEPTED

@@ -29,8 +29,7 @@
             rel="stylesheet"
             href="{% static 'css/style.css' %}?v=auth-31"
         >
-        
-        
+        <link rel="stylesheet" href="{% static 'css/item_matching.css' %}">
 
         {% block meta %}
         {% endblock meta %}
@@ -50,8 +49,6 @@
 
                 
             {% if user.is_authenticated %}
-                <a href="{% url 'item_matching:dashboard' %}">Item Matching</a>
-
             {% endif %}
 
             </nav>
@@ -59,6 +56,71 @@
         <div class="nav-actions">
             {% if user.is_authenticated %}
                 <div class="nav-icon-group">
+                    <div class="nav-notification nav-matching">
+                        <a href="{% url 'item_matching:dashboard' %}"
+                           class="nav-icon-link nav-matching-trigger"
+                           title="Item Matching &amp; Exchange"
+                           aria-label="Item Matching &amp; Exchange{% if matching_pending_count %}, {{ matching_pending_count }} menunggu tindakanmu{% endif %}"
+                           aria-haspopup="true"
+                           aria-controls="matching-popover">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                                 aria-hidden="true">
+                                <path d="m17 2 4 4-4 4"/>
+                                <path d="M3 11v-1a4 4 0 0 1 4-4h14"/>
+                                <path d="m7 22-4-4 4-4"/>
+                                <path d="M21 13v1a4 4 0 0 1-4 4H3"/>
+                            </svg>
+                            {% if matching_pending_count %}<span class="nav-matching-badge" aria-hidden="true">{% if matching_pending_count > 9 %}9+{% else %}{{ matching_pending_count }}{% endif %}</span>{% endif %}
+                        </a>
+                        <section class="notification-popover matching-popover" id="matching-popover" aria-label="Ringkasan Item Matching &amp; Exchange">
+                            <header class="notification-popover-header">
+                                <h2>Item Matching</h2>
+                                <a href="{% url 'item_matching:dashboard' %}" aria-label="Buka Item Matching &amp; Exchange" title="Buka Item Matching &amp; Exchange">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                        <path d="M5 12h14"/>
+                                        <path d="m13 6 6 6-6 6"/>
+                                    </svg>
+                                </a>
+                            </header>
+                            {% if matching_summary.total %}
+                            <div class="matching-summary">
+                                <p class="matching-summary-lead">
+                                    {% if matching_summary.action_needed %}<strong>{{ matching_summary.action_needed }}</strong> menunggu tindakanmu{% else %}Tidak ada yang menunggu tindakanmu{% endif %}{% if matching_summary.waiting %} · {{ matching_summary.waiting }} menunggu respons{% endif %}
+                                </p>
+                                <ul class="matching-summary-list">
+                                    {% for tab in matching_summary.tabs %}
+                                    <li>
+                                        <a href="{{ tab.url }}">
+                                            <span class="matching-summary-text"><strong>{{ tab.label }}</strong><small>{{ tab.short }}</small></span>
+                                            <span class="matching-summary-numbers">
+                                                {% if tab.pending %}<b class="matching-pill{% if tab.actionable %} is-action{% endif %}">{{ tab.pending }} {% if tab.actionable %}perlu tindakan{% else %}menunggu{% endif %}</b>{% endif %}
+                                                <em>{{ tab.total }} total</em>
+                                            </span>
+                                        </a>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% else %}
+                            <div class="notification-empty-state">
+                                <span aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="m17 2 4 4-4 4"/>
+                                        <path d="M3 11v-1a4 4 0 0 1 4-4h14"/>
+                                        <path d="m7 22-4-4 4-4"/>
+                                        <path d="M21 13v1a4 4 0 0 1-4 4H3"/>
+                                    </svg>
+                                </span>
+                                <h3>Belum ada aktivitas</h3>
+                                <p>Minta barang atau tawarkan barangmu ke wanted post untuk memulai.</p>
+                            </div>
+                            {% endif %}
+                            <footer class="notification-popover-footer">
+                                <a href="{% url 'item_matching:dashboard' %}">Buka Item Matching &amp; Exchange</a>
+                            </footer>
+                        </section>
+                    </div>
                     <div class="nav-notification">
                         <button type="button"
                                 class="nav-icon-link nav-notification-trigger"
@@ -83,6 +145,11 @@
                                     </svg>
                                 </a>
                             </header>
+                            {% if matching_notifications %}
+                            <ul class="matching-notification-list">
+                                {% for note in matching_notifications %}<li><a href="{{ note.url }}">{{ note.text }}</a></li>{% endfor %}
+                            </ul>
+                            {% else %}
                             <div class="notification-empty-state">
                                 <span aria-hidden="true">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -93,6 +160,7 @@
                                 <h3>Belum ada notifikasi</h3>
                                 <p>Notifikasi terbaru akan muncul di sini.</p>
                             </div>
+                            {% endif %}
                             <footer class="notification-popover-footer">
                                 <a href="{% url 'account_profile:notifications' %}">Pengaturan notifikasi</a>
                             </footer>
@@ -192,16 +260,20 @@
     <script src="{% static 'js/wanted_budget_validation.js' %}" defer></script>
     <script src="{% static 'js/wanted_upload_forms.js' %}" defer></script>
     <script>
-        const notificationWrapper = document.querySelector(".nav-notification");
-        const notificationTrigger = notificationWrapper?.querySelector(".nav-notification-trigger");
+        const popoverWrappers = [...document.querySelectorAll(".nav-notification")]
+            .filter((wrapper) => wrapper.querySelector("button.nav-notification-trigger"));
         const profileMenu = document.querySelector(".nav-profile-menu");
         const profileTrigger = profileMenu?.querySelector(".nav-profile-trigger");
 
-        notificationTrigger?.addEventListener("click", () => {
-            const shouldOpen = !notificationWrapper.classList.contains("is-open");
-            notificationWrapper.classList.toggle("is-open", shouldOpen);
-            notificationWrapper.classList.toggle("is-dismissed", !shouldOpen);
-            notificationTrigger.setAttribute("aria-expanded", String(shouldOpen));
+        popoverWrappers.forEach((wrapper) => {
+            const trigger = wrapper.querySelector("button.nav-notification-trigger");
+
+            trigger.addEventListener("click", () => {
+                const shouldOpen = !wrapper.classList.contains("is-open");
+                wrapper.classList.toggle("is-open", shouldOpen);
+                wrapper.classList.toggle("is-dismissed", !shouldOpen);
+                trigger.setAttribute("aria-expanded", String(shouldOpen));
+            });
         });
 
         profileTrigger?.addEventListener("click", () => {
@@ -216,10 +288,11 @@
         });
 
         document.addEventListener("click", (event) => {
-            if (notificationWrapper && !notificationWrapper.contains(event.target)) {
-                notificationWrapper.classList.remove("is-open", "is-dismissed");
-                notificationTrigger?.setAttribute("aria-expanded", "false");
-            }
+            popoverWrappers.forEach((wrapper) => {
+                if (wrapper.contains(event.target)) return;
+                wrapper.classList.remove("is-open", "is-dismissed");
+                wrapper.querySelector("button.nav-notification-trigger")?.setAttribute("aria-expanded", "false");
+            });
             if (profileMenu && !profileMenu.contains(event.target)) {
                 profileMenu.classList.remove("is-open");
                 profileTrigger?.setAttribute("aria-expanded", "false");
@@ -228,12 +301,14 @@
 
         document.addEventListener("keydown", (event) => {
             if (event.key !== "Escape") return;
-            if (notificationWrapper?.classList.contains("is-open")) {
-                notificationWrapper.classList.remove("is-open");
-                notificationWrapper.classList.add("is-dismissed");
-                notificationTrigger.setAttribute("aria-expanded", "false");
-                notificationTrigger.focus();
-            }
+            popoverWrappers.forEach((wrapper) => {
+                if (!wrapper.classList.contains("is-open")) return;
+                const trigger = wrapper.querySelector("button.nav-notification-trigger");
+                wrapper.classList.remove("is-open");
+                wrapper.classList.add("is-dismissed");
+                trigger.setAttribute("aria-expanded", "false");
+                trigger.focus();
+            });
             if (profileMenu?.classList.contains("is-open")) {
                 profileMenu.classList.remove("is-open");
                 profileMenu.classList.add("is-dismissed");
