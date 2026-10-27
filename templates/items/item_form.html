@@ -6,10 +6,20 @@
     <section class="item-form-panel">
         <h1>{% if editing %}Edit Item{% else %}Tambah Item{% endif %}</h1>
         <p class="explore-description">Beri barangmu kesempatan untuk punya cerita baru.</p>
-        <form method="post" class="item-form">
+        <form method="post" class="item-form" enctype="multipart/form-data">
             {% csrf_token %}
             {{ form.non_field_errors }}
-            {% for field in form %}<div class="item-form-field"><label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>{{ field }}{% if field.help_text %}<p class="item-form-help">{{ field.help_text }}</p>{% endif %}{{ field.errors }}</div>{% endfor %}
+            {% for field in form %}
+                {% if field.is_hidden %}{{ field }}{% else %}
+                    <div class="item-form-field">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required or field.name == 'image' and not editing %} *{% endif %}</label>
+                        {{ field }}
+                        {% if editing and field.name == 'image' and item.display_image_url %}<img class="item-current-image" src="{{ item.display_image_url }}" alt="Foto item saat ini">{% endif %}
+                        {% if field.help_text %}<p class="item-form-help">{{ field.help_text }}</p>{% endif %}
+                        {{ field.errors }}
+                    </div>
+                {% endif %}
+            {% endfor %}
             <div class="explore-detail-actions"><button class="explore-button" type="submit">Simpan Item</button><a class="explore-button explore-button-secondary" href="{% if editing %}{{ item.get_absolute_url }}{% else %}{% url 'items:explore_items' %}{% endif %}">Batal</a></div>
         </form>
     </section>

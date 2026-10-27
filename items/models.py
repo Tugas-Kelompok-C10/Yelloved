@@ -2,10 +2,10 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator
+from django.core.validators import FileExtensionValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
-from .validators import validate_item_image
+from .validators import validate_item_image, validate_item_upload
 
 
 class Item(models.Model):
@@ -44,6 +44,10 @@ class Item(models.Model):
     currency = models.CharField(max_length=3, choices=[('IDR', 'IDR'), ('USD', 'USD')], default='IDR')
     listing_type = models.CharField('Tipe listing', max_length=10, choices=ListingType.choices, default=ListingType.SALE)
     location = models.CharField('Lokasi', max_length=200)
+    image = models.FileField('Foto item', upload_to='item_photos/', blank=True, validators=[
+        FileExtensionValidator(allowed_extensions=('jpg', 'jpeg', 'png', 'webp')),
+        validate_item_upload,
+    ])
     image_url = models.CharField('URL foto', max_length=1000, blank=True, validators=[validate_item_image])
     status = models.CharField('Status', max_length=20, choices=Status.choices, default=Status.AVAILABLE)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -79,6 +83,8 @@ class Item(models.Model):
     @property
     def display_image_url(self):
         from django.templatetags.static import static
+        if self.image:
+            return self.image.url
         if self.source != 'dummyjson' and self.image_url:
             return self.image_url
         if self.image_url.startswith('/static/img/items/catalog/'):

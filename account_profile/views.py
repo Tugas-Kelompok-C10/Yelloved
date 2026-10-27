@@ -1,13 +1,15 @@
 from django.contrib import messages
 from django.contrib.auth import login
+from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
-from django.contrib.auth import update_session_auth_hash
 from django.shortcuts import get_object_or_404, redirect, render
 from .forms import AddressForm, NotificationPreferenceForm, PaymentMethodForm, ProfileForm
 from .models import Address, NotificationPreference, PaymentMethod, Profile
+from items.models import Item
+from wanted_board.models import WantedPost
 
 # Create your views here.
 def register(request):
@@ -37,6 +39,23 @@ def show_account_profile(request):
         "name": "Yelloved",
         "profile": profile,
         "form": form,
+    })
+
+
+def user_profile(request, username):
+    profile_user = get_object_or_404(get_user_model(), username=username)
+    profile = Profile.objects.filter(user=profile_user).first()
+    active_tab = request.GET.get("tab", "posted")
+    if active_tab not in {"posted", "wanted", "reviews"}:
+        active_tab = "posted"
+    return render(request, "account_profile/user_profile.html", {
+        "name": "Yelloved",
+        "profile_user": profile_user,
+        "profile": profile,
+        "items": Item.objects.filter(owner=profile_user, source="user").order_by("-created_at", "-pk"),
+        "wanted_posts": WantedPost.objects.filter(requester=profile_user).order_by("-created_at"),
+        "is_own_profile": request.user.is_authenticated and request.user.pk == profile_user.pk,
+        "active_tab": active_tab,
     })
 
 
