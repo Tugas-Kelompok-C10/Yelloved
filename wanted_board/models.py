@@ -1,6 +1,10 @@
+from decimal import Decimal
+
 from django.conf import settings
 from django.core.validators import FileExtensionValidator, MinValueValidator
 from django.db import models
+
+from .validators import validate_reference_image
 
 
 class WantedPost(models.Model):
@@ -24,12 +28,13 @@ class WantedPost(models.Model):
         related_name="wanted_posts",
     )
     title = models.CharField(max_length=50)
-    image = models.FileField(
+    image = models.ImageField(
         upload_to="wanted_references/",
         validators=[
             FileExtensionValidator(
                 allowed_extensions=("jpg", "jpeg", "png", "webp")
-            )
+            ),
+            validate_reference_image,
         ],
     )
     description = models.TextField()
@@ -41,9 +46,12 @@ class WantedPost(models.Model):
     budget = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        blank=True,
+        blank=False,
         null=True,
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(
+            Decimal("0.01"),
+            message="Please enter a maximum budget greater than Rp0.",
+        )],
     )
     location = models.CharField(max_length=120, blank=True)
     status = models.CharField(

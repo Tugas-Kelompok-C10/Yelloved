@@ -1,13 +1,72 @@
 from decimal import Decimal
+from io import BytesIO
+
+from PIL import Image
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, transaction
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
 from .models import Offer, WantedPost
+from .forms import WantedPostForm
 from .sample_data import DUMMYJSON_PRODUCTS_URL, SAMPLE_WANTED_POSTS
+
+
+def reference_image(name="reference.png", size=(16, 16), image_format="PNG"):
+    content = BytesIO()
+    Image.new("RGB", size, "green").save(content, format=image_format)
+    return SimpleUploadedFile(name, content.getvalue())
+
+
+class ReferenceImageValidationTests(SimpleTestCase):
+    def form_for(self, image=None, instance=None):
+        return WantedPostForm(
+            {"title": "Desk lamp", "description": "A compact desk lamp.",
+             "category": "home", "budget": "100000", "location": "UI"},
+            {"image": image} if image is not None else {},
+            instance=instance,
+        )
+
+    def test_allowed_image_formats(self):
+        for extension, image_format in (("jpg", "JPEG"), ("jpeg", "JPEG"),
+                                         ("png", "PNG"), ("webp", "WEBP")):
+            with self.subTest(extension=extension):
+                form = self.form_for(reference_image(f"photo.{extension}", image_format=image_format))
+                self.assertTrue(form.is_valid(), form.errors)
+
+    def test_fake_and_corrupted_images_are_rejected(self):
+        corrupt = reference_image().read()[:24]
+        for content in (b"This is not an image", corrupt):
+            form = self.form_for(SimpleUploadedFile("fake.png", content))
+            self.assertFalse(form.is_valid())
+            self.assertIn("Please upload a valid image.", form.errors["image"])
+
+    def test_disallowed_content_cannot_be_renamed_to_png(self):
+        form = self.form_for(reference_image("fake.png", image_format="GIF"))
+        self.assertFalse(form.is_valid())
+        self.assertIn("Please upload a JPG, JPEG, PNG, or WEBP image.", form.errors["image"])
+
+    def test_image_over_five_mb_is_rejected(self):
+        form = self.form_for(SimpleUploadedFile("large.png", b"x" * (5 * 1024 * 1024 + 1)))
+        self.assertFalse(form.is_valid())
+        self.assertIn("Image size must not exceed 5 MB.", form.errors["image"])
+
+    def test_dimension_limit_and_boundary(self):
+        for size, expected in (((4096, 1), True), ((4097, 1), False), ((1, 4097), False)):
+            with self.subTest(size=size):
+                form = self.form_for(reference_image(size=size))
+                self.assertEqual(form.is_valid(), expected, form.errors)
+                if not expected:
+                    self.assertIn("Image dimensions must not exceed 4096 × 4096 pixels.", form.errors["image"])
+
+    def test_creation_requires_image_but_edit_retains_existing_image(self):
+        self.assertFalse(self.form_for().is_valid())
+        post = WantedPost(image="wanted_references/existing.png")
+        form = self.form_for(instance=post)
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["image"].name, post.image.name)
 
 
 class WantedBoardModelTests(TestCase):
@@ -86,6 +145,48 @@ class WantedBoardViewTests(TestCase):
             budget=Decimal("90000.00"),
             location="Kampus UI",
         )
+
+    def test_create_rejects_missing_zero_and_negative_budget(self):
+        self.client.force_login(self.other_user)
+        for budget in ("", "0", "-1000"):
+            with self.subTest(budget=budget):
+                response = self.client.post(reverse("wanted_board:create_wanted"), {
+                    "title": "Desk lamp", "description": "A compact desk lamp.",
+                    "category": "home", "location": "UI", "budget": budget,
+                    "image": reference_image(),
+                })
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, "Please enter a maximum budget greater than Rp0.")
+                self.assertTrue(response.context["open_create_modal"])
+                self.assertEqual(response.context["creation_form"]["title"].value(), "Desk lamp")
+        self.assertFalse(WantedPost.objects.filter(requester=self.other_user).exists())
+
+    def test_edit_invalid_budget_keeps_modal_open_and_does_not_save(self):
+        self.client.force_login(self.owner)
+        original_budget = self.wanted_post.budget
+        for budget in ("", "0", "-1000"):
+            with self.subTest(budget=budget):
+                response = self.client.post(
+                    reverse("wanted_board:edit_wanted", args=[self.wanted_post.pk]),
+                    {"title": self.wanted_post.title, "description": self.wanted_post.description,
+                     "category": self.wanted_post.category, "budget": budget,
+                     "image": reference_image()},
+                )
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, "Please enter a maximum budget greater than Rp0.")
+                self.assertTrue(response.context["open_edit_modal"])
+                self.wanted_post.refresh_from_db()
+                self.assertEqual(self.wanted_post.budget, original_budget)
+
+    def test_positive_budget_and_html_constraints(self):
+        for budget in ("0.01", "1", "150000"):
+            form = WantedPostForm({
+                "title": "Desk lamp", "description": "A desk lamp.",
+                "category": "home", "budget": budget,
+            }, {"image": reference_image()})
+            self.assertTrue(form.is_valid(), form.errors)
+            self.assertTrue(form.fields["budget"].required)
+            self.assertIn('min="0.01"', str(form["budget"]))
 
     def test_board_lists_and_filters_posts(self):
         response = self.client.get(
@@ -221,11 +322,7 @@ class WantedBoardViewTests(TestCase):
             create_url,
             {
                 "title": "Desk chair",
-                "image": SimpleUploadedFile(
-                    "desk-chair.png",
-                    b"reference-image",
-                    content_type="image/png",
-                ),
+                "image": reference_image("desk-chair.png"),
                 "description": "Need a compact chair for a dorm room.",
                 "category": WantedPost.Category.HOME,
                 "budget": "200000",
