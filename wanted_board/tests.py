@@ -11,6 +11,7 @@ from django.urls import reverse
 
 from .models import Offer, WantedPost
 from .forms import WantedPostForm
+from .creation import issue_creation_token
 from .sample_data import DUMMYJSON_PRODUCTS_URL, SAMPLE_WANTED_POSTS
 
 
@@ -323,6 +324,7 @@ class WantedBoardViewTests(TestCase):
             {
                 "title": "Desk chair",
                 "image": reference_image("desk-chair.png"),
+                "creation_token": issue_creation_token(self.other_user),
                 "description": "Need a compact chair for a dorm room.",
                 "category": WantedPost.Category.HOME,
                 "budget": "200000",

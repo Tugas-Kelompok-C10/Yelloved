@@ -1,13 +1,30 @@
 from decimal import Decimal
+import uuid
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator, MinValueValidator
 from django.db import models
 
 from .validators import validate_reference_image
 
 
+class WantedPostQuerySet(models.QuerySet):
+    def update(self, **kwargs):
+        if {"id", "pk"} & kwargs.keys():
+            raise ValidationError("A wanted post ID cannot be changed.")
+        return super().update(**kwargs)
+
+    def bulk_update(self, objs, fields, batch_size=None):
+        if {"id", "pk"} & set(fields):
+            raise ValidationError("A wanted post ID cannot be changed.")
+        return super().bulk_update(objs, fields, batch_size=batch_size)
+
+
 class WantedPost(models.Model):
+    objects = WantedPostQuerySet.as_manager()
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
     class Category(models.TextChoices):
         FASHION = "fashion", "Fashion"
         BOOKS = "books", "Books & Study"
@@ -67,6 +84,22 @@ class WantedPost(models.Model):
 
     def __str__(self):
         return self.title
+
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        instance = super().from_db(db, field_names, values)
+        instance._original_pk = instance.pk
+        return instance
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            raise ValidationError("A wanted post ID is required.")
+        self.pk = uuid.UUID(str(self.pk))
+        if getattr(self, "_original_pk", self.pk) != self.pk:
+            raise ValidationError("A wanted post ID cannot be changed.")
+        result = super().save(*args, **kwargs)
+        self._original_pk = self.pk
+        return result
 
 
 class Offer(models.Model):

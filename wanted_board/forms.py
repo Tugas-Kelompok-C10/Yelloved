@@ -64,6 +64,10 @@ class WantedPostForm(forms.ModelForm):
         }
 
 
+class WantedCreateForm(WantedPostForm):
+    creation_token = forms.CharField(widget=forms.HiddenInput)
+
+
 class OfferForm(forms.ModelForm):
     class Meta:
         model = Offer
