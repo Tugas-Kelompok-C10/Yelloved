@@ -9,16 +9,9 @@ class WantedPost(models.Model):
         BOOKS = "books", "Books & Study"
         ELECTRONICS = "electronics", "Electronics"
         HOME = "home", "Home & Living"
+        SKINCARE = "skincare", "Skincare"
+        KITCHEN_HOUSEWARE = "kitchen_houseware", "Kitchen & Houseware"
         OTHER = "other", "Other"
-
-    class Condition(models.TextChoices):
-        NEW = "new", "New"
-        LIGHTLY_USED = "lightly_used", "Lightly used"
-        WELL_USED = "well_used", "Well used"
-
-    class ListingType(models.TextChoices):
-        SELL = "sell", "Sell"
-        FREE = "free", "Free"
 
     class Status(models.TextChoices):
         OPEN = "open", "Open"
@@ -30,7 +23,7 @@ class WantedPost(models.Model):
         on_delete=models.CASCADE,
         related_name="wanted_posts",
     )
-    title = models.CharField(max_length=25)
+    title = models.CharField(max_length=50)
     image = models.FileField(
         upload_to="wanted_references/",
         validators=[
@@ -44,16 +37,6 @@ class WantedPost(models.Model):
         max_length=20,
         choices=Category.choices,
         default=Category.OTHER,
-    )
-    listing_type = models.CharField(
-        max_length=10,
-        choices=ListingType.choices,
-        default=ListingType.SELL,
-    )
-    preferred_condition = models.CharField(
-        max_length=20,
-        choices=Condition.choices,
-        default=Condition.LIGHTLY_USED,
     )
     budget = models.DecimalField(
         max_digits=12,

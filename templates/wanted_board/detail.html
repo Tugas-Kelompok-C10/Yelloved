@@ -23,7 +23,22 @@
                     </svg>
                 {% endif %}
             </div>
-            <p class="wanted-detail-posted">{{ wanted_post.created_at|date:"d M Y, H:i" }}</p>
+            <div class="wanted-detail-poster">
+                <a class="wanted-detail-poster-link" href="{% url 'transactions:pesan' %}">
+                    <span class="wanted-detail-avatar">
+                        {% if wanted_post.requester.account_profile.photo %}
+                            <img src="{{ wanted_post.requester.account_profile.photo.url }}" alt="Profile picture of {{ wanted_post.requester.username }}">
+                        {% else %}
+                            {{ wanted_post.requester.username|first|upper }}
+                        {% endif %}
+                    </span>
+                    <span>
+                        <small>Posted by</small>
+                        <strong>@{{ wanted_post.requester.username }}</strong>
+                    </span>
+                </a>
+                <time class="wanted-detail-posted" datetime="{{ wanted_post.created_at|date:'c' }}">{{ wanted_post.created_at|date:"d M Y, H:i" }}</time>
+            </div>
         </div>
 
         <div class="wanted-detail-content">
@@ -31,14 +46,7 @@
             <p class="wanted-detail-classification">{{ wanted_post.get_category_display }} <span>·</span> {{ wanted_post.get_listing_type_display }} · <a href="{% url 'account_profile:user_profile' wanted_post.requester.username %}">{{ wanted_post.requester.username }}</a></p>
             <span class="wanted-detail-budget-label">Maximum budget</span>
             <strong class="wanted-detail-budget">{% if wanted_post.budget %}{{ wanted_post.budget|rupiah }}{% else %}Flexible budget{% endif %}</strong>
-            <div class="wanted-detail-quick-info" aria-label="Item condition and location">
-                <span>
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="m12 3 1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3Z"></path>
-                        <path d="m19 14 .8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8L19 14Z"></path>
-                    </svg>
-                    {{ wanted_post.get_preferred_condition_display }}
-                </span>
+            <div class="wanted-detail-quick-info" aria-label="Preferred location">
                 <span>
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path>
@@ -52,93 +60,86 @@
                 <h2 id="wanted-about-title">Descriptions</h2>
                 <p>{{ wanted_post.description|linebreaksbr }}</p>
             </section>
-            <div class="wanted-detail-actions" aria-label="Item actions">
-                <a class="wanted-button wanted-action-buy" href="{% url 'transactions:checkout' %}">Buy</a>
-                {% if not user.is_authenticated %}
-                    <a class="wanted-button wanted-action-secondary" href="{% url 'login' %}?next={{ request.path }}">Make an Offer</a>
-                {% elif user == wanted_post.requester or wanted_post.status != "open" or has_offered %}
-                    <button class="wanted-button wanted-action-secondary" type="button" disabled>Make an Offer</button>
-                {% else %}
-                    <button class="wanted-button wanted-action-secondary" type="button" data-offer-toggle aria-controls="wanted-offer-form" aria-expanded="false">Make an Offer</button>
-                {% endif %}
-                <a class="wanted-button wanted-action-secondary" href="{% url 'transactions:pesan' %}">Chat</a>
-                {% if user.is_authenticated and user != wanted_post.requester and wanted_post.status == "open" %}
-                    <a class="wanted-button wanted-action-secondary" href="{% url 'item_matching:offer_create' wanted_post.pk %}">Offer an Item</a>
-                {% endif %}
-            </div>
-
-            {% if user.is_authenticated and user != wanted_post.requester and wanted_post.status == "open" and not has_offered %}
-                <div class="wanted-inline-offer" id="wanted-offer-form" hidden>
-                    <form class="wanted-form" method="post" action="{% url 'wanted_board:create_offer' wanted_post.pk %}">
-                        {% csrf_token %}
-                        {% for field in offer_form %}
-                            <div class="wanted-form-field">
-                                {{ field.label_tag }}
-                                {{ field }}
-                                {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
-                            </div>
-                        {% endfor %}
-                        <button class="wanted-button wanted-button-primary" type="submit">Send offer</button>
-                    </form>
-                </div>
-            {% endif %}
-
             {% if user == wanted_post.requester %}
-                <div class="wanted-owner-actions">
-                    <a class="wanted-button wanted-button-secondary" href="{% url 'wanted_board:edit_wanted' wanted_post.pk %}">Edit post</a>
-                    <a class="wanted-button wanted-button-secondary" href="{% url 'item_matching:wanted_suggestions' wanted_post.pk %}">Suggested items</a>
-                    <form method="post" action="{% url 'wanted_board:update_status' wanted_post.pk %}">
-                        {% csrf_token %}
-                        {% if wanted_post.status == "open" %}
-                            <input type="hidden" name="status" value="fulfilled">
-                            <button class="wanted-button wanted-button-secondary" type="submit">Mark as fulfilled</button>
-                        {% else %}
-                            <input type="hidden" name="status" value="open">
-                            <button class="wanted-button wanted-button-secondary" type="submit">Reopen post</button>
-                        {% endif %}
-                    </form>
-                    <a class="wanted-button wanted-button-danger" href="{% url 'wanted_board:delete_wanted' wanted_post.pk %}">Delete</a>
+                <div class="wanted-detail-actions" aria-label="Post management">
+                    <button class="wanted-button wanted-action-offer" type="button" data-open-edit-wanted-modal>Edit</button>
+                    <button class="wanted-button wanted-action-secondary" type="button" data-open-delete-wanted-modal>Delete</button>
+                </div>
+            {% else %}
+                <div class="wanted-detail-actions" aria-label="Item actions">
+                    {% if wanted_post.status != "open" %}
+                        <button class="wanted-button wanted-action-offer" type="button" disabled>Offer an Item</button>
+                    {% else %}
+                        <button class="wanted-button wanted-action-offer" type="button" data-open-item-offer-modal>Offer an Item</button>
+                    {% endif %}
+                    <a class="wanted-button wanted-action-secondary" href="{% url 'transactions:pesan' %}">Chat</a>
                 </div>
             {% endif %}
         </div>
     </article>
-
-    {% if user == wanted_post.requester %}
-        <section class="wanted-offers" aria-labelledby="offer-list-title">
-            <div class="wanted-section-heading">
-                <h2 id="offer-list-title">Incoming offers</h2>
-                <span>{{ wanted_post.offers.count }} offer{{ wanted_post.offers.count|pluralize }}</span>
-            </div>
-            <div class="wanted-offer-list">
-                {% for offer in wanted_post.offers.all %}
-                    <article class="wanted-offer-card">
-                        <div>
-                            <h3>{{ offer.offerer.username }}</h3>
-                            <time datetime="{{ offer.created_at|date:'c' }}">{{ offer.created_at|date:"d M Y, H:i" }}</time>
-                        </div>
-                        <p>{{ offer.message|linebreaksbr }}</p>
-                        <strong>{% if offer.offered_price %}{{ offer.offered_price|rupiah }}{% else %}Price negotiable{% endif %}</strong>
-                    </article>
-                {% empty %}
-                    <p class="wanted-empty-inline">No offers yet. Someone in the community may have what you need soon.</p>
-                {% endfor %}
-            </div>
-        </section>
-    {% endif %}
 </main>
-{% if user.is_authenticated and user != wanted_post.requester and wanted_post.status == "open" and not has_offered %}
+
+{% if user == wanted_post.requester %}
+<dialog class="wanted-modal" id="edit-wanted-modal" aria-labelledby="edit-wanted-title"{% if open_edit_modal %} data-auto-open="true"{% endif %}>
+    <div class="wanted-modal-header">
+        <h2 id="edit-wanted-title">Update wanted post</h2>
+        <button class="wanted-modal-close" type="button" data-close-edit-wanted-modal aria-label="Close update modal">×</button>
+    </div>
+    <p>Update the details of the item you are looking for.</p>
+    <form class="wanted-form" method="post" action="{% url 'wanted_board:edit_wanted' wanted_post.pk %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% for field in edit_form %}
+            <div class="wanted-form-field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+                {{ field }}
+                {% if field.help_text %}<small class="wanted-form-help">{{ field.help_text }}</small>{% endif %}
+                {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
+            </div>
+        {% endfor %}
+        {% for error in edit_form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        <div class="wanted-modal-actions wanted-modal-actions-split">
+            <button class="wanted-button wanted-action-secondary" type="button" data-close-edit-wanted-modal>Cancel</button>
+            <button class="wanted-button wanted-action-offer" type="submit">Save</button>
+        </div>
+    </form>
+</dialog>
+
+<dialog class="wanted-modal wanted-delete-modal" id="delete-wanted-modal" aria-labelledby="delete-wanted-title"{% if open_delete_modal %} data-auto-open="true"{% endif %}>
+    <div class="wanted-modal-header">
+        <h2 id="delete-wanted-title">Delete wanted post?</h2>
+        <button class="wanted-modal-close" type="button" data-close-delete-wanted-modal aria-label="Close delete modal">×</button>
+    </div>
+    <p>“{{ wanted_post.title }}” will be permanently deleted. This action cannot be undone.</p>
+    <form method="post" action="{% url 'wanted_board:delete_wanted' wanted_post.pk %}">
+        {% csrf_token %}
+        <div class="wanted-modal-actions wanted-modal-actions-split">
+            <button class="wanted-button wanted-action-secondary" type="button" data-close-delete-wanted-modal>Cancel</button>
+            <button class="wanted-button wanted-action-offer" type="submit">Delete</button>
+        </div>
+    </form>
+</dialog>
+
 <script>
     (() => {
-        const toggle = document.querySelector("[data-offer-toggle]");
-        const form = document.getElementById("wanted-offer-form");
-        if (!toggle || !form) return;
+        const bindModal = (modalId, openSelector, closeSelector) => {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            document.querySelector(openSelector)?.addEventListener("click", () => modal.showModal());
+            modal.querySelectorAll(closeSelector).forEach((button) => {
+                button.addEventListener("click", () => modal.close());
+            });
+            modal.addEventListener("click", (event) => {
+                if (event.target === modal) modal.close();
+            });
+            if (modal.dataset.autoOpen === "true") modal.showModal();
+        };
 
-        toggle.addEventListener("click", () => {
-            form.hidden = !form.hidden;
-            toggle.setAttribute("aria-expanded", String(!form.hidden));
-            if (!form.hidden) form.querySelector("input")?.focus();
-        });
+        bindModal("edit-wanted-modal", "[data-open-edit-wanted-modal]", "[data-close-edit-wanted-modal]");
+        bindModal("delete-wanted-modal", "[data-open-delete-wanted-modal]", "[data-close-delete-wanted-modal]");
     })();
 </script>
+{% endif %}
+{% if user != wanted_post.requester %}
+    {% include "wanted_board/_item_offer_modal.html" %}
 {% endif %}
 {% endblock content %}

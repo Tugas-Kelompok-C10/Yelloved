@@ -37,6 +37,13 @@
             }
         }
     }
+    document.getElementById('explore-reset-filters').addEventListener('click', () => {
+        // form.reset() would restore initial URL filters rather than the All choices.
+        form.querySelectorAll('input[type="search"], select').forEach(field => { field.value = ''; });
+        const advanced = form.querySelector('details');
+        if (advanced) advanced.open = false;
+        load(1);
+    });
     form.addEventListener('submit', event => { event.preventDefault(); load(); });
     form.querySelector('input[name="q"]').addEventListener('input', () => {
         if (controller) controller.abort();

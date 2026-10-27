@@ -1,21 +1,70 @@
 {% extends "base.html" %}
-{% load static %}
-{% block meta %}<script src="{% static 'js/items/images.js' %}" defer></script><title>{{ item.title }} | Yelloved</title><link rel="stylesheet" href="{% static 'css/explore.css' %}">{% endblock %}
+{% load static items_ui %}
+{% block meta %}<script src="{% static 'js/items/images.js' %}" defer></script><title>{{ item.title }} | Yelloved</title><link rel="stylesheet" href="{% static 'css/explore.css' %}?v=item-detail-20261026-2">{% endblock %}
 {% block content %}
 <main class="explore-page item-detail-page" lang="id">
-    <a class="explore-back" href="{% url 'items:explore_items' %}">← Kembali ke Explore</a>
+    <a class="explore-back" href="{% url 'items:explore_items' %}">‹ <span>Back</span></a>
     <article class="explore-detail">
-        <div class="explore-image explore-detail-image"><img src="{{ item.display_image_url }}" data-fallback="{{ item.fallback_image_url }}" alt="{{ item.title }}" width="480" height="360" referrerpolicy="no-referrer"></div>
+        <figure class="explore-detail-media">
+            <div class="explore-image explore-detail-image">{% include 'items/_item_image.html' with detail=True %}</div>
+            <figcaption class="item-posted-by">
+                <span class="item-poster-avatar" aria-hidden="true">{% if item.source == 'dummyjson' %}YC{% elif user.is_authenticated and item.owner %}{{ item.owner.username|slice:':2'|upper }}{% else %}Y{% endif %}</span>
+                <div class="item-poster-info">
+                    <span class="item-poster-label">Posted by</span>
+                    {% if item.source == 'dummyjson' %}
+                        <strong>@Yelloved Community</strong>
+                    {% elif user.is_authenticated and item.owner %}
+                        <strong>@{{ item.owner.username }}</strong>
+                    {% elif item.owner %}
+                        <a href="{% url 'login' %}?next={{ request.path|urlencode }}">Masuk untuk melihat penjual</a>
+                    {% else %}
+                        <strong>Pengguna Yelloved</strong>
+                    {% endif %}
+                    <time datetime="{{ item.created_at|date:'c' }}">{{ item.created_at|date:'d F Y' }}</time>
+                </div>
+            </figcaption>
+        </figure>
         <div class="explore-detail-body">
-            <p class="explore-category">{{ item.get_category_display }} · {{ item.get_listing_type_display }}</p>
-            <h1>{{ item.title }}</h1><p class="explore-price">{{ item.price_display }}</p>
+            <h1>{{ item.title }}</h1>
+            <p class="explore-category">{{ item.get_category_display }} · {{ item.listing_type|listing_badge }}</p>
+            <p class="explore-price">{{ item.price_display }}</p>
             <dl class="explore-specs">
                 <div><dt>Kondisi</dt><dd>{{ item.get_condition_display }}</dd></div>
                 <div><dt>Lokasi</dt><dd>{{ item.location }}</dd></div>
                 <div><dt>Status</dt><dd>{{ item.get_status_display }}</dd></div>
-                <div><dt>Ditambahkan</dt><dd>{{ item.created_at|date:'d M Y' }}</dd></div>
             </dl>
-            <h2>Tentang barang ini</h2><p class="explore-description">{{ item.description|linebreaksbr }}</p>
+            <h2>Description</h2><p class="explore-description">{{ item.description|linebreaksbr }}</p>
+            {% url 'item_matching:request_create' item.pk as offer_url %}
+            {% url 'transactions:pesan' as chat_url %}
+            {% url 'transactions:checkout' as buy_url %}
+            {% url 'login' as login_url %}
+            <div class="item-detail-action-row" aria-label="Aksi item">
+                {% if not user.is_authenticated %}
+                    <a class="explore-button" href="{{ login_url }}?next={% if offer_url and item.source == 'user' and item.owner_id %}{{ offer_url|urlencode }}{% else %}{{ request.path|urlencode }}{% endif %}">Make an Offer</a>
+                {% elif item.owner_id != user.pk %}
+                    {% if offer_url and item.source == 'user' and item.owner_id and item.status == 'available' %}
+                        <a class="explore-button" href="{{ offer_url }}">Make an Offer</a>
+                    {% else %}
+                        <button class="explore-button" type="button" disabled title="Fitur akan segera tersedia">Make an Offer</button>
+                    {% endif %}
+                {% endif %}
+                {% if not user.is_authenticated %}
+                    <a class="explore-button explore-button-secondary" href="{{ login_url }}?next={{ chat_url|default:request.path|urlencode }}">Chat</a>
+                {% elif chat_url %}
+                    <a class="explore-button explore-button-secondary" href="{{ chat_url }}">Chat</a>
+                {% else %}
+                    <button class="explore-button explore-button-secondary" type="button" disabled title="Fitur akan segera tersedia">Chat</button>
+                {% endif %}
+                {% if not user.is_authenticated %}
+                    <a class="explore-button explore-button-secondary" href="{{ login_url }}?next={{ buy_url|default:request.path|urlencode }}">Buy</a>
+                {% elif item.owner_id != user.pk %}
+                    {% if buy_url and item.status == 'available' and item.listing_type == 'sale' %}
+                        <a class="explore-button explore-button-secondary" href="{{ buy_url }}">Buy</a>
+                    {% else %}
+                        <button class="explore-button explore-button-secondary" type="button" disabled title="Fitur akan segera tersedia">Buy</button>
+                    {% endif %}
+                {% endif %}
+            </div>
             <div class="explore-detail-note">
                 {% if item.source == 'dummyjson' %}Koleksi inspirasi preloved untuk mahasiswa dan penghuni kos.
                 {% elif user.is_authenticated %}{% if item.owner %}Penjual: <a href="{% url 'account_profile:user_profile' item.owner.username %}">{{ item.owner.username }}</a>{% else %}Akun penjual sudah tidak tersedia.{% endif %}

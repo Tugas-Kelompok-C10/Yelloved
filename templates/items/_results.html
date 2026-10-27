@@ -1,15 +1,17 @@
+{% load items_ui %}
 <p class="explore-result-count">{{ page_obj.paginator.count }} barang ditemukan</p>
 <div class="explore-grid">
 {% for item in page_obj %}
     <article class="explore-card">
         <a class="explore-card-link" href="{{ item.get_absolute_url }}">
-            <div class="explore-image"><img src="{{ item.display_image_url }}" data-fallback="{{ item.fallback_image_url }}" alt="{{ item.title }}" width="480" height="360" loading="lazy" referrerpolicy="no-referrer"><span class="explore-condition">{{ item.get_condition_display }}</span></div>
+            <div class="explore-image">
+                {% include 'items/_item_image.html' %}
+                <div class="explore-badges"><span>{{ item.condition|condition_badge }}</span><span>{{ item.listing_type|listing_badge }}</span></div>
+            </div>
             <div class="explore-card-body">
-                <p class="explore-category">{{ item.get_category_display }} · {{ item.get_listing_type_display }}</p>
-                <h3>{{ item.title }}</h3><p class="explore-price">{{ item.price_display }}</p>
-                <p class="explore-location">⌖ {{ item.location }}</p>
-                <p class="explore-status">{{ item.get_status_display }}{% if item.source == 'dummyjson' %} · Koleksi inspirasi{% endif %}</p>
-                <span class="explore-card-cta">Lihat detail <span aria-hidden="true">↗</span></span>
+                <h3>{{ item.title }}</h3>
+                <p class="explore-price">{{ item.price_display }}</p>
+                <p class="explore-location"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.4"/></svg>{{ item.location }}</p>
             </div>
         </a>
     </article>

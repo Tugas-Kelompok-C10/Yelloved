@@ -11,8 +11,6 @@ class WantedPostForm(forms.ModelForm):
             "image",
             "description",
             "category",
-            "listing_type",
-            "preferred_condition",
             "budget",
             "location",
         )
@@ -21,10 +19,8 @@ class WantedPostForm(forms.ModelForm):
             "image": "Reference picture",
             "description": "What do you need?",
             "category": "Category",
-            "listing_type": "Offer type",
-            "preferred_condition": "Preferred condition",
             "budget": "Maximum budget",
-            "location": "Location",
+            "location": "Your location",
         }
         help_texts = {
             "image": "This picture is for reference only. Upload a JPG, JPEG, PNG, or WEBP image.",
@@ -52,19 +48,21 @@ class WantedPostForm(forms.ModelForm):
 class OfferForm(forms.ModelForm):
     class Meta:
         model = Offer
-        fields = ("offered_price", "message")
+        fields = ("offered_price",)
         labels = {
-            "message": "Offer message",
             "offered_price": "Your offer price",
         }
         widgets = {
-            "message": forms.Textarea(
+            "offered_price": forms.NumberInput(
                 attrs={
-                    "placeholder": "Add item details and how the requester can contact you.",
-                    "rows": 4,
+                    "min": 0,
+                    "step": 1000,
+                    "placeholder": "125000",
+                    "inputmode": "numeric",
                 }
             ),
-            "offered_price": forms.NumberInput(
-                attrs={"min": 0, "step": 1000, "placeholder": "125000"}
-            ),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["offered_price"].required = True

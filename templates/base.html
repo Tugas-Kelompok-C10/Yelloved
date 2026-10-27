@@ -29,6 +29,9 @@
             rel="stylesheet"
             href="{% static 'css/style.css' %}?v=auth-31"
         >
+        
+        
+
 
 
         {% block meta %}
@@ -139,11 +142,23 @@
         </div>
     </header>
 
-    {% if messages %}
-        <div class="container" aria-live="polite">
-            {% for message in messages %}<p class="site-message">{{ message }}</p>{% endfor %}
-        </div>
-    {% endif %}
+    <div class="site-toast-region" id="site-toast-region" aria-live="polite" aria-atomic="true">
+        {% if request.resolver_match.app_name == "wanted_board" %}
+            {% for message in messages %}
+                <article class="site-toast" data-global-toast data-toast-duration="3000" data-toast-type="{{ message.tags|default:'info' }}" hidden>
+                    <span class="site-toast-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M20 6 9 17l-5-5"></path>
+                        </svg>
+                    </span>
+                    <span class="site-toast-copy">
+                        <strong>{% if "error" in message.tags %}Something went wrong{% else %}Success{% endif %}</strong>
+                        <small>{{ message }}</small>
+                    </span>
+                </article>
+            {% endfor %}
+        {% endif %}
+    </div>
     {% block content %} {% endblock content %}
 
     <footer class="site-footer">
@@ -173,6 +188,7 @@
             </div>
         </div>
     </footer>
+    <script src="{% static 'js/toast.js' %}" defer></script>
     <script>
         const notificationWrapper = document.querySelector(".nav-notification");
         const notificationTrigger = notificationWrapper?.querySelector(".nav-notification-trigger");

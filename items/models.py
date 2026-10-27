@@ -14,6 +14,8 @@ class Item(models.Model):
         ELECTRONICS = 'electronics', 'Elektronik'
         BOOKS = 'books', 'Buku & Keperluan Kuliah'
         HOME = 'home', 'Perlengkapan Kos'
+        SKINCARE = 'skincare', 'Skincare'
+        KITCHEN_HOUSEWARE = 'kitchen_houseware', 'Alat Masak & Houseware'
         ACCESSORIES = 'accessories', 'Aksesoris'
 
     class Condition(models.TextChoices):
@@ -92,7 +94,12 @@ class Item(models.Model):
     @property
     def fallback_image_url(self):
         from django.templatetags.static import static
-        category = self.category if self.category in self.Category.values else 'home'
+        category = {
+            self.Category.SKINCARE: 'fashion',
+            self.Category.KITCHEN_HOUSEWARE: 'home',
+        }.get(self.category, self.category)
+        if category not in {'fashion', 'electronics', 'books', 'home', 'accessories'}:
+            category = 'home'
         return static(f'img/items/placeholder-{category}.svg')
 
     def __str__(self):
