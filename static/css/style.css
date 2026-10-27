@@ -4276,3 +4276,89 @@ body:has(.profile-page) .site-header {
     font-weight: 400;
     letter-spacing: 0.2px;
 }
+
+
+/* Profile dropdown: active and hover states */
+
+.profile-dropdown-links a {
+    display: flex;
+    align-items: center;
+    padding: 11px 12px;
+    border-radius: 8px;
+    color: #352d3b;
+    text-decoration: none;
+    transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+
+/* Profile dropdown heading: hover state */
+.profile-dropdown-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 -2px;
+    padding: 8px 12px 13px;
+    border-bottom: 1px solid #e9e6eb;
+    border-radius: 8px;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.profile-dropdown-heading:hover {
+    background: #f3eaf6;
+    color: #321036;
+}
+
+.profile-dropdown-heading > img {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.profile-dropdown-heading > div {
+    display: grid;
+    min-width: 0;
+    gap: 3px;
+}
+
+.profile-dropdown-heading strong {
+    color: #211b24;
+    font-size: 14px;
+}
+
+.profile-dropdown-heading span {
+    color: #77717c;
+    font-size: 12px;
+    text-decoration: none;
+}
+
+.profile-dropdown-heading:hover strong,
+.profile-dropdown-heading:hover span {
+    color: #321036;
+    text-decoration: none;
+}
+
+
+.profile-dropdown-links a:hover {
+    background: #f3eaf6;
+    color: #321036;
+}
+
+.profile-dropdown-links a.active {
+    background: #321036;
+    color: #fff9d5;
+    font-weight: 600;
+}
+
+.profile-dropdown-links a.active strong,
+.profile-dropdown-links a.active small {
+    color: #fff9d5;
+}
+
+.profile-dropdown-links a.active:hover {
+    background: #4b1750;
+}

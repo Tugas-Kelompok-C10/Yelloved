@@ -4,22 +4,36 @@
    ======================================== */
 
 .orders-page {
-    width: min(100% - 48px, 1360px);
-    margin: 0 auto;
+    width: calc(100% - 48px);
+    max-width: 1280px;
+    margin-right: auto;
+    margin-left: auto;
     padding: 32px 0 64px;
     color: #321036;
     box-sizing: border-box;
+}   
+
+main.container.orders-page {
+    width: calc(100% - 48px);
+    max-width: 1280px;
+    margin-right: auto;
+    margin-left: auto;
 }
+
 
 .orders-layout {
     display: grid;
     grid-template-columns: 220px minmax(0, 1fr);
+    width: 100%;
     min-height: 480px;
+    margin: 0 auto;
     overflow: hidden;
     border: 1px solid #eee8ce;
     border-radius: 18px;
     background: #fff;
+    box-sizing: border-box;
 }
+
 
 /* Sidebar */
 
