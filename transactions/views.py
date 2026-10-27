@@ -1,56 +1,220 @@
-from django.shortcuts import render
+
+from django.shortcuts import render, redirect
+from django.db import transaction as db_transaction
+
 from .models import Transaction
-from account_profile.models import Profile
+from account_profile.models import Profile, Address
 
 
 def transaction_home(request):
-    return render(request, "transactions/transaction_home.html", {"name": "Yelloved"})
-
-
+    return render(
+        request,
+        "transactions/transaction_home.html",
+        {"name": "Yelloved"},
+    )
 
 
 def checkout(request):
-    context = {"name": "Yelloved", "errors": []}
+    context = {
+        "name": "Yelloved",
+        "errors": [],
+    }
+
+    if not request.user.is_authenticated:
+        context["errors"].append(
+            "Silakan login terlebih dahulu untuk melanjutkan checkout."
+        )
+        return render(request, "transactions/checkout.html", context)
+
+    allowed_payment_methods = {"qris", "bank_transfer"}
+    allowed_banks = {"bca", "bni", "bri", "mandiri", "permata"}
+
+    def get_addresses():
+        return Address.objects.filter(user=request.user).order_by(
+            "-is_default", "label", "recipient_name"
+        )
+
+    def get_selected_address():
+        address_id = request.session.get("checkout_address_id")
+
+        if address_id:
+            address = get_addresses().filter(id=address_id).first()
+            if address:
+                return address
+
+        return (
+            get_addresses().filter(is_default=True).first()
+            or get_addresses().first()
+        )
 
     if request.method == "POST":
-        recipient_name = request.POST.get("recipient_name", "").strip()
-        phone = request.POST.get("phone", "").strip()
-        province_id = request.POST.get("province", "").strip()
-        regency_id = request.POST.get("regency", "").strip()
-        district_id = request.POST.get("district", "").strip()
-        village_id = request.POST.get("village", "").strip()
-        address = request.POST.get("address", "").strip()
+        action = request.POST.get("action", "select_address")
 
-        if not all([
-            recipient_name,
-            phone,
-            province_id,
-            regency_id,
-            district_id,
-            village_id,
-            address,
-        ]):
+        # ==========================================
+        # SIMPAN / EDIT ALAMAT
+        # ==========================================
+        if action == "save_address":
+            address_id = request.POST.get("address_id", "").strip()
+            recipient_name = request.POST.get("recipient_name", "").strip()
+            phone = request.POST.get("phone", "").strip()
+            province = request.POST.get("province", "").strip()
+            city = request.POST.get("regency", "").strip()
+            district = request.POST.get("district", "").strip()
+            village = request.POST.get("village", "").strip()
+            postal_code = request.POST.get("postal_code", "").strip()
+            street = request.POST.get("address", "").strip()
+            label = request.POST.get("label", "Rumah").strip()
+            is_default = request.POST.get("is_default") == "on"
+
+            address = None
+
+            if address_id:
+                address = get_addresses().filter(id=address_id).first()
+
+                if not address:
+                    context["errors"].append(
+                        "Alamat yang ingin diubah tidak ditemukan."
+                    )
+                    context["show_address_form"] = True
+
+            if not context["errors"] and not all([
+                recipient_name,
+                phone,
+                province,
+                city,
+                district,
+                village,
+                postal_code,
+                street,
+            ]):
+                context["errors"].append(
+                    "Lengkapi semua kolom alamat pengiriman."
+                )
+                context["show_address_form"] = True
+
+            if not context["errors"]:
+                full_street = f"{street}, Kel. {village}, Kec. {district}"
+
+                with db_transaction.atomic():
+                    if is_default:
+                        get_addresses().filter(is_default=True).update(
+                            is_default=False
+                        )
+
+                    if address:
+                        address.recipient_name = recipient_name
+                        address.phone_number = phone
+                        address.province = province
+                        address.city = city
+                        address.postal_code = postal_code
+                        address.street_address = full_street
+                        address.label = label or "Rumah"
+                        address.is_default = is_default
+                        address.save()
+                    else:
+                        address = Address.objects.create(
+                            user=request.user,
+                            label=label or "Rumah",
+                            recipient_name=recipient_name,
+                            phone_number=phone,
+                            street_address=full_street,
+                            city=city,
+                            province=province,
+                            postal_code=postal_code,
+                            is_default=is_default or not get_addresses().exists(),
+                        )
+
+                    # Jika belum ada alamat utama, tetapkan alamat pertama.
+                    if not get_addresses().filter(is_default=True).exists():
+                        address.is_default = True
+                        address.save(update_fields=["is_default"])
+
+                request.session["checkout_address_id"] = address.id
+                return redirect(request.path)
+
+        # ==========================================
+        # PILIH ALAMAT CHECKOUT
+        # ==========================================
+        elif action == "select_address":
+            address_id = request.POST.get("address_id", "").strip()
+            selected_address = get_addresses().filter(id=address_id).first()
+
+            if selected_address:
+                request.session["checkout_address_id"] = selected_address.id
+                return redirect(request.path)
+
             context["errors"].append(
-                "Semua kolom alamat pengiriman wajib diisi."
+                "Pilih alamat pengiriman yang valid."
             )
-        else:
-            context["submitted"] = True
-            context["recipient_name"] = recipient_name
-            context["phone"] = phone
-            context["shipping_address"] = (
-                f"Nama Penerima: {recipient_name}\n"
-                f"Nomor HP: {phone}\n"
-                f"Provinsi (ID): {province_id}\n"
-                f"Kota/Kabupaten (ID): {regency_id}\n"
-                f"Kecamatan (ID): {district_id}\n"
-                f"Kelurahan/Desa (ID): {village_id}\n"
-                f"Alamat Lengkap: {address}"
+
+        # ==========================================
+        # JADIKAN ALAMAT UTAMA
+        # ==========================================
+        elif action == "set_default":
+            address_id = request.POST.get("address_id", "").strip()
+            selected_address = get_addresses().filter(id=address_id).first()
+
+            if selected_address:
+                with db_transaction.atomic():
+                    get_addresses().filter(is_default=True).update(
+                        is_default=False
+                    )
+
+                    selected_address.is_default = True
+                    selected_address.save(update_fields=["is_default"])
+
+                request.session["checkout_address_id"] = selected_address.id
+                return redirect(request.path)
+
+            context["errors"].append(
+                "Alamat yang ingin dijadikan utama tidak ditemukan."
             )
+
+        # ==========================================
+        # SIMPAN METODE PEMBAYARAN
+        # ==========================================
+        elif action == "select_payment":
+            payment_method = request.POST.get("payment_method", "").strip()
+            bank = request.POST.get("bank", "").strip().lower()
+
+            if payment_method not in allowed_payment_methods:
+                context["errors"].append(
+                    "Pilih metode pembayaran yang valid."
+                )
+
+            elif payment_method == "bank_transfer" and bank not in allowed_banks:
+                context["errors"].append(
+                    "Pilih bank untuk pembayaran Virtual Account."
+                )
+
+            else:
+                request.session["checkout_payment_method"] = payment_method
+
+                if payment_method == "bank_transfer":
+                    request.session["checkout_bank"] = bank
+                else:
+                    request.session.pop("checkout_bank", None)
+
+                request.session.modified = True
+                return redirect(request.path)
+
+    # ==========================================
+    # DATA UNTUK TEMPLATE
+    # ==========================================
+    context["addresses"] = get_addresses()
+    context["selected_address"] = get_selected_address()
+    context["default_address"] = get_addresses().filter(
+        is_default=True
+    ).first()
+
+    context["selected_payment_method"] = request.session.get(
+        "checkout_payment_method", "qris"
+    )
+    context["selected_bank"] = request.session.get(
+        "checkout_bank", ""
+    )
 
     return render(request, "transactions/checkout.html", context)
-
-
-
 
 
 def transaction_history(request):
@@ -103,11 +267,19 @@ def app_page(request):
     return render(
         request,
         "transactions/app.html",
-        {"name": "Yelloved"}
+        {"name": "Yelloved"},
     )
 
 
 def pesan_page(request):
-    profile = Profile.objects.get_or_create(user=request.user)[0] if request.user.is_authenticated else None
-    return render(request, "transactions/pesan.html", {"name": "Yelloved", "profile": profile})
+    profile = (
+        Profile.objects.get_or_create(user=request.user)[0]
+        if request.user.is_authenticated
+        else None
+    )
 
+    return render(
+        request,
+        "transactions/pesan.html",
+        {"name": "Yelloved", "profile": profile},
+    )
