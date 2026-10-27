@@ -32,6 +32,7 @@ html {
     --blue-hover: #8BAEB9;
     --gray: #68838B;
     --radius: 20px;
+    --radius-pill: 999px;
     --gradient: linear-gradient(to right, #320c35, #4f1353);
 }
 
@@ -238,7 +239,7 @@ main {
     display: inline-block;
     padding: 9px 18px;
     border: none;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: var(--text);
     color: var(--violet);
     font-family: inherit;
@@ -256,7 +257,7 @@ main {
 
 .site-header nav .register-button {
     padding: 9px 18px;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     background: #f7f2a4;
     color: #430442;
     font-weight: 700;
@@ -2046,25 +2047,26 @@ body:has(.profile-page) .site-header {
     transform: rotate(180deg);
 }
 
+/* Wanted cards — inset square images and paper frames echo the landing cards. */
 .wanted-card {
     min-width: 0;
     overflow: hidden;
-    border: 1px solid var(--text-hover);
+    border: 1px solid var(--border);
     border-radius: var(--radius);
     background: var(--paper);
     color: var(--violet);
     font-family: "Trispace", sans-serif;
-    transition: box-shadow 160ms ease, transform 160ms ease;
+    transition: transform 180ms ease;
 }
 
 .wanted-card:hover {
-    box-shadow: 0 8px 22px var(--violet-light-hover);
-    transform: translateY(-2px);
+    transform: translateY(-6px);
 }
 
 .wanted-card-link {
     display: block;
     height: 100%;
+    padding: 10px;
     color: inherit;
     text-decoration: none;
 }
@@ -2078,7 +2080,8 @@ body:has(.profile-page) .site-header {
 .wanted-card-media {
     position: relative;
     overflow: hidden;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 1;
+    border-radius: var(--radius);
     background: var(--light-paper);
     color: var(--violet);
 }
@@ -2154,13 +2157,20 @@ body:has(.profile-page) .site-header {
 }
 
 .wanted-card-body {
-    padding: 16px;
+    padding: 16px 6px 8px;
 }
 
 .wanted-card h3 {
+    display: -webkit-box;
+    min-height: 3.2em;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     color: var(--violet);
-    font-size: 15px;
-    line-height: 1.35;
+    font-family: "Sora", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.6;
     overflow-wrap: anywhere;
 }
 
@@ -2284,7 +2294,7 @@ body:has(.profile-page) .site-header {
     display: grid;
     grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
     overflow: hidden;
-    background: var(--light-paper);
+    background: var(--paper);
 }
 
 .wanted-detail-visual {

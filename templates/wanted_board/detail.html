@@ -86,17 +86,9 @@
         <button class="wanted-modal-close" type="button" data-close-edit-wanted-modal aria-label="Close update modal">×</button>
     </div>
     <p>Update the details of the item you are looking for.</p>
-    <form class="wanted-form" method="post" action="{% url 'wanted_board:edit_wanted' wanted_post.pk %}" enctype="multipart/form-data">
+    <form class="wanted-form" method="post" action="{% url 'wanted_board:edit_wanted' wanted_post.pk %}" enctype="multipart/form-data" data-ajax-upload>
         {% csrf_token %}
-        {% for field in edit_form %}
-            <div class="wanted-form-field">
-                <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
-                {{ field }}
-                {% if field.help_text %}<small class="wanted-form-help">{{ field.help_text }}</small>{% endif %}
-                {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
-            </div>
-        {% endfor %}
-        {% for error in edit_form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        {% include "wanted_board/_form_fields.html" with form=edit_form %}
         <div class="wanted-modal-actions wanted-modal-actions-split">
             <button class="wanted-button wanted-action-secondary" type="button" data-close-edit-wanted-modal>Cancel</button>
             <button class="wanted-button wanted-action-offer" type="submit">Save</button>
@@ -126,10 +118,12 @@
             if (!modal) return;
             document.querySelector(openSelector)?.addEventListener("click", () => modal.showModal());
             modal.querySelectorAll(closeSelector).forEach((button) => {
-                button.addEventListener("click", () => modal.close());
+                button.addEventListener("click", () => {
+                    if (modal.dataset.submitting !== "true") modal.close();
+                });
             });
             modal.addEventListener("click", (event) => {
-                if (event.target === modal) modal.close();
+                if (event.target === modal && modal.dataset.submitting !== "true") modal.close();
             });
             if (modal.dataset.autoOpen === "true") modal.showModal();
         };

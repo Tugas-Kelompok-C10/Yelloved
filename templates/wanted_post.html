@@ -67,17 +67,9 @@
     </div>
     <p>Add clear details so other users can easily recognize the item you need.</p>
 
-    <form class="wanted-form" method="post" action="{% url 'wanted_board:create_wanted' %}" enctype="multipart/form-data">
+    <form class="wanted-form" method="post" action="{% url 'wanted_board:create_wanted' %}" enctype="multipart/form-data" data-ajax-upload>
         {% csrf_token %}
-        {% for field in creation_form %}
-            <div class="wanted-form-field">
-                <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
-                {{ field }}
-                {% if field.help_text %}<small class="wanted-form-help">{{ field.help_text }}</small>{% endif %}
-                {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
-            </div>
-        {% endfor %}
-        {% for error in creation_form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
+        {% include "wanted_board/_form_fields.html" with form=creation_form %}
         <div class="wanted-modal-actions">
             <button class="wanted-button wanted-action-secondary" type="button" data-close-wanted-modal>Cancel</button>
             <button class="wanted-button wanted-action-offer" type="submit">Save</button>
@@ -96,11 +88,11 @@
         });
 
         modal.querySelector("[data-close-wanted-modal]")?.addEventListener("click", () => {
-            modal.close();
+            if (modal.dataset.submitting !== "true") modal.close();
         });
 
         modal.addEventListener("click", (event) => {
-            if (event.target === modal) modal.close();
+            if (event.target === modal && modal.dataset.submitting !== "true") modal.close();
         });
 
         if (modal.dataset.autoOpen === "true") modal.showModal();

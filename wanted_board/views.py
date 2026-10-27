@@ -1,5 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Q
 from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -7,7 +9,8 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from .forms import OfferForm, WantedPostForm
+from .creation import creation_uid, issue_creation_token
+from .forms import OfferForm, WantedCreateForm, WantedPostForm
 from .models import Offer, WantedPost
 from .sample_data import SAMPLE_WANTED_POSTS
 
@@ -96,7 +99,9 @@ def _board_context(request, creation_form=None, open_create_modal=False):
         "wanted_cards": wanted_cards,
         "total_count": len(wanted_cards),
         "creation_form": (
-            creation_form if creation_form is not None else WantedPostForm()
+            creation_form if creation_form is not None else WantedCreateForm(
+                initial={"creation_token": issue_creation_token(request.user)}
+            )
         ),
         "open_create_modal": open_create_modal,
     }
@@ -168,18 +173,59 @@ def sample_wanted_detail(request, slug):
     )
 
 
+def _is_ajax(request):
+    return request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+
+def _saved_response(request, wanted_post, message):
+    messages.success(request, message)
+    url = reverse("wanted_board:wanted_detail", args=[wanted_post.pk])
+    if _is_ajax(request):
+        return JsonResponse({"redirect_url": url, "uid": str(wanted_post.pk)})
+    return redirect(url)
+
+
+def _form_errors_response(form):
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=422)
+
+
 @login_required
 def create_wanted(request):
     if request.method == "GET":
         return redirect(f"{reverse('wanted_board:show_wanted')}?create=1")
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["GET", "POST"])
 
-    form = WantedPostForm(request.POST, request.FILES)
-    if request.method == "POST" and form.is_valid():
-        wanted_post = form.save(commit=False)
-        wanted_post.requester = request.user
-        wanted_post.save()
-        messages.success(request, "Your wanted post has been created.")
-        return redirect("wanted_board:wanted_detail", pk=wanted_post.pk)
+    form = WantedCreateForm(request.POST, request.FILES)
+    try:
+        uid = creation_uid(request.POST.get("creation_token", ""), request.user)
+    except ValidationError as error:
+        form.is_valid()
+        form.add_error(None, error)
+    else:
+        existing_post = WantedPost.objects.filter(pk=uid, requester=request.user).first()
+        if existing_post:
+            return _saved_response(request, existing_post, "Your wanted post has been created.")
+        if form.is_valid():
+            defaults = {
+                key: value for key, value in form.cleaned_data.items()
+                if key not in {"image", "creation_token"}
+            }
+            # Reserve the unique UID before saving any file. A concurrent retry
+            # returns the winner's row without uploading another copy of its image.
+            with transaction.atomic():
+                wanted_post, created = WantedPost.objects.get_or_create(
+                    pk=uid, defaults={**defaults, "requester": request.user, "image": ""}
+                )
+                if wanted_post.requester_id != request.user.pk:
+                    raise Http404("Wanted post not found")
+                if created:
+                    wanted_post.image = form.cleaned_data["image"]
+                    wanted_post.save(update_fields=["image"])
+            return _saved_response(request, wanted_post, "Your wanted post has been created.")
+
+    if _is_ajax(request):
+        return _form_errors_response(form)
 
     context = _board_context(
         request,
@@ -196,6 +242,8 @@ def edit_wanted(request, pk):
         return redirect(
             f"{reverse('wanted_board:wanted_detail', args=[wanted_post.pk])}?edit=1"
         )
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["GET", "POST"])
 
     form = WantedPostForm(
         request.POST,
@@ -203,9 +251,16 @@ def edit_wanted(request, pk):
         instance=wanted_post,
     )
     if form.is_valid():
-        form.save()
-        messages.success(request, "Your wanted post has been updated.")
-        return redirect("wanted_board:wanted_detail", pk=wanted_post.pk)
+        with transaction.atomic():
+            form.save()
+        return _saved_response(request, wanted_post, "Your wanted post has been updated.")
+
+    if _is_ajax(request):
+        return _form_errors_response(form)
+
+    # ModelForm validation mutates its instance even when other fields fail.
+    # Render the persisted post in the detail behind the bound edit modal.
+    wanted_post.refresh_from_db()
 
     return render(
         request,

@@ -97,4 +97,4 @@ def suggest_wanted_for_item(item, limit=10):
     candidates = (WantedPost.objects.filter(status=WantedPost.Status.OPEN)
                   .exclude(requester_id=item.owner_id).select_related('requester')[:CANDIDATE_LIMIT])
     matches = [m for m in (evaluate(item, p) for p in candidates) if m]
-    return sorted(matches, key=lambda m: (-m.score, -m.wanted_post.pk))[:limit]
+    return sorted(matches, key=lambda m: (-m.score, -m.wanted_post.created_at.timestamp(), m.wanted_post.pk.int))[:limit]
