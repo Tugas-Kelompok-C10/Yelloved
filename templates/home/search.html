@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block meta %}<title>Search | Yelloved</title>{% endblock meta %}
+{% block content %}
+<main class="catalogue-search-page" lang="en">
+    <h1>Results for “{{ query }}”</h1>
+    <div class="catalogue-search-columns">
+        <section aria-labelledby="search-items-title">
+            <h2 id="search-items-title">Explore items</h2>
+            {% for item in items %}<a class="catalogue-search-result" href="{{ item.get_absolute_url }}"><strong>{{ item.title }}</strong><span>{{ item.price_display }} · {{ item.location }}</span></a>{% empty %}<p>No matching items yet.</p>{% endfor %}
+            <a href="{% url 'items:explore_items' %}?q={{ query|urlencode }}">See all item results →</a>
+        </section>
+        <section aria-labelledby="search-wanted-title">
+            <h2 id="search-wanted-title">Wanted posts</h2>
+            {% for card in search_wanted %}<a class="catalogue-search-result" href="{{ card.detail_url }}"><strong>{{ card.title }}</strong><span>{{ card.location }}</span></a>{% empty %}<p>No matching wanted posts yet.</p>{% endfor %}
+            <a href="{% url 'wanted_board:show_wanted' %}?q={{ query|urlencode }}">See all wanted results →</a>
+        </section>
+    </div>
+</main>
+{% endblock content %}

@@ -1,5 +1,9 @@
 from django.test import Client, TestCase
 from django.urls import reverse
+from django.contrib.auth import get_user_model
+
+from items.models import Item
+from wanted_board.models import WantedPost
 
 
 class LandingPageTests(TestCase):
@@ -35,3 +39,33 @@ class LandingPageTests(TestCase):
     def test_non_javascript_submission_redirects_back_to_landing(self):
         response = self.client.post(reverse("send_love"))
         self.assertRedirects(response, reverse("show_main"))
+
+    def test_landing_uses_placeholders_and_shared_wanted_posts(self):
+        user = get_user_model().objects.create_user(username="student")
+        post = WantedPost.objects.create(requester=user, title="Looking for a desk lamp", budget=60000)
+        response = self.client.get(reverse("show_main"))
+        self.assertContains(response, "Item photo placeholder", count=12)
+        self.assertContains(response, 'data-hanging-carousel')
+        self.assertContains(response, 'data-carousel-next')
+        self.assertContains(response, '#books-sticker')
+        self.assertContains(response, '#plant-sticker')
+        self.assertEqual(response.context["wanted_cards"][0]["title"], post.title)
+        self.assertEqual(len(response.context["wanted_cards"]), 4)
+        self.assertContains(response, "Pin yours here")
+        self.assertContains(response, "Pin a Wanted")
+        self.assertNotContains(response, 'class="landing-discover"')
+        self.assertNotContains(response, 'class="landing-discover landing-wanted"')
+
+    def test_navbar_search_finds_items_and_wanted_posts(self):
+        user = get_user_model().objects.create_user(username="student")
+        item = Item.objects.create(owner=user, title="Desk lamp for sale", description="A working lamp",
+                                   category="home", condition="good", listing_type="sale", price=25000,
+                                   location="UI", source="user")
+        post = WantedPost.objects.create(requester=user, title="Need a desk lamp", budget=60000)
+        response = self.client.get(reverse("search_catalogue"), {"q": "desk lamp"})
+        self.assertContains(response, item.title)
+        self.assertContains(response, post.title)
+        self.assertContains(response, item.get_absolute_url())
+        self.assertContains(response, reverse("wanted_board:wanted_detail", args=[post.pk]))
+        self.assertEqual(response.context["navbar_query"], "desk lamp")
+        self.assertRedirects(self.client.get(reverse("search_catalogue"), {"q": "  "}), reverse("items:explore_items"))
