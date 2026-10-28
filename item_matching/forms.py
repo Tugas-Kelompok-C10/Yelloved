@@ -12,10 +12,15 @@ def _own_available_items(user):
 class ItemRequestForm(forms.ModelForm):
     class Meta:
         model = ItemRequest
-        fields = ('offered_item', 'message')
-        widgets = {'message': forms.Textarea(attrs={
-            'rows': 4, 'placeholder': 'Perkenalkan diri dan sebutkan waktu/lokasi COD yang kamu inginkan.'})}
-        help_texts = {'offered_item': 'Wajib untuk listing bertipe Tukar.'}
+        fields = ('offered_item', 'offer_price', 'message')
+        widgets = {
+            'offer_price': forms.NumberInput(attrs={'min': 1, 'step': 1000, 'placeholder': 'Contoh: 45000'}),
+            'message': forms.Textarea(attrs={
+                'rows': 4,
+                'placeholder': 'Perkenalkan diri dan sebutkan waktu/lokasi COD yang kamu inginkan.'}),
+        }
+        help_texts = {'offered_item': 'Wajib untuk listing bertipe Tukar.',
+                      'offer_price': 'Nominal dalam Rupiah. Wajib untuk listing bertipe Jual.'}
 
     def __init__(self, *args, item, user, **kwargs):
         super().__init__(*args, **kwargs)
@@ -28,6 +33,11 @@ class ItemRequestForm(forms.ModelForm):
             self.fields['offered_item'].empty_label = 'Pilih barangmu'
         else:
             del self.fields['offered_item']
+        if item.listing_type == Item.ListingType.SALE:
+            self.fields['offer_price'].required = True
+        else:
+            # Barang gratis/tukar tidak punya harga, jadi tidak ada yang ditawar.
+            del self.fields['offer_price']
 
 
 class ItemOfferForm(forms.ModelForm):
