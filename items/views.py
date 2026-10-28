@@ -53,8 +53,8 @@ def items_json(request):
 @require_GET
 def item_detail(request, item_id):
     item = get_object_or_404(Item.objects.select_related('owner'), pk=item_id)
-    can_manage = request.user.is_authenticated and item.owner_id == request.user.pk and item.source == 'user'
-    can_request_item = (request.user.is_authenticated and not can_manage and item.owner_id is not None
+    can_manage = request.user.is_authenticated and item.owner_id == request.user.pk and item.source == 'user' and not item.is_catalog
+    can_request_item = (request.user.is_authenticated and item.owner_id != request.user.pk and item.owner_id is not None
                         and item.source == 'user' and item.status == Item.Status.AVAILABLE)
     matching_request_form = None
     if can_request_item:
@@ -83,7 +83,7 @@ def item_create(request):
 
 def owned_item(request, item_id):
     item = get_object_or_404(Item, pk=item_id)
-    if item.owner_id != request.user.pk or item.source != 'user':
+    if item.owner_id != request.user.pk or item.source != 'user' or item.is_catalog:
         raise PermissionDenied('Hanya pemilik yang dapat mengelola item ini.')
     return item
 

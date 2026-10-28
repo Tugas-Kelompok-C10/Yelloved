@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static items_ui %}
-{% block meta %}<script src="{% static 'js/items/detail.js' %}?v=detail-20261027-2" defer></script><script src="{% static 'js/items/images.js' %}" defer></script><title>{{ item.title }} | Yelloved</title><link rel="stylesheet" href="{% static 'css/explore.css' %}?v=item-detail-20261027-3">{% endblock %}
+{% block meta %}<script src="{% static 'js/items/detail.js' %}?v=detail-20261027-2" defer></script><script src="{% static 'js/items/images.js' %}" defer></script><title>{{ item.title }} | Yelloved</title><link rel="stylesheet" href="{% static 'css/explore.css' %}?v=item-detail-20261028-demo-1">{% endblock %}
 {% block content %}
 <main class="explore-page item-detail-page" lang="id">
     <a class="explore-back" href="{% url 'items:explore_items' %}">‹ <span>Back</span></a>
@@ -44,7 +44,7 @@
                 {% endif %}
             </div>
             <div class="explore-detail-note">
-                {% if item.source == 'dummyjson' %}Koleksi inspirasi preloved untuk mahasiswa dan penghuni kos.
+                {% if item.is_catalog %}Koleksi inspirasi preloved untuk mahasiswa dan penghuni kos.
                 {% elif user.is_authenticated %}{% if item.owner %}Penjual: <a href="{% url 'account_profile:user_profile' item.owner.username %}">{{ item.owner.username }}</a>{% else %}Akun penjual sudah tidak tersedia.{% endif %}
                 {% else %}<a href="{% url 'login' %}?next={{ request.path|urlencode }}">Masuk untuk melihat informasi penjual.</a>{% endif %}
             </div>
@@ -64,7 +64,7 @@
             {% include 'item_matching/_item_requests.html' %}
         </div>
     </article>
-    {% if item.source == 'dummyjson' %}<p class="explore-photo-credit"><a href="{% static 'img/items/SOURCES.md' %}">Sumber dan lisensi foto katalog</a></p>{% endif %}
+    {% if item.is_catalog %}<p class="explore-photo-credit"><a href="{% static 'img/items/SOURCES.md' %}">Sumber dan lisensi foto katalog</a></p>{% endif %}
     <section class="item-seller-section" aria-labelledby="item-seller-title">
         <h2 id="item-seller-title">Meet the seller</h2>
         {% if item.owner and user.is_authenticated %}
@@ -74,7 +74,7 @@
                         {% if item.owner.account_profile.photo %}<img src="{{ item.owner.account_profile.photo.url }}" alt="Foto {{ item.owner.username }}" loading="lazy">{% else %}<span aria-hidden="true">{{ item.owner.username|slice:':2'|upper }}</span>{% endif %}
                     </div>
                     <div>
-                        <h3>@{{ item.owner.username }}</h3>
+                        <h3>{% if item.is_catalog %}Yelloved Community{% else %}@{{ item.owner.username }}{% endif %}</h3>
                         <p>{{ item.location }}</p>
                         {% if item.owner.date_joined %}<p>Joined {{ item.owner.date_joined|date:'F Y' }}</p>{% endif %}
                         <div class="item-seller-status"><span>UI community member</span><span>Response time not available</span></div>
@@ -106,9 +106,7 @@
             </div>
             <form id="item-offer-form" method="post" action="{{ offer_url }}" data-login-url="{{ login_url }}?next={{ offer_url|urlencode }}" data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}">
                 {% csrf_token %}
-                <label for="item-offer-price">Your offer price</label>
-                <div class="item-offer-price-input"><span aria-hidden="true">Rp</span><input id="item-offer-price" type="number" inputmode="numeric" placeholder="Belum didukung" aria-describedby="item-offer-price-help" disabled></div>
-                <p class="item-offer-help" id="item-offer-price-help">Sistem saat ini hanya menyimpan request barang, bukan nominal penawaran. Nilai harga tidak dikirim atau disimpan.</p>
+                <p class="item-offer-help">Nominal penawaran akan disepakati dengan penjual melalui chat/request. Sistem saat ini belum menyimpan nominal penawaran.</p>
                 {% if can_request_item %}
                     {% for field in matching_request_form %}
                         <div class="item-offer-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.help_text %}<p class="item-offer-help">{{ field.help_text }}</p>{% endif %}</div>
@@ -119,7 +117,7 @@
                     <p class="item-offer-help">Masuk terlebih dahulu untuk mengirim request barang.</p>
                 {% else %}
                     <button class="explore-button item-offer-send" type="submit" disabled>Send Offer</button>
-                    <p class="item-offer-help">{% if item.source != 'user' or not item.owner_id %}Item katalog inspirasi tidak memiliki penjual dan tidak dapat direquest. Pilih listing milik pengguna.{% else %}Barang ini sudah tidak tersedia untuk direquest.{% endif %}</p>
+                    <p class="item-offer-help">{% if item.source != 'user' or not item.owner_id %}Listing ini belum tersedia untuk request.{% else %}Barang ini sudah tidak tersedia untuk direquest.{% endif %}</p>
                 {% endif %}
                 <p id="item-offer-note" role="status" aria-live="polite"></p>
             </form>
