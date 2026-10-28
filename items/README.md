@@ -2,6 +2,23 @@
 
 Modul ini memakai `settings.AUTH_USER_MODEL` dan route project yang sudah ada, `/explore/`. Tidak memerlukan perubahan settings, base template, atau aplikasi lain. yay
 
+## Approved Public API sources
+
+Items uses [DummyJSON Products](https://dummyjson.com/docs/products), with data
+requested from `https://dummyjson.com/products?limit=0` by the existing import
+command. No other product API is used. The 20 migration seeds remain frozen local
+records inspired by this catalogue; migrations and Explore never fetch the API.
+Local photo files and their existing licence attribution remain unchanged.
+
+The other approved sources belong to separate integration concerns:
+
+- [DummyJSON Auth](https://dummyjson.com/docs/auth) and
+  [DummyJSON Users](https://dummyjson.com/users): authentication/user demo data;
+  Items does not replace Django authentication or import these users as real accounts.
+- [API Wilayah Indonesia](https://github.com/emsifa/api-wilayah-indonesia): an approved
+  source for administrative location data if a location selector is added later.
+  The current Items location field remains free text; this API is not integrated yet.
+
 ## Setup dan data awal
 
 ```sh
