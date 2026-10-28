@@ -69,6 +69,14 @@ class Item(models.Model):
         return reverse('items:item_detail', args=[self.pk])
 
     @property
+    def is_catalog(self):
+        from .demo_seller import DEMO_USERNAME
+        return self.source == 'dummyjson' or (
+            self.external_id is not None and self.owner_id is not None
+            and self.owner.username == DEMO_USERNAME
+        )
+
+    @property
     def price_display(self):
         if self.listing_type == self.ListingType.FREE:
             return 'Gratis'
