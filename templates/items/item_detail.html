@@ -1,77 +1,114 @@
 {% extends "base.html" %}
 {% load static items_ui %}
-{% block meta %}<script src="{% static 'js/items/detail.js' %}?v=detail-20261027-2" defer></script><script src="{% static 'js/items/images.js' %}" defer></script><title>{{ item.title }} | Yelloved</title><link rel="stylesheet" href="{% static 'css/explore.css' %}?v=item-detail-20261028-demo-1">{% endblock %}
+{% block meta %}<script src="{% static 'js/items/favorites.js' %}?v=1" defer></script><script src="{% static 'js/items/ui.js' %}" defer></script><script src="{% static 'js/items/detail.js' %}?v=detail-reference-20261028-2" defer></script><script src="{% static 'js/items/images.js' %}" defer></script><title>{{ item.title }} | Yelloved</title><link rel="stylesheet" href="{% static 'css/explore.css' %}?v=detail-reference-20261028-2">{% endblock %}
 {% block content %}
-<main class="explore-page item-detail-page" lang="id">
-    <a class="explore-back" href="{% url 'items:explore_items' %}">‹ <span>Back</span></a>
+<main class="explore-page item-detail-page" lang="en">
+    <nav class="item-detail-breadcrumb" aria-label="Breadcrumb"><a href="{% url 'items:explore_items' %}">Catalogue</a><span aria-hidden="true">/</span><span>Item details</span></nav>
     <article class="explore-detail">
         <figure class="explore-detail-media">
-            <div class="explore-image explore-detail-image">{% include 'items/_item_image.html' with detail=True %}</div>
+            <div class="explore-image explore-detail-image">{% include 'items/_item_image.html' with detail=True %}{% include 'items/_favorite_button.html' %}</div>
         </figure>
         <div class="explore-detail-body">
+            <p class="explore-category">{{ item.get_category_display|ui_text }} · {{ item.listing_type|listing_badge }}</p>
             <h1>{{ item.title }}</h1>
-            <p class="explore-category">{{ item.get_category_display }} · {{ item.listing_type|listing_badge }}</p>
-            <p class="explore-price">{{ item.price_display }}</p>
-            <dl class="explore-specs">
-                <div><dt>Kondisi</dt><dd>{{ item.get_condition_display }}</dd></div>
-                <div><dt>Lokasi</dt><dd>{{ item.location }}</dd></div>
-                <div><dt>Status</dt><dd>{{ item.get_status_display }}</dd></div>
-            </dl>
-            <h2>Description</h2><p class="explore-description">{{ item.description|linebreaksbr }}</p>
+            <p class="explore-price">{{ item.price_display|ui_text }}</p>
             {% url 'item_matching:request_create' item.pk as offer_url %}
             {% url 'transactions:pesan' as chat_url %}
             {% url 'transactions:checkout' as buy_url %}
             {% url 'login' as login_url %}
-            <div class="item-detail-action-row" aria-label="Aksi item">
+            {% if not user.is_authenticated or item.owner_id != user.pk %}
+            <section class="item-actions-card" aria-label="Item actions">
+                <div class="item-detail-action-row" aria-label="Item actions">
+                    <div class="item-action-primary-row">
+                {% if not user.is_authenticated %}
+                    <a class="explore-button item-action-buy" href="{{ login_url }}?next={{ buy_url|default:request.path|urlencode }}">Buy</a>
+                {% elif item.owner_id != user.pk %}
+                    {% if buy_url and item.status == 'available' and item.listing_type == 'sale' %}
+                        <a class="explore-button item-action-buy" href="{{ buy_url }}">Buy</a>
+                    {% else %}
+                        <button class="explore-button item-action-buy" type="button" disabled title="Coming soon">Buy</button>
+                    {% endif %}
+                {% endif %}
+                        {% if not user.is_authenticated %}
+                            <a class="item-cart-button" href="{{ login_url }}?next={{ buy_url|default:request.path|urlencode }}" aria-label="Cart: go to checkout" title="Go to checkout">
+                        {% elif buy_url and item.status == 'available' and item.listing_type == 'sale' %}
+                            <a class="item-cart-button" href="{{ buy_url }}" aria-label="Cart: go to checkout" title="Go to checkout">
+                        {% else %}
+                            <button class="item-cart-button" type="button" disabled aria-label="Cart unavailable" title="Checkout unavailable for this item">
+                        {% endif %}
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h2l2.5 12h11L21 7H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
+                        {% if not user.is_authenticated or buy_url and item.status == 'available' and item.listing_type == 'sale' %}</a>{% else %}</button>{% endif %}
+                    </div>
                 {% if not user.is_authenticated or item.owner_id != user.pk %}
-                    <button class="explore-button" type="button" id="item-offer-open" aria-haspopup="dialog" aria-controls="item-offer-dialog">Make an Offer</button>
+                    <button class="explore-button explore-button-secondary" type="button" id="item-offer-open" aria-haspopup="dialog" aria-controls="item-offer-dialog">Make an Offer</button>
                 {% endif %}
                 {% if not user.is_authenticated %}
                     <a class="explore-button explore-button-secondary" href="{{ login_url }}?next={{ chat_url|default:request.path|urlencode }}">Chat</a>
                 {% elif chat_url %}
                     <a class="explore-button explore-button-secondary" href="{{ chat_url }}">Chat</a>
                 {% else %}
-                    <button class="explore-button explore-button-secondary" type="button" disabled title="Fitur akan segera tersedia">Chat</button>
+                    <button class="explore-button explore-button-secondary" type="button" disabled title="Coming soon">Chat</button>
                 {% endif %}
-                {% if not user.is_authenticated %}
-                    <a class="explore-button explore-button-secondary" href="{{ login_url }}?next={{ buy_url|default:request.path|urlencode }}">Buy</a>
-                {% elif item.owner_id != user.pk %}
-                    {% if buy_url and item.status == 'available' and item.listing_type == 'sale' %}
-                        <a class="explore-button explore-button-secondary" href="{{ buy_url }}">Buy</a>
-                    {% else %}
-                        <button class="explore-button explore-button-secondary" type="button" disabled title="Fitur akan segera tersedia">Buy</button>
-                    {% endif %}
+                </div>
+                {% include 'items/_request_status.html' %}
+            </section>
+            {% endif %}
+            <section class="item-description-section" aria-labelledby="item-description-title">
+                <h2 id="item-description-title">Item details</h2>
+                <p class="explore-description">{{ item.description|linebreaksbr }}</p>
+                <dl class="explore-specs">
+                    <div><dt>Condition</dt><dd>{{ item.get_condition_display|ui_text }}</dd></div>
+                    <div><dt>Location</dt><dd>{{ item.location }}</dd></div>
+                    <div><dt>Status</dt><dd>{{ item.get_status_display|ui_text }}</dd></div>
+                </dl>
+            </section>
+            <section class="item-seller-summary" aria-label="Meet the seller">
+                {% if item.owner and user.is_authenticated %}
+                    <div class="item-seller-avatar">{% if item.owner.account_profile.photo %}<img src="{{ item.owner.account_profile.photo.url }}" alt="Photo of {{ item.owner.username }}">{% else %}<span aria-hidden="true">{{ item.owner.username|slice:':2'|upper }}</span>{% endif %}</div>
+                    <div class="item-seller-summary-copy"><h2>{% if item.is_catalog %}Yelloved Community{% else %}@{{ item.owner.username }}{% endif %}</h2><p>UI community member · {{ item.location }}</p></div>
+                    <a class="explore-button explore-button-secondary" href="{% url 'account_profile:user_profile' item.owner.username %}">View profile</a>
+                {% elif item.owner %}
+                    <p><a href="{% url 'login' %}?next={{ request.path|urlencode }}">Log in to meet the seller</a></p>
+                {% else %}
+                    <p>Seller account unavailable</p>
                 {% endif %}
-            </div>
-            <div class="explore-detail-note">
-                {% if item.is_catalog %}Koleksi inspirasi preloved untuk mahasiswa dan penghuni kos.
-                {% elif user.is_authenticated %}{% if item.owner %}Penjual: <a href="{% url 'account_profile:user_profile' item.owner.username %}">{{ item.owner.username }}</a>{% else %}Akun penjual sudah tidak tersedia.{% endif %}
-                {% else %}<a href="{% url 'login' %}?next={{ request.path|urlencode }}">Masuk untuk melihat informasi penjual.</a>{% endif %}
-            </div>
-            {% if can_manage %}<div class="explore-owner-actions"><a class="explore-button" href="{% url 'items:item_update' item.pk %}">Edit Item / Status</a><a class="explore-reset" href="{% url 'items:item_delete' item.pk %}">Hapus Item</a></div>{% endif %}
-            <div class="explore-detail-actions">
-                {% if item.source == 'user' and item.owner %}
-                    {% if item.owner_id == user.pk %}
-                        <a class="explore-button" href="{% url 'item_matching:item_suggestions' item.pk %}">Lihat Wanted Post yang Cocok</a>
-                    {% elif item.status == 'available' %}
-                        <a class="explore-button" href="{% url 'item_matching:request_create' item.pk %}">Tertarik dengan Item Ini</a>
-                    {% else %}
-                        <button class="explore-button" type="button" disabled>Barang Tidak Tersedia</button>
-                    {% endif %}
-                {% endif %}
-                <a class="explore-button explore-button-secondary" href="{% url 'items:explore_items' %}">Kembali ke Explore</a>
-            </div>
-            {% include 'item_matching/_item_requests.html' %}
+            </section>
+            {% if can_manage %}<div class="explore-owner-actions">{% include 'items/_favorite_button.html' %}<a class="explore-button" href="{% url 'items:item_update' item.pk %}">Edit item / status</a><a class="explore-reset" href="{% url 'items:item_delete' item.pk %}">Delete item</a></div>{% endif %}
+            {% if user.is_authenticated and item.owner_id == user.pk %}{% include 'items/_request_status.html' %}{% endif %}
         </div>
     </article>
-    {% if item.is_catalog %}<p class="explore-photo-credit"><a href="{% static 'img/items/SOURCES.md' %}">Sumber dan lisensi foto katalog</a></p>{% endif %}
-    <section class="item-seller-section" aria-labelledby="item-seller-title">
+    <div class="item-detail-secondary">
+        <section class="item-seller-listings" aria-labelledby="item-seller-listings-title">
+            <h2 id="item-seller-listings-title">More from this seller</h2>
+            <p class="item-seller-listings-intro">Explore their other available listings.</p>
+            <div class="item-seller-items-grid">
+                {% for item in seller_items %}
+                    <article class="item-seller-listing">
+                        <div class="explore-card-media">
+                            <a href="{{ item.get_absolute_url }}" aria-label="View {{ item.title }}"><div class="explore-image">{% include 'items/_item_image.html' %}</div></a>
+                            {% include 'items/_favorite_button.html' %}
+                        </div>
+                        <a class="item-seller-listing-info" href="{{ item.get_absolute_url }}">
+                            <h3>{{ item.title }}</h3>
+                            <span class="item-seller-listing-category">{{ item.get_category_display|ui_text }}</span>
+                            <span class="item-seller-listing-condition">{{ item.get_condition_display|ui_text }}</span>
+                            <strong>{{ item.price_display|ui_text }}</strong>
+                            <span class="item-seller-listing-location">{{ item.location }}</span>
+                        </a>
+                    </article>
+                {% empty %}
+                    <p class="item-seller-listings-empty">No other available listings from this seller yet.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+    <details class="item-seller-disclosure"><summary>Seller information and socials</summary>    <section class="item-seller-section" aria-labelledby="item-seller-title">
         <h2 id="item-seller-title">Meet the seller</h2>
         {% if item.owner and user.is_authenticated %}
             <div class="item-seller-card">
                 <div class="item-seller-identity">
                     <div class="item-seller-avatar">
-                        {% if item.owner.account_profile.photo %}<img src="{{ item.owner.account_profile.photo.url }}" alt="Foto {{ item.owner.username }}" loading="lazy">{% else %}<span aria-hidden="true">{{ item.owner.username|slice:':2'|upper }}</span>{% endif %}
+                        {% if item.owner.account_profile.photo %}<img src="{{ item.owner.account_profile.photo.url }}" alt="Photo of {{ item.owner.username }}" loading="lazy">{% else %}<span aria-hidden="true">{{ item.owner.username|slice:':2'|upper }}</span>{% endif %}
                     </div>
                     <div>
                         <h3>{% if item.is_catalog %}Yelloved Community{% else %}@{{ item.owner.username }}{% endif %}</h3>
@@ -83,41 +120,59 @@
                 <div class="item-seller-socials">
                     <h3>Socials</h3>
                     <div class="item-social-icons">
-                        <span class="item-social-icon is-unavailable" role="img" aria-label="Instagram belum ditambahkan" title="Instagram belum ditambahkan"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".7"/></svg></span>
-                        <span class="item-social-icon is-unavailable" role="img" aria-label="WhatsApp belum ditambahkan" title="WhatsApp belum ditambahkan"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20 11.5a8.5 8.5 0 0 1-12.5 7.5L3 21l1.5-4.5A8.5 8.5 0 1 1 20 11.5Z"/><path d="M8 7c0 5 4 8 7 8l1-2-3-1-1 1-2-2 1-1-1-3z"/></svg></span>
-                        {% if item.owner.email %}<a class="item-social-icon" href="mailto:{{ item.owner.email|urlencode }}" aria-label="Email seller" title="Email seller">{% else %}<span class="item-social-icon is-unavailable" role="img" aria-label="Email belum ditambahkan" title="Email belum ditambahkan">{% endif %}<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg>{% if item.owner.email %}</a>{% else %}</span>{% endif %}
+                        <span class="item-social-icon is-unavailable" role="img" aria-label="Instagram not added yet" title="Instagram not added yet"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".7"/></svg></span>
+                        <span class="item-social-icon is-unavailable" role="img" aria-label="WhatsApp not added yet" title="WhatsApp not added yet"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20 11.5a8.5 8.5 0 0 1-12.5 7.5L3 21l1.5-4.5A8.5 8.5 0 1 1 20 11.5Z"/><path d="M8 7c0 5 4 8 7 8l1-2-3-1-1 1-2-2 1-1-1-3z"/></svg></span>
+                        {% if item.owner.email %}<a class="item-social-icon" href="mailto:{{ item.owner.email|urlencode }}" aria-label="Email seller" title="Email seller">{% else %}<span class="item-social-icon is-unavailable" role="img" aria-label="Email not added yet" title="Email not added yet">{% endif %}<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg>{% if item.owner.email %}</a>{% else %}</span>{% endif %}
                     </div>
                     {% if not item.owner.email %}<p>Socials not added yet</p>{% endif %}
                 </div>
             </div>
         {% elif item.owner %}
-            <p class="item-seller-empty"><a href="{% url 'login' %}?next={{ request.path|urlencode }}">Masuk untuk melihat profil dan kontak penjual.</a></p>
+            <p class="item-seller-empty"><a href="{% url 'login' %}?next={{ request.path|urlencode }}">Log in to view the seller profile and contact details.</a></p>
         {% else %}
-            <div class="item-seller-card"><div class="item-seller-identity"><div class="item-seller-avatar" aria-hidden="true">YC</div><div><h3>Yelloved Community</h3><p>{{ item.location }}</p><p>Item katalog inspirasi · belum memiliki penjual.</p></div></div><div class="item-seller-socials"><h3>Socials</h3><p>Socials not added yet</p></div></div>
+            <div class="item-seller-card"><div class="item-seller-identity"><div class="item-seller-avatar" aria-hidden="true">YC</div><div><h3>Yelloved Community</h3><p>{{ item.location }}</p><p>Inspiration listing · no seller assigned yet.</p></div></div><div class="item-seller-socials"><h3>Socials</h3><p>Socials not added yet</p></div></div>
         {% endif %}
     </section>
+    </details>
+    <div class="item-detail-additional">
+        <p>Listed on {{ item.created_at|date:'j F Y' }}</p>
+            <div class="explore-detail-note">
+                {% if item.is_catalog %}A preloved inspiration collection for students and dorm living.
+                {% elif user.is_authenticated %}{% if item.owner %}Seller: <a href="{% url 'account_profile:user_profile' item.owner.username %}">{{ item.owner.username }}</a>{% else %}This seller account is no longer available.{% endif %}
+                {% else %}<a href="{% url 'login' %}?next={{ request.path|urlencode }}">Log in to view seller information.</a>{% endif %}
+            </div>
+    {% if item.is_catalog %}<p class="explore-photo-credit"><a href="{% static 'img/items/SOURCES.md' %}">Catalogue photo sources and licences</a></p>{% endif %}
+    </div>
     {% if not user.is_authenticated or item.owner_id != user.pk %}
     <dialog class="item-offer-dialog" id="item-offer-dialog" aria-labelledby="item-offer-title" aria-describedby="item-offer-note">
         <div class="item-offer-header"><h2 id="item-offer-title">Make an Offer</h2><button class="item-offer-close" type="button" aria-label="Close offer dialog">×</button></div>
         <div class="item-offer-body">
             <div class="item-offer-preview">
                 <div class="explore-image item-offer-thumb">{% include 'items/_item_image.html' with detail=True %}</div>
-                <div><h3>{{ item.title }}</h3><span>Listed price</span><strong>{{ item.price_display }}</strong></div>
+                <div><h3>{{ item.title }}</h3><span>Listed price</span><strong>{{ item.price_display|ui_text }}</strong></div>
             </div>
             <form id="item-offer-form" method="post" action="{{ offer_url }}" data-login-url="{{ login_url }}?next={{ offer_url|urlencode }}" data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}">
                 {% csrf_token %}
-                <p class="item-offer-help">Nominal penawaran akan disepakati dengan penjual melalui chat/request. Sistem saat ini belum menyimpan nominal penawaran.</p>
+                <p class="item-offer-help">{% if matching_request_form.offer_price %}Your offer amount and message will be sent to the seller with your request.{% else %}Send your message with an item request. Sale listings support price offers after you log in.{% endif %}</p>
                 {% if can_request_item %}
                     {% for field in matching_request_form %}
-                        <div class="item-offer-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.help_text %}<p class="item-offer-help">{{ field.help_text }}</p>{% endif %}</div>
+                        <div class="item-offer-field">
+                            {% if field.name == 'offer_price' %}
+                                <label for="{{ field.id_for_label }}">Your offer price</label>
+                                <div class="item-offer-price-input"><span aria-hidden="true">Rp</span><input type="number" id="{{ field.id_for_label }}" name="{{ field.html_name }}" value="{{ field.value|default_if_none:'' }}" min="1000" step="1" max="999999999999" inputmode="numeric" placeholder="54000" aria-describedby="item-offer-amount-help"{% if field.field.required %} required{% endif %}></div>
+                                <p class="item-offer-help" id="item-offer-amount-help">Enter a whole Rupiah amount of at least Rp1.000.</p>
+                            {% else %}
+                                <label for="{{ field.id_for_label }}">{{ field.label|ui_text }}</label>{{ field|english_widget }}{% if field.help_text %}<p class="item-offer-help">{{ field.help_text|ui_text }}</p>{% endif %}
+                            {% endif %}
+                        </div>
                     {% endfor %}
                     <button class="explore-button item-offer-send" type="submit">Send Offer</button>
                 {% elif not user.is_authenticated %}
                     <button class="explore-button item-offer-send" type="submit">Send Offer</button>
-                    <p class="item-offer-help">Masuk terlebih dahulu untuk mengirim request barang.</p>
+                    <p class="item-offer-help">Log in to send an item request.</p>
                 {% else %}
                     <button class="explore-button item-offer-send" type="submit" disabled>Send Offer</button>
-                    <p class="item-offer-help">{% if item.source != 'user' or not item.owner_id %}Listing ini belum tersedia untuk request.{% else %}Barang ini sudah tidak tersedia untuk direquest.{% endif %}</p>
+                    <p class="item-offer-help">{% if item.source != 'user' or not item.owner_id %}This listing is not available for requests.{% else %}This item is no longer available for requests.{% endif %}</p>
                 {% endif %}
                 <p id="item-offer-note" role="status" aria-live="polite"></p>
             </form>
