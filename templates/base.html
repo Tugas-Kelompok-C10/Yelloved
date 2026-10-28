@@ -1,4 +1,4 @@
-{% load static %}
+{% load static transaction_cart %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -31,6 +31,7 @@
         >
         <link rel="stylesheet" href="{% static 'css/item_matching.css' %}">
 
+        <link rel="stylesheet" href="{% static 'css/cart-badge.css' %}?v=1">
         {% block meta %}
         {% endblock meta %}
     </head>
@@ -168,10 +169,11 @@
                     </div>
                 </div>
 
+                {% cart_listing_count user as nav_cart_count %}
                 <a href="{% url 'transactions:cart' %}"
-                    class="nav-icon-link"
-                    title="Keranjang"
-                    aria-label="Keranjang">
+                    class="nav-icon-link nav-cart-link"
+                    title="Cart ({{ nav_cart_count }})"
+                    aria-label="Cart, {{ nav_cart_count }} items">
                         <svg viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
@@ -182,7 +184,7 @@
                             <circle cx="9" cy="21" r="1"/>
                             <circle cx="20" cy="21" r="1"/>
                             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                        </svg>
+                        </svg>{% if nav_cart_count %}<span class="nav-cart-count" aria-hidden="true">{{ nav_cart_count }}</span>{% endif %}
                     </a>
                 <div class="nav-profile-menu">
                     <button type="button" class="nav-profile-trigger" aria-label="Menu profil {{ user.username }}" aria-haspopup="true" aria-expanded="false" aria-controls="profile-dropdown">
