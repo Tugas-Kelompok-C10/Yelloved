@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<title>Keranjang Saya | Yelloved</title>
+<link rel="stylesheet" href="{% static 'css/cart.css' %}">
+{% endblock meta %}
+
+{% block content %}
+<main class="cart-page">
+    <div class="cart-container">
+        <div class="cart-heading">
+            <div>
+                <p class="cart-eyebrow">YELLOWED MARKETPLACE</p>
+                <h1>Keranjang Saya</h1>
+                <p class="cart-subtitle">
+                    Periksa kembali barang yang ingin kamu beli.
+                </p>
+            </div>
+            <a href="{% url 'items:explore_items' %}" class="continue-shopping">
+                ← Lanjut Belanja
+            </a>
+        </div>
+
+        {% if messages %}
+            <div class="cart-messages">
+                {% for message in messages %}
+                    <p class="cart-message {{ message.tags }}">
+                        {{ message }}
+                    </p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if cart_items %}
+            <div class="cart-layout">
+                <section class="cart-items">
+                    {% for cart_item in cart_items %}
+                        <article class="cart-item">
+                            <div class="cart-item-image">
+                                {% if cart_item.item.display_image_url %}
+                                    <img
+                                        src="{{ cart_item.item.display_image_url }}"
+                                        alt="{{ cart_item.item.title }}"
+                                    >
+                                {% endif %}
+                            </div>
+
+                            <div class="cart-item-details">
+                                <p class="cart-item-category">
+                                    {{ cart_item.item.get_category_display }}
+                                </p>
+                                <h2>{{ cart_item.item.title }}</h2>
+                                <p class="cart-item-condition">
+                                    Kondisi:
+                                    {{ cart_item.item.get_condition_display }}
+                                </p>
+                                <p class="cart-item-price">
+                                    {{ cart_item.item.price_display }}
+                                </p>
+                            </div>
+
+                            <a
+                                href="{{ cart_item.item.get_absolute_url }}"
+                                class="cart-item-link"
+                            >
+                                Lihat Barang
+                            </a>
+                        </article>
+                    {% endfor %}
+                </section>
+
+                <aside class="cart-summary">
+                    <h2>Ringkasan</h2>
+                    <div class="cart-summary-row">
+                        <span>Total barang</span>
+                        <strong>{{ cart_items|length }} barang</strong>
+                    </div>
+                    <p class="cart-summary-note">
+                        Total pembayaran akan dihitung pada tahap checkout.
+                    </p>
+                    <a
+                        href="{% url 'transactions:checkout' %}"
+                        class="cart-checkout-button"
+                    >
+                        Lanjut ke Checkout
+                    </a>
+                </aside>
+            </div>
+        {% else %}
+            <section class="cart-empty">
+            <div class="cart-empty-icon" aria-hidden="true">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path d="m12 3 9 5-9 5-9-5 9-5Z"/>
+                    <path d="m3 8 9 5 9-5"/>
+                    <path d="M12 13v8"/>
+                    <path d="m3 8 0 9 9 4 9-4V8"/>
+                </svg>
+            </div>
+
+                <h2>Keranjangmu masih kosong</h2>
+                <p>
+                    Yuk, temukan barang preloved yang kamu suka!
+                </p>
+                <a href="{% url 'items:explore_items' %}" class="cart-shop-button">
+                    Mulai Belanja
+                </a>
+            </section>
+        {% endif %}
+    </div>
+</main>
+{% endblock content %}

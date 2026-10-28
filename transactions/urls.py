@@ -15,4 +15,6 @@ urlpatterns = [
     path("history/", views.transaction_history, name="transaction_history"),
     path("app/", app_page, name="app"),
     path("pesan/", views.pesan_page, name="pesan"),
+    path("cart/", views.cart_view, name="cart"),
+    path("cart/add/<int:item_id>/", views.add_to_cart, name="add_to_cart"),
 ]

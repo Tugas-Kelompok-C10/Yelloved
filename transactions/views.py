@@ -1,10 +1,61 @@
-
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.db import transaction as db_transaction
+from django.contrib import messages
 
-from .models import Transaction
+from .models import Transaction, CartItem
+from items.models import Item
 from account_profile.models import Profile, Address
 
+
+def cart_view(request):
+    if not request.user.is_authenticated:
+        return redirect("login")
+
+    cart_items = CartItem.objects.filter(
+        user=request.user
+    ).select_related("item")
+
+    return render(
+        request,
+        "transactions/cart.html",
+        {
+            "name": "Yelloved",
+            "cart_items": cart_items,
+        },
+    )
+
+
+def add_to_cart(request, item_id):
+    if not request.user.is_authenticated:
+        return redirect("login")
+
+    if request.method != "POST":
+        return redirect("items:explore")
+
+    item = get_object_or_404(Item, pk=item_id)
+
+    if (
+        item.owner_id == request.user.id
+        or item.status != Item.Status.AVAILABLE
+        or item.listing_type != Item.ListingType.SALE
+    ):
+        messages.error(
+            request,
+            "Barang ini tidak bisa ditambahkan ke keranjang.",
+        )
+        return redirect(item.get_absolute_url())
+
+    _, created = CartItem.objects.get_or_create(
+        user=request.user,
+        item=item,
+    )
+
+    if created:
+        messages.success(request, "Barang berhasil ditambahkan ke keranjang.")
+    else:
+        messages.info(request, "Barang ini sudah ada di keranjang.")
+
+    return redirect("transactions:cart")
 
 def transaction_home(request):
     return render(

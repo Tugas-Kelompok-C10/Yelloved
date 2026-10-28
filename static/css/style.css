@@ -4352,3 +4352,26 @@ body:has(.profile-page) .site-header {
 .profile-dropdown-links a.active:hover {
     background: #4b1750;
 }
+
+
+.nav-icon-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 32px;
+    color: #F5D76E;
+    text-decoration: none;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.nav-icon-link svg {
+    display: block;
+    width: 23px;
+    height: 23px;
+}
+
+.nav-icon-link:hover {
+    color: #FFE99A;
+    transform: translateY(-1px);
+}
