@@ -1,16 +1,33 @@
 {% load items_ui %}
-<p class="explore-result-count">{{ page_obj.paginator.count }} barang ditemukan</p>
+<p class="explore-result-count">{{ page_obj.paginator.count }} items found</p>
 <div class="explore-grid">
 {% for item in page_obj %}
-    {% include "items/_card.html" with item=item only %}
+    <article class="explore-card">
+        <div class="explore-card-media">
+            <a class="explore-card-link" href="{{ item.get_absolute_url }}" aria-label="View {{ item.title }}">
+            <div class="explore-image">
+                {% include 'items/_item_image.html' %}
+                <div class="explore-badges"><span>{{ item.condition|condition_badge }}</span><span>{{ item.listing_type|listing_badge }}</span></div>
+            </div>
+            </a>
+            {% include 'items/_favorite_button.html' %}
+        </div>
+        <a class="explore-card-link" href="{{ item.get_absolute_url }}">
+            <div class="explore-card-body">
+                <h3>{{ item.title }}</h3>
+                <p class="explore-price">{{ item.price_display|ui_text }}</p>
+                <p class="explore-location"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.4"/></svg>{{ item.location }}</p>
+            </div>
+        </a>
+    </article>
 {% empty %}
-    <div class="explore-empty"><h3>Belum ketemu yang cocok?</h3><p>Coba kata kunci lain, longgarkan filter, atau tambahkan listing pertamamu.</p><a class="explore-button" href="{% url 'items:explore_items' %}">Lihat semua barang</a></div>
+    <div class="explore-empty"><h3>No matching items yet?</h3><p>Try another search, adjust your filters, or add your first listing.</p><a class="explore-button" href="{% url 'items:explore_items' %}">View all items</a></div>
 {% endfor %}
 </div>
 {% if page_obj.paginator.num_pages > 1 %}
-<nav class="explore-pagination" aria-label="Halaman barang">
-    {% if page_obj.has_previous %}<a class="explore-button" data-page="{{ page_obj.previous_page_number }}" href="{% querystring page=page_obj.previous_page_number %}">← Sebelumnya</a>{% endif %}
-    <span>Halaman {{ page_obj.number }} dari {{ page_obj.paginator.num_pages }}</span>
-    {% if page_obj.has_next %}<a class="explore-button" data-page="{{ page_obj.next_page_number }}" href="{% querystring page=page_obj.next_page_number %}">Berikutnya →</a>{% endif %}
+<nav class="explore-pagination" aria-label="Item pages">
+    {% if page_obj.has_previous %}<a class="explore-button" data-page="{{ page_obj.previous_page_number }}" href="{% querystring page=page_obj.previous_page_number %}">← Previous</a>{% endif %}
+    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a class="explore-button" data-page="{{ page_obj.next_page_number }}" href="{% querystring page=page_obj.next_page_number %}">Next →</a>{% endif %}
 </nav>
 {% endif %}

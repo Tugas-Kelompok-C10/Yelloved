@@ -72,7 +72,9 @@ class Command(BaseCommand):
                 _, new = Item.objects.update_or_create(external_id=external_id, defaults=defaults)
                 created += int(new)
             if options['refresh']:
-                deleted, _ = Item.objects.filter(imported).exclude(external_id__in=identifiers).delete()
+                deleted, _ = Item.objects.filter(imported).exclude(
+                    external_id__range=(10000001, 10000020),
+                ).exclude(external_id__in=identifiers).delete()
         count = Item.objects.filter(owner=seller, external_id__isnull=False, status=Item.Status.AVAILABLE).count()
         self.stdout.write(self.style.SUCCESS(f'Impor selesai: {created} baru, {len(prepared) - created} diperbarui, {deleted} item API lama dihapus. {count} item API tersedia.'))
         self.stdout.write('Harga seed preloved terkurasi dalam Rupiah; tersedia barang Gratis. Item manual tidak diubah.')

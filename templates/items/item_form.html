@@ -1,26 +1,26 @@
 {% extends "base.html" %}
-{% load static %}
-{% block meta %}<title>{% if editing %}Edit{% else %}Tambah{% endif %} Item | Yelloved</title><link rel="stylesheet" href="{% static 'css/explore.css' %}?v=item-upload-1">{% endblock %}
+{% load static items_ui %}
+{% block meta %}<script src="{% static 'js/items/ui.js' %}" defer></script><title>{% if editing %}Edit item{% else %}Add item{% endif %} | Yelloved</title><link rel="stylesheet" href="{% static 'css/explore.css' %}?v=item-upload-1">{% endblock %}
 {% block content %}
-<main class="explore-page item-form-page" lang="id">
+<main class="explore-page item-form-page" lang="en">
     <section class="item-form-panel">
-        <h1>{% if editing %}Edit Item{% else %}Tambah Item{% endif %}</h1>
-        <p class="explore-description">Beri barangmu kesempatan untuk punya cerita baru.</p>
+        <h1>{% if editing %}Edit item{% else %}Add item{% endif %}</h1>
+        <p class="explore-description">List an item for the UI community.</p>
         <form method="post" class="item-form" enctype="multipart/form-data">
             {% csrf_token %}
-            {{ form.non_field_errors }}
+            {% for error in form.non_field_errors %}<p class="form-error">{{ error|ui_text }}</p>{% endfor %}
             {% for field in form %}
-                {% if field.is_hidden %}{{ field }}{% else %}
+                {% if field.is_hidden %}{{ field|english_widget }}{% else %}
                     <div class="item-form-field">
-                        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required or field.name == 'image' and not editing %} *{% endif %}</label>
-                        {{ field }}
-                        {% if editing and field.name == 'image' and item.display_image_url %}<img class="item-current-image" src="{{ item.display_image_url }}" alt="Foto item saat ini">{% endif %}
-                        {% if field.help_text %}<p class="item-form-help">{{ field.help_text }}</p>{% endif %}
-                        {{ field.errors }}
+                        <label for="{{ field.id_for_label }}">{{ field.label|ui_text }}{% if field.field.required or field.name == 'image' and not editing %} *{% endif %}</label>
+                        {{ field|english_widget }}
+                        {% if editing and field.name == 'image' and item.display_image_url %}<img class="item-current-image" src="{{ item.display_image_url }}" alt="Current item photo">{% endif %}
+                        {% if field.help_text %}<p class="item-form-help">{{ field.help_text|ui_text }}</p>{% endif %}
+                        {% for error in field.errors %}<p class="form-error">{{ error|ui_text }}</p>{% endfor %}
                     </div>
                 {% endif %}
             {% endfor %}
-            <div class="explore-detail-actions"><button class="explore-button" type="submit">Simpan Item</button><a class="explore-button explore-button-secondary" href="{% if editing %}{{ item.get_absolute_url }}{% else %}{% url 'items:explore_items' %}{% endif %}">Batal</a></div>
+            <div class="explore-detail-actions"><button class="explore-button" type="submit">Save item</button><a class="explore-button explore-button-secondary" href="{% if editing %}{{ item.get_absolute_url }}{% else %}{% url 'items:explore_items' %}{% endif %}">Cancel</a></div>
         </form>
     </section>
 </main>

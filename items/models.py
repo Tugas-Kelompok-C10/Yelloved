@@ -35,6 +35,7 @@ class Item(models.Model):
 
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
                               on_delete=models.SET_NULL, related_name='items')
+    liked_by = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='favorite_items')
     title = models.CharField('Nama barang', max_length=200)
     description = models.TextField('Deskripsi', max_length=5000)
     category = models.CharField('Kategori', max_length=20, choices=Category.choices)

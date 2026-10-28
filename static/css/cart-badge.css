@@ -1,0 +1,3 @@
+/* Only the existing navbar cart icon and its listing count. */
+.site-header .nav-cart-link { position:relative; overflow:visible; }
+.site-header .nav-cart-link .nav-cart-count { position:absolute; top:-7px; right:-9px; display:grid; place-items:center; min-width:18px; height:18px; padding:0 4px; border:2px solid #320c35; border-radius:999px; background:#f2eebf; color:#320c35; font:700 10px/1 "Sora",sans-serif; pointer-events:none; }

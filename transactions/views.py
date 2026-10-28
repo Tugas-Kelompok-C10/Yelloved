@@ -7,6 +7,8 @@ from items.models import Item
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.contrib import messages
+from django.http import Http404
+from django.views.decorators.http import require_POST
 from account_profile.models import Profile, Address
 
 
@@ -238,18 +240,20 @@ def checkout(request):
         }]
         context["total"] = selected_item.price or 0
     else:
-        cart_items = (
-            CartItem.objects
-            .filter(user=request.user)
-            .select_related("item")
-            .order_by("-added_at")
-        )
-
+        cart_items = CartItem.objects.filter(user=request.user).select_related("item").order_by("-added_at")
+        selected_ids = request.session.get("checkout_cart_entry_ids")
+        if selected_ids is not None:
+            cart_items = cart_items.filter(pk__in=selected_ids)
+        cart_items = list(cart_items)
+        if selected_ids is not None and (not cart_items or len(cart_items) != len(selected_ids)
+                                        or any(not cart_entry_eligible(entry, request.user) for entry in cart_items)):
+            messages.error(request, "Your selected items changed or are no longer available. Please review your cart.")
+            return redirect("transactions:cart")
+        for entry in cart_items:
+            entry.quantity = 1  # A preloved listing is a unique unit, regardless of legacy quantity.
         context["cart_items"] = cart_items
-        context["total"] = sum(
-            (entry.item.price or 0) * entry.quantity
-            for entry in cart_items
-        )
+        context["total"] = sum((entry.item.price or 0) for entry in cart_items)
+
 
 
     return render(request, "transactions/checkout.html", context)
@@ -324,29 +328,66 @@ def pesan_page(request):
 
 
 
+def cart_entry_eligible(entry, user):
+    return (entry.item.status == Item.Status.AVAILABLE
+            and entry.item.listing_type == Item.ListingType.SALE
+            and entry.item.owner_id != user.pk and entry.item.price is not None)
+
+
+def selected_cart_entries(request):
+    try:
+        ids = {int(value) for value in request.POST.getlist("selected_items")}
+    except (ValueError, TypeError):
+        raise Http404("Invalid cart selection")
+    entries = list(CartItem.objects.filter(user=request.user, pk__in=ids).select_related("item"))
+    if len(entries) != len(ids):
+        raise Http404("Cart selection not found")
+    return entries
+
+
 @login_required
 def cart_view(request):
-    cart_items = (
-        CartItem.objects
-        .filter(user=request.user)
-        .select_related("item")
-        .order_by("-added_at")
-    )
+    if request.method == "POST":
+        entries = selected_cart_entries(request)
+        action = request.POST.get("action")
+        if not entries:
+            messages.error(request, "Select at least one item first.")
+        elif action == "remove_selected":
+            CartItem.objects.filter(user=request.user, pk__in=[entry.pk for entry in entries]).delete()
+            messages.success(request, "Selected items removed from your cart.")
+        elif action == "checkout":
+            if any(not cart_entry_eligible(entry, request.user) for entry in entries):
+                messages.error(request, "Only available items from other sellers can be checked out.")
+            else:
+                request.session["checkout_cart_entry_ids"] = sorted(entry.pk for entry in entries)
+                return redirect("transactions:checkout")
+        else:
+            messages.error(request, "Choose a valid cart action.")
+        return redirect("transactions:cart")
 
-    total = sum(
-        (entry.item.price or 0) * entry.quantity
-        for entry in cart_items
-    )
+    cart_items = list(CartItem.objects.filter(user=request.user).select_related("item", "item__owner").order_by("-added_at"))
+    seller_groups = {}
+    for entry in cart_items:
+        entry.quantity = 1
+        entry.checkout_eligible = cart_entry_eligible(entry, request.user)
+        group = seller_groups.setdefault(entry.item.owner_id, {"seller": entry.item.owner, "entries": []})
+        group["entries"].append(entry)
+    selected = [entry for entry in cart_items if entry.checkout_eligible]
+    total = sum((entry.item.price or 0) for entry in selected)
+    return render(request, "transactions/cart.html", {
+        "name": "Yelloved", "cart_items": cart_items, "total": total,
+        "total_display": "Rp" + f"{total:,.0f}".replace(",", "."),
+        "selected_count": len(selected), "seller_groups": list(seller_groups.values()),
+    })
 
-    return render(
-        request,
-        "transactions/cart.html",
-        {
-            "name": "Yelloved",
-            "cart_items": cart_items,
-            "total": total,
-        },
-    )
+
+@login_required
+@require_POST
+def remove_from_cart(request, entry_id):
+    entry = get_object_or_404(CartItem, pk=entry_id, user=request.user)
+    entry.delete()
+    messages.success(request, "Item removed from your cart.")
+    return redirect("transactions:cart")
 
 
 @login_required
@@ -372,8 +413,10 @@ def add_to_cart(request, item_id):
     )
 
     if not created:
-        cart_item.quantity += 1
-        cart_item.save(update_fields=["quantity"])
-
-    messages.success(request, "Barang berhasil ditambahkan ke keranjang.")
+        if cart_item.quantity != 1:
+            cart_item.quantity = 1
+            cart_item.save(update_fields=["quantity"])
+        messages.info(request, "This item is already in your cart.")
+    else:
+        messages.success(request, "Item added to your cart.")
     return redirect("transactions:cart")
