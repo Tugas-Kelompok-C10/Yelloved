@@ -56,7 +56,7 @@
             <form class="nav-search" role="search" action="{% url 'search_catalogue' %}" method="get" data-catalogue-search>
                 <label class="sr-only" for="nav-query">Search items or wanted posts</label>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg>
-                <input id="nav-query" type="search" name="q" value="{{ navbar_query }}" placeholder="Search items or wanted posts..." autocomplete="off" aria-expanded="false" aria-controls="nav-search-results">
+                <input id="nav-query" type="search" name="q" maxlength="100" value="{{ navbar_query }}" placeholder="Search items or wanted posts..." autocomplete="off" aria-expanded="false" aria-controls="nav-search-results">
                 <button type="button" class="nav-search-clear" aria-label="Clear search" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
                 <div id="nav-search-results" class="nav-search-results" hidden aria-label="Search suggestions"></div>
             </form>
@@ -255,7 +255,7 @@
         </div>
     </footer>
     <script src="{% static 'js/toast.js' %}" defer></script>
-    <script src="{% static 'js/wanted_item_offer.js' %}" defer></script>
+    <script src="{% static 'js/wanted_item_offer.js' %}?v=drafts-1" defer></script>
     <script src="{% static 'js/wanted_image_validation.js' %}" defer></script>
     <script src="{% static 'js/wanted_budget_validation.js' %}" defer></script>
     <script src="{% static 'js/wanted_upload_forms.js' %}" defer></script>
@@ -317,7 +317,7 @@
             }
         });
     </script>
-    <script src="{% static 'js/catalogue-search.js' %}?v=recent-searches-4" defer></script>
+    <script src="{% static 'js/catalogue-search.js' %}?v=recent-searches-5" defer></script>
     </body>
 
 </html>

@@ -9,13 +9,13 @@
     let history = [];
     try {
         const saved = JSON.parse(localStorage.getItem(historyKey) || '[]');
-        if (Array.isArray(saved)) history = saved.filter(value => typeof value === 'string' && value.trim()).slice(0, 6);
+        if (Array.isArray(saved)) history = saved.filter(value => typeof value === 'string' && value.trim() && value.trim().length <= 100).slice(0, 6);
     } catch (_) { /* Search still works when browser storage is unavailable. */ }
     const persistHistory = () => {
         try { localStorage.setItem(historyKey, JSON.stringify(history)); } catch (_) { /* In-memory fallback. */ }
     };
     const remember = (value) => {
-        const query = value.trim().slice(0, 200);
+        const query = value.trim().slice(0, 100);
         if (!query) return;
         history = [query, ...history.filter(item => item.toLowerCase() !== query.toLowerCase())].slice(0, 6);
         persistHistory();
@@ -102,8 +102,8 @@
         url.searchParams.set('q', query);
         try {
             const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, signal: controller.signal });
-            if (!response.ok) throw new Error('Search unavailable');
             const data = await response.json();
+            if (!response.ok && !data.error) throw new Error('Search unavailable');
             if (current !== version || input.value.trim() !== query) return;
             completedQuery = query;
             results.innerHTML = data.html;

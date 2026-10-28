@@ -10,7 +10,7 @@ from django.core.paginator import Paginator
 from items.models import Item
 from wanted_board.models import WantedPost
 from wanted_board.sample_data import SAMPLE_WANTED_POSTS
-from wanted_board.views import _wanted_cards, _sample_posts_for
+from wanted_board.views import _wanted_cards, _sample_posts_for, _wanted_page
 
 
 PREVIEW_ITEMS = (
@@ -30,7 +30,7 @@ PREVIEW_ITEMS = (
 
 
 def show_main(request):
-    posts = list(WantedPost.objects.select_related("requester").order_by("-created_at", "-pk")[:4])
+    posts = list(WantedPost.objects.filter(status=WantedPost.Status.OPEN).select_related("requester").order_by("-created_at", "-pk")[:4])
     context = {
         "name": "Yelloved",
         "heart_count": request.session.get("landing_hearts", 0),
@@ -44,29 +44,44 @@ def show_main(request):
 def search_catalogue(request):
     """The navbar searches both catalogues without changing their existing filters."""
     query = request.GET.get("q", "").strip()
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    if len(query) > 100:
+        message = "Please keep your search within 100 characters."
+        if is_ajax:
+            return JsonResponse({"html": f'<p role="alert">{message}</p>', "error": message}, status=400)
+        return render(request, "home/search_error.html", {"search_error": message}, status=400)
     if not query:
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return JsonResponse({"html": ""})
         return redirect("items:explore_items")
     items = Item.objects.filter(status=Item.Status.AVAILABLE).filter(
         Q(title__icontains=query) | Q(description__icontains=query) | Q(location__icontains=query)
+        | Q(category__in=[value for value, label in Item.Category.choices if query.casefold() in label.casefold()])
     ).order_by("-created_at", "-pk")
-    posts = list(WantedPost.objects.select_related("requester").filter(
+    posts = WantedPost.objects.filter(status=WantedPost.Status.OPEN).select_related("requester").filter(
         Q(title__icontains=query) | Q(description__icontains=query) | Q(location__icontains=query)
-    ).order_by("-created_at", "-pk"))
-    wanted_cards = _wanted_cards(posts, _sample_posts_for(query, ""),
-                                 user_id=request.user.pk if request.user.is_authenticated else None)
+        | Q(category__in=[value for value, label in WantedPost.Category.choices if query.casefold() in label.casefold()])
+    ).order_by("-created_at", "-pk")
     # Tabs share one query and keep the two result types in separate sections.
     selected_type = request.GET.get("type", "all")
     if selected_type not in {"all", "items", "wanted"}:
         selected_type = "all"
-    item_count, wanted_count = items.count(), len(wanted_cards)
+    wanted_page = _wanted_page(
+        posts, _sample_posts_for(query, ""),
+        request.GET.get("page") if selected_type == "wanted" and not is_ajax else 1,
+        per_page=12 if selected_type == "wanted" and not is_ajax else 4,
+        user_id=request.user.pk if request.user.is_authenticated else None,
+    )
+    wanted_cards = wanted_page.object_list
+    item_count, wanted_count = items.count(), wanted_page.paginator.count
     page = None
-    if selected_type == "items":
+    if is_ajax:
+        displayed_items, displayed_wanted = items[:4], wanted_cards
+    elif selected_type == "items":
         page = Paginator(items, 12).get_page(request.GET.get("page"))
         displayed_items, displayed_wanted = list(page), []
     elif selected_type == "wanted":
-        page = Paginator(wanted_cards, 12).get_page(request.GET.get("page"))
+        page = wanted_page
         displayed_items, displayed_wanted = [], list(page)
     else:
         displayed_items, displayed_wanted = list(items[:4]), wanted_cards[:4]

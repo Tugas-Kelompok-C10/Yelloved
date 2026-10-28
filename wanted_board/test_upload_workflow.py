@@ -127,12 +127,26 @@ class WantedPostWorkflowTests(TestCase):
     def test_ajax_edit_preserves_uid(self):
         post = self.create_post()
         original_uid = post.pk
-        data = self.payload(title="Updated lamp", id=str(uuid.uuid4()))
+        data = self.payload(title="Updated lamp", id=str(uuid.uuid4()), revision=post.updated_at.isoformat())
         response = self.client.post(reverse("wanted_board:edit_wanted", args=[post.pk]), data, **AJAX)
         self.assertEqual(response.status_code, 200)
         post.refresh_from_db()
         self.assertEqual(post.title, "Updated lamp")
         self.assertEqual(post.pk, original_uid)
+
+    def test_stale_tab_and_missing_revision_cannot_overwrite_newer_edit(self):
+        post = self.create_post()
+        url = reverse("wanted_board:edit_wanted", args=[post.pk])
+        revision = post.updated_at.isoformat()
+        response = self.client.post(url, self.payload(title="First tab", revision=revision), **AJAX)
+        self.assertEqual(response.status_code, 200)
+        response = self.client.post(url, self.payload(title="Stale tab", revision=revision), **AJAX)
+        self.assertEqual(response.status_code, 422)
+        self.assertIn("another tab", response.json()["errors"]["__all__"][0]["message"])
+        response = self.client.post(url, self.payload(title="Missing revision"), **AJAX)
+        self.assertEqual(response.status_code, 422)
+        post.refresh_from_db()
+        self.assertEqual(post.title, "First tab")
 
     def test_other_user_cannot_edit_or_delete_by_ajax(self):
         post = self.create_post()

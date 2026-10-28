@@ -207,3 +207,55 @@ class GlobalSearchResultsTests(TestCase):
         self.assertNotContains(response, '<script>alert("x")</script>')
         for key in ("all_url", "items_url", "wanted_url"):
             self.assertEqual(parse_qs(urlsplit(response.context[key]).query)["q"], [query])
+
+    def test_navbar_query_limit_is_enforced_on_server_and_input(self):
+        response = self.client.get(reverse("search_catalogue"), {"q": "x" * 100})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'maxlength="100"')
+        for headers in ({}, {"HTTP_X_REQUESTED_WITH": "XMLHttpRequest"}):
+            with self.assertNumQueries(0):
+                response = self.client.get(reverse("search_catalogue"), {"q": "x" * 101}, **headers)
+            self.assertEqual(response.status_code, 400)
+            self.assertIn("100 characters", response.content.decode())
+
+    def test_inactive_posts_are_hidden_from_public_surfaces_even_for_owner(self):
+        for status in (WantedPost.Status.FULFILLED, WantedPost.Status.CLOSED):
+            WantedPost.objects.create(requester=self.user, title=f"Quasar hidden {status}", budget=10000, status=status)
+        self.client.force_login(self.user)
+        for route in ("show_main", "wanted_board:show_wanted", "search_catalogue"):
+            response = self.client.get(reverse(route), {"q": "Quasar", "status": "closed"})
+            self.assertNotContains(response, "Quasar hidden")
+        response = self.client.get(reverse("search_catalogue"), {"q": "Quasar"}, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        self.assertNotIn("Quasar hidden", response.json()["html"])
+        self.assertEqual(WantedPost.objects.filter(status__in=["fulfilled", "closed"]).count(), 2)
+
+    def test_many_wanted_matches_are_sliced_in_database_and_paginated(self):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        WantedPost.objects.bulk_create([
+            WantedPost(requester=self.user, title=f"Nebulabook {number}", budget=10000)
+            for number in range(30)
+        ])
+        for params, expected_size in (({"type": "wanted", "page": 3}, 6), ({"type": "all"}, 4)):
+            with CaptureQueriesContext(connection) as queries:
+                response = self.client.get(reverse("search_catalogue"), {"q": "Nebulabook", **params})
+            self.assertEqual(response.context["wanted_count"], 30)
+            self.assertEqual(len(response.context["search_wanted"]), expected_size)
+            selects = [entry["sql"] for entry in queries if 'FROM "wanted_board_wantedpost"' in entry["sql"] and 'COUNT(' not in entry["sql"]]
+            self.assertTrue(selects)
+            self.assertTrue(all("LIMIT" in sql for sql in selects))
+
+    def test_wanted_category_search_is_consistent_for_real_and_sample_posts(self):
+        from wanted_board.views import _sample_posts_for
+        post = WantedPost.objects.create(requester=self.user, title="Gentle face cleanser", budget=50000,
+                                         description="For daily use.", category="skincare")
+        search = self.client.get(reverse("search_catalogue"), {"q": "Skincare", "type": "wanted"})
+        board = self.client.get(reverse("wanted_board:show_wanted"), {"q": "Skincare"})
+        for response in (search, board):
+            self.assertContains(response, post.title)
+        from wanted_board.sample_data import SAMPLE_WANTED_POSTS
+        sample = SAMPLE_WANTED_POSTS[0]
+        # Poster/source-category metadata is no longer an extra search surface for demo data.
+        for result in _sample_posts_for(sample["poster"], ""):
+            searchable = " ".join(result[key] for key in ("title", "description", "location", "category_label"))
+            self.assertIn(sample["poster"].casefold(), searchable.casefold())

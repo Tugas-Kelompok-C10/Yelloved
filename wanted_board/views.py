@@ -11,9 +11,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_POST
+from django.utils import timezone
 
 from .creation import creation_uid, issue_creation_token
-from .forms import OfferForm, WantedCreateForm, WantedPostForm
+from .forms import OfferForm, WantedCreateForm, WantedEditForm
 from .models import Offer, WantedPost
 from .sample_data import SAMPLE_WANTED_POSTS
 
@@ -31,9 +32,7 @@ def _sample_posts_for(query, category):
                     post["title"],
                     post["description"],
                     post["location"],
-                    post["poster"],
                     post["category_label"],
-                    post["source_category"],
                 )
             ).casefold()
         )
@@ -89,33 +88,44 @@ def _page_numbers(current, total):
     return result
 
 
+def _wanted_page(wanted_posts, sample_posts, number, per_page=12, user_id=None):
+    """Slice database matches before building cards, then fill with demo posts."""
+    post_count = wanted_posts.count()
+    paginator = Paginator(range(post_count + len(sample_posts)), per_page)
+    page = paginator.get_page(number)
+    start = (page.number - 1) * per_page
+    end = start + per_page
+    page.object_list = _wanted_cards(
+        wanted_posts[min(start, post_count):min(end, post_count)],
+        sample_posts[max(0, start - post_count):max(0, end - post_count)],
+        user_id=user_id,
+    )
+    return page
+
+
 def _board_context(request, creation_form=None, open_create_modal=False):
     query = request.GET.get("q", "").strip()
     category = request.GET.get("category", "").strip()
 
-    wanted_posts = WantedPost.objects.select_related("requester").order_by("-created_at", "-pk")
+    wanted_posts = WantedPost.objects.filter(status=WantedPost.Status.OPEN).select_related("requester").order_by("-created_at", "-pk")
     if query:
         wanted_posts = wanted_posts.filter(
             Q(title__icontains=query)
             | Q(description__icontains=query)
             | Q(location__icontains=query)
+            | Q(category__in=[value for value, label in WantedPost.Category.choices if query.casefold() in label.casefold()])
         )
     if category in WantedPost.Category.values:
         wanted_posts = wanted_posts.filter(category=category)
 
     sample_posts = _sample_posts_for(query, category)
     # Paginate real posts first, then samples, without loading all database rows.
-    post_count = wanted_posts.count()
-    paginator = Paginator(range(post_count + len(sample_posts)), 12)
-    page = paginator.get_page(request.GET.get("page"))
-    start = (page.number - 1) * paginator.per_page
-    end = start + paginator.per_page
-    wanted_cards = _wanted_cards(
-        wanted_posts[min(start, post_count):min(end, post_count)],
-        sample_posts[max(0, start - post_count):max(0, end - post_count)],
+    page = _wanted_page(
+        wanted_posts, sample_posts, request.GET.get("page"),
         user_id=request.user.pk if request.user.is_authenticated else None,
     )
-    page.object_list = wanted_cards
+    paginator = page.paginator
+    wanted_cards = page.object_list
 
     def page_url(number):
         params = {"page": number}
@@ -190,7 +200,7 @@ def wanted_detail(request, pk):
         "name": "Yelloved",
         "wanted_post": wanted_post,
         "edit_form": (
-            WantedPostForm(instance=wanted_post)
+            WantedEditForm(instance=wanted_post)
             if request.user == wanted_post.requester
             else None
         ),
@@ -289,14 +299,20 @@ def edit_wanted(request, pk):
     if request.method != "POST":
         return HttpResponseNotAllowed(["GET", "POST"])
 
-    form = WantedPostForm(
+    form = WantedEditForm(
         request.POST,
         instance=wanted_post,
     )
     if form.is_valid():
-        with transaction.atomic():
-            form.save()
-        return _saved_response(request, wanted_post, "Your wanted post has been updated.")
+        # Compare and write atomically so a second tab cannot overwrite newer edits.
+        if form.cleaned_data["revision"] == wanted_post.updated_at.isoformat():
+            changes = {field: form.cleaned_data[field] for field in form.Meta.fields}
+            changed = WantedPost.objects.filter(pk=pk, requester=request.user,
+                                                updated_at=wanted_post.updated_at).update(
+                **changes, updated_at=timezone.now())
+            if changed:
+                return _saved_response(request, wanted_post, "Your wanted post has been updated.")
+        form.add_error(None, "This post changed in another tab. Your edits are kept here. Copy them, then reload to review the latest version before saving.")
 
     if _is_ajax(request):
         return _form_errors_response(form)

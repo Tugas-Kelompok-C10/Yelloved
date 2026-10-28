@@ -1,5 +1,5 @@
 <!-- Shared by the board modal and the inline detail panel. Sending remains a prototype. -->
-<form class="wanted-form wanted-item-offer-form" data-item-offer-form enctype="multipart/form-data">
+<form class="wanted-form wanted-item-offer-form" data-item-offer-form data-draft-user="{{ user.pk|default:'guest' }}" enctype="multipart/form-data">
     <input type="hidden" name="wanted_post" value="{% if wanted_post.pk %}{{ wanted_post.pk }}{% else %}{{ wanted_post.slug }}{% endif %}">
     <fieldset{% if wanted_post and wanted_post.status != "open" %} disabled{% endif %}>
         <div class="wanted-form-field">
