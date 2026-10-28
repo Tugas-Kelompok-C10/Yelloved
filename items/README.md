@@ -22,7 +22,7 @@ Harga disimpan sebagai IDR dan diformat seperti `Rp45.000`. Konversi tetap Rp16.
 
 `--limit` memilih 50–100 seed (default 100), sesuai 100 foto lokal yang telah dikurasi. Kategori identitas sumber diperluas untuk memenuhi 100 seed, tetapi barang yang ditampilkan tetap katalog preloved mahasiswa terkurasi. Kurang dari 50 hasil membatalkan impor tanpa perubahan database. Semua data divalidasi dahulu dan penulisan memakai transaksi. `external_id` unik mencegah duplikasi pada impor ulang.
 
-`--refresh` hanya memperbarui/menghapus item `source=dummyjson` dengan `owner IS NULL`. Item manual atau item yang memiliki pemilik tidak pernah ditimpa/dihapus. Konflik ID dengan item manual membatalkan impor. Migrasi kondisi hanya mengubah choices, tanpa menulis ulang data manual.
+`--refresh` mengelola item impor lama tanpa owner serta item impor yang sudah dimiliki penjual demo khusus. Item manual dan item milik pengguna asli tidak pernah ditimpa/dihapus. Konflik ID dengan item manual membatalkan impor. Migrasi kondisi hanya mengubah choices, tanpa menulis ulang data manual.
 
 Setiap 100 seed dipetakan ke 100 foto asli yang berbeda di `static/img/items/catalog/item-001.webp` sampai `item-100.webp`. Pemetaan judul, profil harga, sumber asli, pembuat, lisensi, dimensi, dan checksum ada di `items/catalog_photos.json`. URL yang disimpan di database bersifat lokal `/static/img/items/catalog/...`, sehingga tidak ada hotlink saat aplikasi dimuat. Import ulang memakai pemetaan foto yang sama, tanpa perlu mengunduh foto saat runtime.
 
@@ -54,3 +54,11 @@ Filter: `q` (judul/deskripsi), `category`, `condition`, `listing_type`, `status`
 Identitas penjual hanya tampil pada detail untuk pengguna login. Guest diarahkan login dengan `next` saat membuka create/edit/delete. Pengguna login selain pemilik mendapat 403 ketika memaksa edit/hapus. POST memakai CSRF dan kepemilikan ditetapkan server. Owner dapat mengubah status melalui form Edit Item / Status.
 
 Tombol “Tertarik dengan Item Ini” hanya menampilkan pesan lokal; belum ada chat, transaksi, atau matching. Semua CSS khusus items berada di `static/css/explore.css`, scoped `.explore-page`, memakai token global Yelloved.
+
+## Penjual demo katalog dan request
+
+Importer membuat akun khusus `yelloved_community` (nama **Yelloved Community**) dengan password tidak dapat digunakan, tanpa hak staff/admin. Akun lain dengan username sama tidak diambil alih. Listing impor tanpa pemilik dipindahkan ke penjual demo. `source` disimpan sebagai `user` karena endpoint dan validasi Item Matching hanya menerima user listings; `external_id` tetap menjadi identitas API. Properti `Item.is_catalog` mempertahankan label koleksi inspirasi dan kredit foto. Tidak ada perubahan model/logic Item Matching.
+
+Refresh hanya mengelola data lama `source=dummyjson, owner=NULL` atau katalog ber-`external_id` milik akun demo tersebut. Item yang sudah dimiliki pengguna lain dan listing manual tanpa external_id tetap dilindungi. Katalog tidak dapat diedit/dihapus melalui CRUD biasa, termasuk oleh penjual demo.
+
+Send Offer memakai POST+CSRF ke `item_matching:request_create`, dengan pesan/barang tukar dari form matching yang asli. Sukses mengikuti redirect backend ke daftar request terkirim. Nominal penawaran tidak memiliki input, tidak dikirim, dan belum disimpan; kesepakatan dilakukan melalui chat/request. Guest harus login dan pemilik tidak dapat merequest itemnya sendiri.

@@ -111,9 +111,12 @@ class ItemsTests(TestCase):
         get.return_value.json.return_value = {'products': [{'id': n, 'title': f'Product {n}', 'description': 'Example', 'category': 'mens-shirts', 'price': 9.99, 'thumbnail': 'https://example.com/image.jpg'} for n in range(1, 51)]}
         for _ in range(2):
             call_command('import_dummyjson_items', limit=50, stdout=StringIO())
-        self.assertEqual(Item.objects.filter(source='dummyjson').count(), 50)
+        self.assertEqual(Item.objects.filter(owner__username='yelloved_community', external_id__isnull=False).count(), 50)
         item = Item.objects.get(external_id=1)
-        self.assertIsNone(item.owner)
+        self.assertEqual(item.owner.username, 'yelloved_community')
+        self.assertFalse(item.owner.has_usable_password())
+        self.assertTrue(item.is_catalog)
+        self.assertEqual(item.source, 'user')
         self.assertEqual(item.currency, 'IDR')
         self.assertEqual(item.price, 20000)
         self.assertEqual(item.price_display, 'Rp20.000')
@@ -121,7 +124,7 @@ class ItemsTests(TestCase):
         get.return_value.json.return_value['products'][-1]['price'] = -1
         with self.assertRaises(CommandError):
             call_command('import_dummyjson_items', stdout=StringIO())
-        self.assertEqual(Item.objects.filter(source='dummyjson').count(), 50)
+        self.assertEqual(Item.objects.filter(owner__username='yelloved_community', external_id__isnull=False).count(), 50)
 
     @patch('items.management.commands.import_dummyjson_items.requests.get', side_effect=requests.Timeout)
     def test_import_failure(self, get):
@@ -142,7 +145,7 @@ class ItemsTests(TestCase):
             call_command('import_dummyjson_items', limit=100, refresh=True, stdout=StringIO())
         self.assertFalse(Item.objects.filter(pk=obsolete.pk).exists())
         self.assertEqual(list(Item.objects.filter(pk__in=[self.item.pk, manual.pk, owned.pk]).values()), before)
-        self.assertEqual(Item.objects.filter(source='dummyjson', owner__isnull=True).count(), 50)
+        self.assertEqual(Item.objects.filter(owner__username='yelloved_community', external_id__isnull=False).count(), 50)
         imported = Item.objects.get(external_id=1)
         self.assertEqual(imported.title, 'Kaos Katun Merah Muda')
         self.assertTrue(imported.display_image_url.endswith('catalog/item-001.webp'))
@@ -190,7 +193,7 @@ class ItemsTests(TestCase):
         explore = reverse('items:explore_items')
         create = reverse('items:item_create')
         response = self.client.get(explore)
-        self.assertContains(response, '+ Jual Barang')
+        self.assertContains(response, 'Jual barangmu')
         self.assertContains(response, '/accounts/login/?next=/explore/create/')
         self.client.force_login(self.owner)
         self.assertContains(self.client.get(explore), 'href="/explore/create/"')
@@ -281,10 +284,51 @@ class ItemsTests(TestCase):
         for invalid in ('/static/img/items/catalog/../secret.webp', 'javascript:alert(1)', '/other/image.webp'):
             with self.assertRaises(ValidationError):
                 validate_item_image(invalid)
-        self.assertFalse(ItemForm({**self.data, 'image_url': local}).is_valid())
+        self.assertTrue(ItemForm({**self.data, 'image_url': local}).is_valid())
         seed = Item.objects.create(**{**self.data, 'image_url': local}, source='dummyjson', external_id=1)
         response = self.client.get(seed.get_absolute_url())
         self.assertContains(response, local)
         self.assertContains(response, 'data-fallback="/static/img/items/placeholder-fashion.svg"')
         self.assertContains(response, 'js/items/images.js')
         self.assertEqual(self.item.display_image_url, self.data['image_url'])
+
+    @patch('items.management.commands.import_dummyjson_items.requests.get')
+    def test_demo_catalog_can_request_through_existing_matching(self, get):
+        import re
+        from item_matching.models import ItemRequest
+        get.return_value.json.return_value = {'products': [{'id': n, 'title': 'Shirt', 'category': 'mens-shirts', 'price': 10} for n in range(1, 51)]}
+        legacy = Item.objects.create(**self.data, source='dummyjson', external_id=1)
+        call_command('import_dummyjson_items', limit=50, refresh=True, stdout=StringIO())
+        legacy.refresh_from_db()
+        self.assertEqual(legacy.owner.get_full_name(), 'Yelloved Community')
+        self.assertTrue(legacy.is_catalog)
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.other)
+        response = client.get(legacy.get_absolute_url())
+        self.assertTrue(response.context['can_request_item'])
+        self.assertContains(response, 'Yelloved Community')
+        self.assertNotContains(response, 'id="item-offer-price"')
+        html = response.content.decode()
+        token = re.search('name="csrfmiddlewaretoken" value="([^"]+)"', html).group(1)
+        url = reverse('item_matching:request_create', args=[legacy.pk])
+        self.assertEqual(client.post(url, {'message': 'Tanpa token'}).status_code, 403)
+        response = client.post(url, {'csrfmiddlewaretoken': token, 'message': 'Saya tertarik.'})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('item_matching:dashboard') + '?tab=sent')
+        self.assertEqual(ItemRequest.objects.get(item=legacy).requester, self.other)
+        client.force_login(legacy.owner)
+        response = client.get(legacy.get_absolute_url())
+        self.assertFalse(response.context['can_request_item'])
+        self.assertFalse(response.context['can_manage'])
+        self.assertNotContains(response, 'id="item-offer-open"')
+        self.assertEqual(client.get(reverse('items:item_delete', args=[legacy.pk])).status_code, 403)
+
+    @patch('items.management.commands.import_dummyjson_items.requests.get')
+    def test_import_does_not_take_over_real_demo_username(self, get):
+        real = get_user_model().objects.create_user(username='yelloved_community', password='real-password')
+        get.return_value.json.return_value = {'products': [{'id': n, 'title': 'Shirt', 'category': 'mens-shirts', 'price': 10} for n in range(1, 51)]}
+        with self.assertRaises(CommandError):
+            call_command('import_dummyjson_items', limit=50, stdout=StringIO())
+        self.assertEqual(Item.objects.count(), 1)
+        real.refresh_from_db()
+        self.assertTrue(real.check_password('real-password'))
