@@ -2,7 +2,11 @@
 from django.shortcuts import render, redirect
 from django.db import transaction as db_transaction
 
-from .models import Transaction
+from .models import Transaction, CartItem
+from items.models import Item
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404
+from django.contrib import messages
 from account_profile.models import Profile, Address
 
 
@@ -19,6 +23,18 @@ def checkout(request):
         "name": "Yelloved",
         "errors": [],
     }
+
+    item_id = request.GET.get("item")
+
+    selected_item = None
+    if item_id and request.user.is_authenticated:
+        selected_item = Item.objects.filter(
+            pk=item_id,
+            status=Item.Status.AVAILABLE,
+            listing_type=Item.ListingType.SALE,
+        ).exclude(owner=request.user).first()
+
+    context["selected_item"] = selected_item
 
     if not request.user.is_authenticated:
         context["errors"].append(
@@ -214,6 +230,28 @@ def checkout(request):
         "checkout_bank", ""
     )
 
+    
+    if selected_item:
+        context["cart_items"] = [{
+            "item": selected_item,
+            "quantity": 1,
+        }]
+        context["total"] = selected_item.price or 0
+    else:
+        cart_items = (
+            CartItem.objects
+            .filter(user=request.user)
+            .select_related("item")
+            .order_by("-added_at")
+        )
+
+        context["cart_items"] = cart_items
+        context["total"] = sum(
+            (entry.item.price or 0) * entry.quantity
+            for entry in cart_items
+        )
+
+
     return render(request, "transactions/checkout.html", context)
 
 
@@ -283,3 +321,59 @@ def pesan_page(request):
         "transactions/pesan.html",
         {"name": "Yelloved", "profile": profile},
     )
+
+
+
+@login_required
+def cart_view(request):
+    cart_items = (
+        CartItem.objects
+        .filter(user=request.user)
+        .select_related("item")
+        .order_by("-added_at")
+    )
+
+    total = sum(
+        (entry.item.price or 0) * entry.quantity
+        for entry in cart_items
+    )
+
+    return render(
+        request,
+        "transactions/cart.html",
+        {
+            "name": "Yelloved",
+            "cart_items": cart_items,
+            "total": total,
+        },
+    )
+
+
+@login_required
+def add_to_cart(request, item_id):
+    if request.method != "POST":
+        return redirect("items:explore_items")
+
+    item = get_object_or_404(
+        Item,
+        pk=item_id,
+        status=Item.Status.AVAILABLE,
+        listing_type=Item.ListingType.SALE,
+    )
+
+    if item.owner_id == request.user.id:
+        messages.error(request, "Kamu tidak bisa membeli barang milik sendiri.")
+        return redirect("items:explore_items")
+
+    cart_item, created = CartItem.objects.get_or_create(
+        user=request.user,
+        item=item,
+        defaults={"quantity": 1},
+    )
+
+    if not created:
+        cart_item.quantity += 1
+        cart_item.save(update_fields=["quantity"])
+
+    messages.success(request, "Barang berhasil ditambahkan ke keranjang.")
+    return redirect("transactions:cart")

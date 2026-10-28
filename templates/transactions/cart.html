@@ -1,0 +1,84 @@
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+<title>Keranjang Saya | Yelloved</title>
+<link rel="stylesheet" href="{% static 'css/cart.css' %}">
+{% endblock meta %}
+
+{% block content %}
+
+<main class="cart-container">
+    <header class="cart-header">
+        <p class="cart-eyebrow">YELLOVED MARKETPLACE</p>
+        <h1>Keranjang Saya</h1>
+        <p class="cart-subtitle">
+            Periksa kembali barang pilihanmu sebelum checkout.
+        </p>
+    </header>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="cart-message">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    {% if cart_items %}
+        <div class="cart-layout">
+            <section class="cart-list">
+                {% for entry in cart_items %}
+                    <article class="cart-item">
+                        <img
+                            class="cart-item-image"
+                            src="{{ entry.item.display_image_url }}"
+                            alt="{{ entry.item.title }}"
+                        >
+
+                        <div class="cart-item-info">
+                            <h2>{{ entry.item.title }}</h2>
+                            <p>{{ entry.item.get_category_display }}</p>
+                            <p class="cart-price">
+                                {{ entry.item.price_display }}
+                            </p>
+                            <p class="cart-quantity">
+                                Jumlah: {{ entry.quantity }}
+                            </p>
+                        </div>
+                    </article>
+                {% endfor %}
+            </section>
+
+            <aside class="cart-summary">
+                <h2>Ringkasan Belanja</h2>
+                <div class="cart-summary-row">
+                    <span>Total sementara</span>
+                    <strong>Rp{{ total|floatformat:0 }}</strong>
+                </div>
+
+                <a class="cart-checkout-button"
+                   href="{% url 'transactions:checkout' %}">
+                    Lanjut ke Checkout
+                </a>
+
+                <a class="cart-continue-link"
+                   href="{% url 'items:explore_items' %}">
+                    Lanjut Belanja
+                </a>
+            </aside>
+        </div>
+    {% else %}
+        <section class="cart-empty">
+            <div class="cart-empty-icon">🛍️</div>
+            <h2>Keranjangmu masih kosong</h2>
+            <p>
+                Yuk, temukan barang preloved yang cocok untukmu!
+            </p>
+            <a class="cart-shop-button"
+               href="{% url 'items:explore_items' %}">
+                Jelajahi Barang
+            </a>
+        </section>
+    {% endif %}
+</main>
+{% endblock content %}
