@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load static %}
+{% block meta %}
+<title>Search | Yelloved</title>
+<link rel="stylesheet" href="{% static 'css/explore.css' %}">
+<link rel="stylesheet" href="{% static 'css/search.css' %}">
+<script src="{% static 'js/items/images.js' %}" defer></script>
+{% endblock meta %}
+{% block content %}
+<main class="catalogue-search-page" lang="en">
+    <header class="catalogue-search-heading">
+        <h1>Results for “{{ query }}”</h1>
+        <!-- Links keep tabs usable without JavaScript and preserve the search query. -->
+        <nav class="catalogue-search-tabs" aria-label="Search result types">
+            <a href="{{ all_url }}"{% if selected_type == 'all' %} aria-current="page"{% endif %}>All</a>
+            <a href="{{ items_url }}"{% if selected_type == 'items' %} aria-current="page"{% endif %}>Items <span>{{ item_count }}</span></a>
+            <a href="{{ wanted_url }}"{% if selected_type == 'wanted' %} aria-current="page"{% endif %}>Wanted Posts <span>{{ wanted_count }}</span></a>
+        </nav>
+    </header>
+    {% if selected_type == 'all' and not item_count and not wanted_count %}
+        <section class="catalogue-empty" aria-label="No search results">
+            <h2>No matches for “{{ query }}”.</h2><p>Try another keyword, or pin what you need and let the community help you find it.</p>
+            <a class="catalogue-button" href="{{ pin_url }}">{% include "wanted_board/_pin_icon.html" %}Pin What You Wanted</a>
+        </section>
+    {% else %}
+        {% if selected_type != 'wanted' %}
+        <section class="catalogue-results-section" aria-labelledby="search-items-title">
+            <header><h2 id="search-items-title">Items you can get</h2><p>Available items listed by the UI community.</p></header>
+            {% if items %}
+                <div class="catalogue-item-grid explore-page">{% for item in items %}{% include "items/_card.html" with item=item search_result=True only %}{% endfor %}</div>
+            {% else %}
+                <div class="catalogue-empty"><h3>No available items found.</h3><p>Pin what you need and let the community help you find it.</p><a class="catalogue-button" href="{{ pin_url }}">{% include "wanted_board/_pin_icon.html" %}Pin What You Wanted</a></div>
+            {% endif %}
+            {% if selected_type == 'all' and item_count %}<a class="catalogue-see-all" href="{{ items_url }}">See all {{ item_count }} items <span aria-hidden="true">→</span></a>{% endif %}
+        </section>
+        {% endif %}
+        {% if selected_type != 'items' %}
+        <section class="catalogue-results-section" aria-labelledby="search-wanted-title">
+            <header><h2 id="search-wanted-title">People looking for this</h2><p>Wanted posts from students searching for similar items.</p></header>
+            {% if search_wanted %}
+                <!-- Reuse the board notes, including pin/tape details and offer actions. -->
+                <div class="catalogue-wanted-grid">{% include "wanted_board/_card_grid.html" with wanted_cards=search_wanted hide_pin_invitation=True %}</div>
+            {% else %}
+                <div class="catalogue-empty"><h3>No wanted posts found.</h3><p>Try another keyword, or be the first to pin a request.</p><a class="catalogue-button" href="{{ pin_url }}">{% include "wanted_board/_pin_icon.html" %}Pin What You Wanted</a></div>
+            {% endif %}
+            {% if selected_type == 'all' and wanted_count %}<a class="catalogue-see-all" href="{{ wanted_url }}">See all {{ wanted_count }} wanted posts <span aria-hidden="true">→</span></a>{% endif %}
+        </section>
+        {% endif %}
+    {% endif %}
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="catalogue-pagination" aria-label="Search results pages">
+        {% if previous_url %}<a href="{{ previous_url }}">Previous</a>{% else %}<span aria-disabled="true">Previous</span>{% endif %}
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if next_url %}<a href="{{ next_url }}">Next</a>{% else %}<span aria-disabled="true">Next</span>{% endif %}
+    </nav>
+    {% endif %}
+</main>
+{% include "wanted_board/_item_offer_modal.html" %}
+{% endblock content %}

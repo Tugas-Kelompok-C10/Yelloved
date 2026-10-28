@@ -4,7 +4,8 @@
 {% block meta %}
     <title>Yelloved</title>
     <meta name="description" content="Buy less. Reuse more. Find what you need nearby with Yelloved, a community marketplace around UI.">
-    <link rel="stylesheet" href="{% static 'css/landing.css' %}?v=items-board-20261028-2">
+    <link rel="stylesheet" href="{% static 'css/explore.css' %}">
+    <link rel="stylesheet" href="{% static 'css/landing.css' %}?v=three-steps-20261028">
 {% endblock meta %}
 
 {% block content %}
@@ -43,7 +44,10 @@
 
             <div class="landing-intro">
                 <p>Buy less. Reuse more. Find what you need nearby.</p>
-                <a class="landing-explore" href="{% url 'items:explore_items' %}">Explore</a>
+                <div class="landing-hero-actions">
+                    <a class="landing-explore" href="{% url 'items:explore_items' %}">Explore</a>
+                    <a class="landing-explore landing-pin-wanted" href="{% url 'wanted_board:create_wanted' %}">Pin a Wanted</a>
+                </div>
                 <p class="landing-feedback" data-love-message role="status"></p>
             </div>
         </div>
@@ -56,87 +60,93 @@
             </span>
         </template>
     </section>
-    <!-- Pass it on — illustrative cards accompany the create-listing invitation. -->
-    <section class="landing-discover" aria-labelledby="landing-discover-title">
-        <div class="landing-discover-copy">
-            <h2 id="landing-discover-title">Recently loved,<br>ready to be<br>loved again.</h2>
-            <p class="landing-discover-description">Got something you no longer use? Pass it on to someone in the UI community.</p>
-            <a class="landing-explore" href="{% url 'items:item_create' %}">
-                Pass it On
-            </a>
-        </div>
-
-        <div class="landing-find-collage" aria-label="A preview of what you could find">
-            <a class="landing-find landing-find--back" href="{% url 'items:explore_items' %}" aria-label="Explore items like a campus tote">
-                <div class="landing-find-image">
-                    <svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 29h40l5 38H15l5-38Z"/><path d="M29 30V21a11 11 0 0 1 22 0v9"/></svg>
-                    <span>Image placeholder</span>
-                </div>
-                <div class="landing-find-info"><h3>Everyday campus tote</h3><p>Rp 45.000</p></div>
-            </a>
-            <a class="landing-find landing-find--front" href="{% url 'items:explore_items' %}" aria-label="Explore items like a study lamp">
-                <div class="landing-find-image">
-                    <svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m31 13 22 8 8 23-42-15 12-16Z"/><path d="m39 37 9 28M31 67h34M46 18l6-8"/></svg>
-                    <span>Image placeholder</span>
-                </div>
-                <div class="landing-find-info"><h3>Your next study buddy</h3><p>Rp 75.000</p></div>
-            </a>
-        </div>
-    </section>
-    <!-- Wanted Board invitation — help visitors find something specific. -->
-    <section class="landing-discover landing-wanted" aria-labelledby="landing-wanted-title">
-        <div class="landing-find-collage" aria-label="Illustrative wanted items">
-            <a class="landing-find landing-find--back" href="{% url 'wanted_board:show_wanted' %}" aria-label="Browse requests on the Wanted Board">
-                <div class="landing-find-image">
-                    <svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="22" y="10" width="36" height="60" rx="4"/><path d="M29 19h22v14H29zM29 43h4m6 0h4m6 0h3M29 52h4m6 0h4m6 0h3M29 61h4m6 0h4m6 0h3"/></svg>
-                    <span>Image placeholder</span>
-                </div>
-                <div class="landing-find-info"><h3>Scientific calculator</h3><span class="landing-find-budget-label">Maximum price</span><p>Rp 150.000</p></div>
-            </a>
-            <a class="landing-find landing-find--front" href="{% url 'wanted_board:show_wanted' %}" aria-label="Find more requests on the Wanted Board">
-                <div class="landing-find-image">
-                    <svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M40 19c-9-6-20-7-31-4v46c11-3 22-2 31 4 9-6 20-7 31-4V15c-11-3-22-2-31 4Zm0 0v46M18 26l13 2M18 36l13 2M49 28l13-2M49 38l13-2"/></svg>
-                    <span>Image placeholder</span>
-                </div>
-                <div class="landing-find-info"><h3>A book for next semester</h3><span class="landing-find-budget-label">Maximum price</span><p>Rp 80.000</p></div>
-            </a>
-        </div>
-        <div class="landing-discover-copy">
-            <h2 id="landing-wanted-title">Looking for something specific?</h2>
-            <p class="landing-discover-description">Post what you need, someone nearby might already have exactly what you're looking for.</p>
-            <a class="landing-explore" href="{% url 'wanted_board:show_wanted' %}">Post What You Need</a>
+    <!-- How Yelloved works: three connected ticket cards. -->
+    <section class="landing-steps" aria-labelledby="landing-steps-title">
+        <h2 id="landing-steps-title">Three steps, Zero waste</h2>
+        <div class="landing-step-grid">
+            <article class="landing-step">
+                <p class="landing-step-number">Step 1</p><h3>List it or pin a wanted</h3>
+                <p>Sell or give away what you no longer use, or post what you need.</p>
+                <svg viewBox="0 0 260 150" aria-hidden="true" class="landing-step-art">
+                    <rect x="48" y="25" width="114" height="105" rx="14" class="step-paper"/>
+                    <rect x="58" y="35" width="94" height="44" rx="7" class="step-muted"/>
+                    <circle cx="105" cy="55" r="10" class="step-yellow"/>
+                    <path d="M61 91h58M61 105h37" class="step-lines step-blue-stroke"/>
+                    <g transform="rotate(8 177 91)"><rect x="149" y="61" width="64" height="69" rx="5" class="step-yellow"/><path d="M160 82h38M160 94h25M160 106h16" class="step-lines step-wood-stroke"/><circle cx="180" cy="60" r="7" class="step-red"/></g>
+                </svg>
+            </article>
+            <article class="landing-step">
+                <p class="landing-step-number">Step 2</p><h3>Match and chat</h3>
+                <p>Get offers or requests, then chat to agree on price and details.</p>
+                <svg viewBox="0 0 260 150" aria-hidden="true" class="landing-step-art">
+                    <rect x="30" y="28" width="118" height="49" rx="17" class="step-violet"/><circle cx="48" cy="52" r="11" class="step-blue"/><path d="M69 46h62M69 59h40" class="step-lines step-yellow-stroke"/>
+                    <rect x="88" y="91" width="118" height="49" rx="17" class="step-paper"/><circle cx="188" cy="115" r="11" class="step-yellow"/><path d="M104 109h59M104 122h39" class="step-lines step-violet-stroke"/>
+                    <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" transform="translate(156 39) scale(1.6)" class="step-red"/>
+                </svg>
+            </article>
+            <article class="landing-step">
+                <p class="landing-step-number">Step 3</p><h3>Meet on campus</h3>
+                <p>Meet in a public spot near campus or your kos for a quick COD.</p>
+                <svg viewBox="0 0 260 150" aria-hidden="true" class="landing-step-art">
+                    <path d="M28 134h205" class="step-ground"/>
+                    <rect x="151" y="55" width="63" height="79" rx="4" class="step-paper"/><path d="m143 55 40-27 40 27" class="step-blue"/><path d="M183 28V9l16 6-16 5" class="step-success"/>
+                    <rect x="175" y="101" width="17" height="33" rx="2" class="step-violet"/><path d="M162 72h10v11h-10zm31 0h10v11h-10z" class="step-blue"/>
+                    <circle cx="70" cy="80" r="11" class="step-yellow"/><rect x="59" y="95" width="22" height="38" rx="10" class="step-yellow"/>
+                    <circle cx="117" cy="80" r="11" class="step-blue"/><rect x="106" y="95" width="22" height="38" rx="10" class="step-blue"/><rect x="84" y="97" width="18" height="18" rx="4" class="step-red"/>
+                </svg>
+            </article>
         </div>
     </section>
-    <section class="landing-latest-items home-items-section" lang="id" aria-labelledby="landing-latest-title">
+    <!-- Explore preview: placeholder imagery, catalogue card styling, brown rope and pegs. -->
+    <section class="landing-latest-items explore-page" aria-labelledby="landing-latest-title">
         <div class="landing-latest-header">
-            <div><h2 id="landing-latest-title">Barang terbaru</h2><p>Baru ditambahkan oleh mahasiswa UI.</p></div>
-            <a class="landing-latest-all" href="{% url 'items:explore_items' %}">Lihat semua barang <span aria-hidden="true">↗</span></a>
+            <div><h2 id="landing-latest-title">Recently Listed</h2><p>Recently listed by UI students. Hung up just for you.</p></div>
+            <a class="landing-explore" href="{% url 'items:explore_items' %}"><svg class="landing-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg>See all items</a>
         </div>
-        <div class="home-items-board" role="region" aria-label="Papan barang terbaru" aria-roledescription="carousel">
-            <div class="home-board-decorations" aria-hidden="true">
-                <svg class="home-board-hanger" width="60" height="50" viewBox="0 0 60 50" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M30 0v7m-5 6a5 5 0 1 1 7 5l-2 2v3L7 37c-4 2-2 6 2 6h42c4 0 6-4 2-6L30 23"/><path d="M13 36h34" stroke="#fdfcf5"/></svg>
-                <svg class="home-board-tote" width="38" height="46" viewBox="0 0 38 46" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 15h24l3 26H4z" fill="#fdfcf5"/><path d="M12 18V11a7 7 0 0 1 14 0v7"/><path d="M13 26h12v9H13z" fill="#aedae7"/></svg>
-                <svg class="home-board-tag" width="49" height="32" viewBox="0 0 49 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m4 16 11-11h28v22H15z" fill="#f2eebf"/><circle cx="15" cy="16" r="2"/><path d="M13 16H1m24-5h11m-11 6h8m-8 5h6"/></svg>
-            </div>
-            <div class="home-items-controls" hidden>
-                <button type="button" data-board-prev aria-label="Barang sebelumnya" aria-controls="home-items-track"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg></button>
-                <button type="button" data-board-next aria-label="Barang berikutnya" aria-controls="home-items-track"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m10 5 7 7-7 7"/></svg></button>
-            </div>
-            <div class="home-items-track" id="home-items-track" tabindex="0" aria-label="Geser kiri atau kanan untuk melihat barang; gunakan tombol panah pada keyboard">
-            {% for item in latest_items %}
-            <article class="landing-latest-card">
-                <a href="{{ item.get_absolute_url }}">
-                    <div class="landing-latest-image"><img src="{{ item.display_image_url }}" alt="{{ item.title }}" width="400" height="300" loading="lazy" draggable="false" referrerpolicy="no-referrer"><span>{{ item.get_condition_display }}</span></div>
-                    <div class="landing-latest-info"><h3>{{ item.title }}</h3><p class="landing-latest-price">{{ item.price_display }}</p><p class="landing-latest-location"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.4"/></svg>{{ item.location }}</p></div>
+        <div class="landing-carousel" data-hanging-carousel role="region" aria-roledescription="carousel" aria-label="Recently listed items">
+            <svg class="landing-clothesline" viewBox="0 0 1200 100" preserveAspectRatio="none" fill="none" aria-hidden="true"><path d="M8 20Q600 90 1192 20"/><path class="landing-rope-thread" d="M8 20Q600 90 1192 20"/><path class="landing-rope-ends" d="M8 8v25M1192 8v25"/></svg>
+            <div class="landing-hanging-grid" id="landing-items-track" tabindex="0" aria-label="Slide to browse items. Use the left and right arrow keys.">
+            {% for item in preview_items %}
+            <article class="explore-card landing-hanging-card">
+                <a class="explore-card-link" href="{% url 'items:explore_items' %}">
+                    <div class="explore-image landing-placeholder-image">
+                        <svg class="explore-image-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 18 6-6 4 4 3-3 4 5"/></svg>
+                        <span class="landing-placeholder-label">Item photo placeholder</span>
+                        <div class="explore-badges"><span>{{ item.condition }}</span></div>
+                    </div>
+                    <div class="explore-card-body"><h3>{{ item.title }}</h3><p class="explore-price">{{ item.price }}</p><p class="explore-location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2.4"/></svg>{{ item.location }}</p></div>
                 </a>
             </article>
-            {% empty %}
-            <p class="landing-latest-empty">Belum ada barang tersedia. Jelajahi Explore untuk melihat koleksi berikutnya.</p>
             {% endfor %}
             </div>
+            <div class="landing-carousel-controls" data-carousel-controls hidden>
+                <button type="button" data-carousel-prev aria-label="Previous items" aria-controls="landing-items-track"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m14 5-7 7 7 7"/></svg></button>
+                <button type="button" data-carousel-next aria-label="Next items" aria-controls="landing-items-track"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m10 5 7 7-7 7"/></svg></button>
+            </div>
+            <output class="sr-only" data-carousel-status aria-live="polite"></output>
+        </div>
+    </section>
+    <!-- Reuse the live Wanted Board cards, including its Pin yours invitation. -->
+    <section class="landing-wanted-preview" aria-labelledby="landing-board-title">
+        <div class="landing-wanted-inner">
+        <div class="landing-board-copy">
+            <h2 id="landing-board-title">Can't find it?<br>Pin it!</h2>
+            <p>Post what you need and let fellow UI students who have it make you an offer.</p>
+            <a class="landing-explore" href="{% url 'wanted_board:show_wanted' %}">Wanted Board</a>
+        </div>
+        <div class="wanted-pinboard"><div class="wanted-grid" aria-label="Recent wanted posts">
+            {% include "wanted_board/_card_grid.html" %}
+            <div class="landing-board-stickers">
+                <span id="board-sticker-help" class="sr-only">Drag around the board, or use arrow keys to move a sticker.</span>
+                <button class="landing-draggable-sticker landing-books-sticker" type="button" data-board-sticker aria-label="Move book sticker" aria-describedby="board-sticker-help"><svg viewBox="140 155 155 130" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="{% static 'img/items/preloved-stickers.svg' %}#books-sticker"/></svg></button>
+                <button class="landing-draggable-sticker landing-plant-sticker" type="button" data-board-sticker aria-label="Move plant sticker" aria-describedby="board-sticker-help"><svg viewBox="308 160 120 130" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="{% static 'img/items/preloved-stickers.svg' %}#plant-sticker"/></svg></button>
+            </div>
+        </div></div>
         </div>
     </section>
 </main>
-<script src="{% static 'js/landing.js' %}" defer></script>
-<script src="{% static 'js/landing-items.js' %}?v=board-20261028-1" defer></script>
+<script src="{% static 'js/landing.js' %}?v=heart-limit-2" defer></script>
+<script src="{% static 'js/landing-items.js' %}?v=clothesline-carousel" defer></script>
+<script src="{% static 'js/landing-stickers.js' %}" defer></script>
+{% include "wanted_board/_item_offer_modal.html" %}
 {% endblock content %}

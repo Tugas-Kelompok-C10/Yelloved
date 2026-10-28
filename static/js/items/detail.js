@@ -8,7 +8,7 @@
     opener.addEventListener('click', () => {
         message.textContent = '';
         dialog.showModal();
-        const field = form.querySelector('select:not(:disabled), textarea:not(:disabled)');
+        const field = form.querySelector('input[type="number"]:not(:disabled), select:not(:disabled), textarea:not(:disabled)');
         if (field) field.focus();
     });
     dialog.querySelector('.item-offer-close').addEventListener('click', () => dialog.close());
@@ -32,7 +32,7 @@
         // Native CSRF-protected POST: matching validates/saves, then redirects to
         // its sent requests dashboard. Never infer success before that response.
         form.querySelector('[type="submit"]').disabled = true;
-        message.textContent = 'Mengirim request…';
+        message.textContent = 'Sending request…';
     });
     window.addEventListener('pageshow', event => {
         if (event.persisted) window.location.reload();

@@ -1,28 +1,56 @@
 {% extends "base.html" %}
-{% load static %}
-{% block meta %}<script src="{% static 'js/items/images.js' %}?v=explore-20261026-4" defer></script>
-<title>Explore Items | Yelloved</title>
-<link rel="stylesheet" href="{% static 'css/explore.css' %}?v=explore-20261028-1">
+{% load static items_ui %}
+{% block meta %}<script src="{% static 'js/items/favorites.js' %}?v=1" defer></script><script src="{% static 'js/items/ui.js' %}" defer></script><script src="{% static 'js/items/images.js' %}?v=explore-20261026-4" defer></script>
+<title>Catalogue | Yelloved</title>
+<link rel="stylesheet" href="{% static 'css/explore.css' %}?v=favorites-20261028-1">
 <script src="{% static 'js/items/explore.js' %}?v=explore-20261026-4" defer></script>
 {% endblock %}
 {% block content %}
-<main class="explore-page explore-catalog-page" lang="id">
+<main class="explore-page explore-catalog-page" lang="en">
     <section class="explore-hero" aria-labelledby="explore-title">
-        <h1 id="explore-title">Temukan barang preloved di sekitar UI</h1>
-        <p>Pakaian, buku, elektronik, dan kebutuhan kos dari mahasiswa UI.</p>
+        <div class="explore-hero-copy">
+            <h1 id="explore-title">Find preloved items around UI</h1>
+            <p>Clothing, books, electronics, and dorm essentials from UI students.</p>
+        </div>
+        <svg class="explore-hero-stickers" width="280" height="180" viewBox="0 0 280 180" fill="none" aria-hidden="true" focusable="false">
+            <g stroke="#320c35" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <g transform="translate(25 22)"><g class="explore-sticker-hanger">
+                    <path d="M39 28v-6c-13-7-2-23 8-15 7 6 0 14-5 16v6l34 22c5 3 3 8-2 8H7c-6 0-8-5-2-8z" fill="#aedae7" stroke="#fdfcf5" stroke-width="9"/>
+                    <path d="M39 28v-6c-13-7-2-23 8-15 7 6 0 14-5 16v6l34 22c5 3 3 8-2 8H7c-6 0-8-5-2-8z" fill="#aedae7"/>
+                </g></g>
+                <g transform="translate(150 18) rotate(8 35 50)"><g class="explore-sticker-tote">
+                    <path d="M8 25h55l5 65H3z" stroke="#fdfcf5" stroke-width="9"/>
+                    <path d="M8 25h55l5 65H3z" fill="#f2eebf"/>
+                    <path d="M22 31V17a14 14 0 0 1 28 0v14" stroke="#fdfcf5" stroke-width="7"/><path d="M22 31V17a14 14 0 0 1 28 0v14"/>
+                    <rect x="22" y="47" width="29" height="26" rx="3" fill="#aedae7"/>
+                </g></g>
+                <g transform="translate(36 115) rotate(-7 46 20)"><g class="explore-sticker-books">
+                    <rect width="92" height="28" rx="5" fill="#fdfcf5" stroke="#fdfcf5" stroke-width="10"/>
+                    <rect width="92" height="28" rx="5" fill="#aedae7"/>
+                    <path d="M15 2v24m12-17h46m-46 9h31"/>
+                    <rect x="8" y="29" width="84" height="17" rx="3" fill="#fdfcf5"/>
+                    <path d="M17 35h64m-64 6h64" stroke="#805184" stroke-width="1.5"/>
+                </g></g>
+                <g transform="translate(183 130) rotate(10 29 13)"><g class="explore-sticker-tag">
+                    <path d="m0 14 14-13h43v27H14z" stroke="#fdfcf5" stroke-width="9"/>
+                    <path d="m0 14 14-13h43v27H14z" fill="#f2eebf"/>
+                    <circle cx="14" cy="14" r="2"/><path d="M27 10h18m-18 8h12"/>
+                </g></g>
+            </g>
+        </svg>
     </section>
     <section aria-labelledby="explore-catalog-title">
         <div class="explore-heading explore-toolbar">
-            <h2 id="explore-catalog-title">Explore Items</h2>
+            <h2 id="explore-catalog-title">Catalogue</h2>
         </div>
         <form id="explore-filters" class="explore-search" action="{% url 'items:explore_items' %}" data-endpoint="{% url 'items:items_json' %}" method="get" role="search">
             <div class="explore-field explore-query">
                 <label for="id_q">Search Items</label>
-                <input id="id_q" name="q" type="search" maxlength="200" value="{{ filter_form.q.value|default_if_none:'' }}" placeholder="Looking for Something?">
+                <input id="id_q" name="q" type="search" maxlength="200" value="{{ filter_form.q.value|default_if_none:'' }}" placeholder="Search available items...">
             </div>
             <div class="explore-primary-filters">
-                <div class="explore-field"><label for="{{ filter_form.category.id_for_label }}">Category</label>{{ filter_form.category }}</div>
-                <div class="explore-field"><label for="{{ filter_form.condition.id_for_label }}">Condition</label>{{ filter_form.condition }}</div>
+                <div class="explore-field"><label for="{{ filter_form.category.id_for_label }}">Category</label>{{ filter_form.category|english_widget }}</div>
+                <div class="explore-field"><label for="{{ filter_form.condition.id_for_label }}">Condition</label>{{ filter_form.condition|english_widget }}</div>
                 <div class="explore-field">
                     <label for="id_listing_type">Listing Type</label>
                     <select id="id_listing_type" name="listing_type">
@@ -39,26 +67,26 @@
             <details class="explore-advanced-filters"{% if filter_form.status.value %} open{% endif %}>
                 <summary>More filters</summary>
                 <div class="explore-more-filters">
-                    <div class="explore-field"><label for="{{ filter_form.status.id_for_label }}">Status</label>{{ filter_form.status }}</div>
-                    <div class="explore-filter-actions"><button class="explore-button" type="submit">Cari barang</button></div>
+                    <div class="explore-field"><label for="{{ filter_form.status.id_for_label }}">Status</label>{{ filter_form.status|english_widget }}</div>
+                    <div class="explore-filter-actions"><button class="explore-button" type="submit">Search items</button></div>
                 </div>
             </details>
         </form>
-        {% if filter_form.errors %}<p class="explore-feedback">Filter tidak valid. Silakan reset filter.</p>{% endif %}
-        <p id="explore-loading" role="status" hidden>Memuat barang…</p>
-        <div id="explore-error" class="explore-feedback" role="alert" hidden>Barang gagal dimuat. Periksa koneksi, lalu <button type="button" id="explore-retry">coba lagi</button>.</div>
+        {% if filter_form.errors %}<p class="explore-feedback">Invalid filters. Please reset your filters.</p>{% endif %}
+        <p id="explore-loading" role="status" hidden>Loading items…</p>
+        <div id="explore-error" class="explore-feedback" role="alert" hidden>Unable to load items. Check your connection and <button type="button" id="explore-retry">try again</button>.</div>
         <div id="explore-results" aria-live="polite" aria-busy="false">{% include 'items/_results.html' %}</div>
     </section>
     <section class="explore-sell-cta" aria-labelledby="explore-sell-title">
         <div class="explore-sell-copy">
-            <h2 id="explore-sell-title">Punya barang yang sudah tidak terpakai?</h2>
-            <p>Berikan kesempatan kedua untuk barangmu dan bantu mahasiswa UI menemukan yang mereka butuhkan.</p>
+            <h2 id="explore-sell-title">Have items you no longer use?</h2>
+            <p>Give your items a second life and help UI students find what they need.</p>
             {% if user.is_authenticated %}
-                <a class="explore-button" href="{% url 'items:item_create' %}">Jual barangmu <span aria-hidden="true">↗</span></a>
+                <a class="explore-button" href="{% url 'items:item_create' %}">List your item <span aria-hidden="true">↗</span></a>
             {% else %}
-                <a class="explore-button" href="{% url 'login' %}?next={% url 'items:item_create' %}">Jual barangmu <span aria-hidden="true">↗</span></a>
+                <a class="explore-button" href="{% url 'login' %}?next={% url 'items:item_create' %}">List your item <span aria-hidden="true">↗</span></a>
             {% endif %}
-            <small>Gratis, cepat, dan khusus komunitas UI.</small>
+            <small>Free, quick, and exclusively for the UI community.</small>
         </div>
         <img class="explore-sell-art" src="{% static 'img/items/preloved-stickers.svg' %}" width="440" height="300" alt="" aria-hidden="true" loading="lazy">
     </section>

@@ -30,6 +30,7 @@ urlpatterns = [
     path("app/", views.app_page, name="app"),
     path("pesan/", views.pesan_page, name="pesan"),
     path("cart/", views.cart_view, name="cart"),
+<<<<<<< HEAD
 
     path(
         "cart/add/<int:item_id>/",
@@ -42,3 +43,9 @@ urlpatterns = [
         name="payment_preview",
     ),
 ]
+=======
+    path("cart/remove/<int:entry_id>/", views.remove_from_cart, name="remove_from_cart"),
+    path("cart/add/<int:item_id>/", views.add_to_cart, name="add_to_cart"),
+    path("checkout/", views.checkout, name="checkout"),
+]
+>>>>>>> 55223752946c316a34f25dbf25020b0aa15664b6
