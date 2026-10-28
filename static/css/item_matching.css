@@ -152,6 +152,7 @@
   font-weight: 600;
 }
 
+.matching-field input,
 .matching-field select,
 .matching-field textarea {
   width: 100%;
@@ -161,6 +162,40 @@
   background: var(--paper);
   font: inherit;
   color: var(--violet);
+}
+
+.matching-field input:focus,
+.matching-field select:focus,
+.matching-field textarea:focus {
+  outline: 2px solid var(--violet);
+  outline-offset: 1px;
+}
+
+/* Input nominal dengan awalan "Rp" di sebelah kiri. */
+.matching-money {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--violet);
+}
+
+.matching-money:focus-within {
+  outline: 2px solid var(--violet);
+  outline-offset: 1px;
+}
+
+.matching-money span {
+  padding: 0 4px 0 14px;
+  font-weight: 600;
+}
+
+.matching-field .matching-money input,
+.matching-field .matching-money input:focus {
+  border: 0;
+  background: transparent;
+  outline: 0;
 }
 
 .matching-field small {

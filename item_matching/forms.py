@@ -14,7 +14,7 @@ class ItemRequestForm(forms.ModelForm):
         model = ItemRequest
         fields = ('offered_item', 'offer_price', 'message')
         widgets = {
-            'offer_price': forms.NumberInput(attrs={'min': 1, 'step': 1000, 'placeholder': 'Contoh: 45000'}),
+            'offer_price': forms.NumberInput(attrs={'min': 1, 'step': 1000, 'placeholder': '45000'}),
             'message': forms.Textarea(attrs={
                 'rows': 4,
                 'placeholder': 'Perkenalkan diri dan sebutkan waktu/lokasi COD yang kamu inginkan.'}),
