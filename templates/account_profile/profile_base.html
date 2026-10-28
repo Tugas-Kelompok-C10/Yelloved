@@ -13,7 +13,6 @@
         <nav class="profile-menu" aria-label="Navigasi akun">
             <section>
                 <h2>Inbox</h2>
-                <a class="{% block profile_chat_active %}{% endblock %}" href="{% url 'transactions:pesan' %}">Chat</a>
                 <a class="{% block profile_reviews_active %}{% endblock %}" href="{% url 'account_profile:reviews' %}">Ulasan</a>
                 <a class="{% block profile_help_active %}{% endblock %}" href="{% url 'account_profile:help_messages' %}">Bantuan</a>
             </section>

@@ -4362,3 +4362,273 @@ body:has(.profile-page) .site-header {
 .profile-dropdown-links a.active:hover {
     background: #4b1750;
 }
+
+/* Shared profile pages: align scale and spacing with the rest of the site. */
+body:has(.profile-page) { background: #fdfcf5; }
+.profile-page {
+    width: min(1440px, calc(100% - 64px));
+    min-height: 620px;
+    flex: 1 0 auto;
+    margin: 32px auto 48px;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 24px;
+    font-size: 15px;
+}
+.profile-sidebar,
+.profile-panel,
+.address-panel,
+.payment-panel,
+.notification-panel,
+.privacy-panel,
+.reviews-panel,
+.help-messages-panel,
+.chat-workspace {
+    border-color: #eee8ce;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: none;
+}
+.profile-identity { min-height: 88px; gap: 14px; padding: 18px 20px; font-size: 16px; font-weight: 600; }
+.profile-avatar { width: 52px; height: 52px; border-radius: 50%; }
+.profile-menu { padding: 26px 20px; }
+.profile-menu section + section { margin-top: 30px; }
+.profile-menu h2 { margin-bottom: 8px; font-size: 18px; }
+.profile-menu a { padding: 8px 10px; font-size: 15px; }
+.profile-logout { margin-bottom: 24px; }
+.profile-logout button,
+.profile-logout span,
+.profile-photo-button { min-width: 140px; padding: 12px 22px; border-radius: 12px; font-size: 14px; }
+.profile-content { min-width: 0; }
+.profile-heading { margin: 0 0 16px; font-size: 26px; line-height: 1.25; }
+.profile-panel,
+.address-panel,
+.payment-panel,
+.notification-panel,
+.privacy-panel { min-height: 560px; }
+.profile-tabs a,
+.reviews-tabs a { min-height: 54px; font-size: 14px; }
+.profile-tabs { border-bottom-color: #eee8ce; background: #fff; }
+.profile-tabs a.active::after { background: var(--violet); }
+.profile-biodata { grid-template-columns: minmax(0, 190px) minmax(0, 1fr); gap: 40px; padding: 36px; }
+.biodata-card { width: 100%; min-width: 0; }
+.biodata-photo-placeholder { width: min(100%, 190px); height: auto; aspect-ratio: 1; }
+.biodata-details { min-width: 0; }
+.biodata-field { font-size: 14px; }
+.biodata-field input,
+.biodata-field select,
+.address-form input,
+.address-form select,
+.security-field input { min-height: 42px; font-size: 14px; }
+.profile-save-button { padding: 12px 24px; border-radius: 12px; font-size: 14px; }
+.profile-edit-form .profile-photo-button,
+.profile-edit-form .profile-save-button { border-radius: 12px; }
+.address-page-content,
+.payment-page-content,
+.notification-page-content,
+.privacy-page-content { padding: 26px; }
+.address-card-title,
+.payment-method-title,
+.notification-option-title,
+.security-card-title { font-size: 18px; }
+.address-page p,
+.payment-page p,
+.notification-page p,
+.privacy-page p,
+.security-help,
+.privacy-note { font-size: 13px; line-height: 1.55; }
+.address-toolbar,
+.payment-layout { gap: 20px; }
+.reviews-tools { padding: 20px 24px; }
+.reviews-period,
+.reviews-search { font-size: 13px; }
+.reviews-period select,
+.reviews-search input { min-height: 42px; font-size: 14px; }
+.reviews-empty-state { min-height: 64px; margin: 0 24px; font-size: 14px; }
+.help-messages-panel,
+.chat-workspace { min-height: 560px; }
+.help-ticket-header,
+.chat-list-header { min-height: 64px; padding: 0 20px; }
+.help-ticket-header h1,
+.chat-list-header h1 { font-size: 18px; }
+.help-ticket-header select,
+.help-ticket-empty,
+.chat-list-empty { font-size: 13px; }
+.help-message-illustration { width: 140px; height: 126px; }
+.help-message-card { width: 82px; height: 76px; }
+.help-message-card svg { width: 58px; height: 58px; }
+.help-message-welcome h2 { font-size: 21px; }
+.help-message-welcome p { font-size: 14px; }
+
+@media (max-width: 900px) {
+    .profile-page { width: min(100% - 40px, 760px); grid-template-columns: 230px minmax(0, 1fr); gap: 18px; }
+    .profile-menu section + section { margin-top: 22px; }
+    .profile-biodata { grid-template-columns: minmax(0, 150px) minmax(0, 1fr); gap: 24px; padding: 24px; }
+    .biodata-photo-placeholder { width: min(100%, 150px); height: auto; aspect-ratio: 1; }
+}
+@media (max-width: 700px) {
+    .profile-page { width: calc(100% - 28px); min-height: 0; margin: 20px auto 32px; grid-template-columns: 1fr; gap: 16px; }
+    .profile-sidebar { min-height: 0; }
+    .profile-menu { flex-wrap: wrap; gap: 18px; }
+    .profile-menu section { min-width: 130px; }
+    .profile-menu section + section { margin-top: 0; }
+    .profile-logout { margin: 0 20px 20px auto; }
+    .profile-panel, .address-panel, .payment-panel, .notification-panel, .privacy-panel,
+    .help-messages-panel, .chat-workspace { min-height: 420px; }
+    .profile-biodata { grid-template-columns: minmax(0, 130px) minmax(0, 1fr); gap: 20px; padding: 20px; }
+    .biodata-photo-placeholder { width: min(100%, 130px); height: auto; aspect-ratio: 1; }
+    .profile-photo-input { top: 136px; width: 130px; }
+    .profile-photo-button, .photo-hint, .photo-error { width: 130px; }
+    .reviews-tools { padding: 16px; }
+    .reviews-empty-state { margin: 0 16px; }
+}
+@media (max-width: 480px) {
+    .profile-identity { min-height: 72px; }
+    .profile-heading { font-size: 22px; }
+    .profile-biodata { grid-template-columns: minmax(0, 1fr); }
+    .biodata-photo-placeholder { width: min(100%, 120px); height: auto; aspect-ratio: 1; }
+    .profile-photo-input { top: 126px; width: 120px; }
+    .profile-photo-button, .photo-hint, .photo-error { width: 120px; }
+    .address-page-content, .payment-page-content, .notification-page-content, .privacy-page-content { padding: 16px; }
+    .help-messages-panel, .chat-workspace { grid-template-columns: minmax(110px, 35%) minmax(0, 1fr); }
+    .help-message-welcome { padding: 12px; }
+    .help-message-welcome h2 { font-size: 17px; }
+    .help-message-welcome p { font-size: 12px; }
+}
+
+/* Account profile theme aligned with Explore Items. */
+body:has(.profile-page) { background: #fdfcf5; color: #320c35; }
+.profile-page { color: #320c35; }
+.profile-sidebar,
+.profile-panel,
+.address-panel,
+.payment-panel,
+.notification-panel,
+.privacy-panel,
+.reviews-panel,
+.help-messages-panel,
+.chat-workspace {
+    border: 2px solid #ded8a0;
+    border-radius: 28px;
+    background: #fffef9;
+    color: #320c35;
+    box-shadow: none;
+}
+.profile-sidebar { background: #fdfcf5; }
+.profile-identity,
+.profile-tabs,
+.reviews-tabs,
+.help-ticket-header,
+.chat-list-header { border-color: #ded8a0; }
+.profile-tabs,
+.reviews-tabs { background: #fdfcf5; }
+.profile-menu h2,
+.profile-heading,
+.biodata-details h2,
+.address-page h2,
+.payment-page h2,
+.notification-page h2,
+.privacy-page h2,
+.reviews-panel h2,
+.help-message-welcome h2 { color: #320c35; }
+.profile-menu a { border-radius: 12px; color: #320c35; }
+.profile-menu a:hover,
+.profile-menu a.profile-menu-active,
+.profile-menu a.chat-menu-active { background: #f2eebf; color: #320c35; }
+.profile-tabs a { color: #320c35; }
+.profile-tabs a.active::after { height: 3px; background: #320c35; }
+.profile-biodata,
+.address-page-content,
+.payment-page-content,
+.notification-page-content,
+.privacy-page-content { color: #320c35; }
+.biodata-field,
+.biodata-details section + section { border-color: #e8e2b8; }
+.biodata-field input,
+.biodata-field select,
+.address-search-box,
+.address-form input,
+.address-form select,
+.address-form textarea,
+.payment-form input,
+.payment-form select,
+.notification-option,
+.security-field input,
+.reviews-period select,
+.reviews-search { border-color: #ded8a0; border-radius: 999px; background: #fdfcf5; color: #320c35; }
+.profile-save-button,
+.profile-photo-button,
+.profile-login-prompt a,
+.address-add-button,
+.address-form button,
+.payment-form button,
+.notification-form button,
+.security-password-form button,
+.reviews-search button {
+    border: 0;
+    border-radius: 999px;
+    background: #320c35;
+    color: #f2eebf;
+}
+.profile-save-button:hover,
+.profile-photo-button:hover,
+.profile-login-prompt a:hover,
+.address-add-button:hover,
+.address-form button:hover,
+.payment-form button:hover,
+.notification-form button:hover,
+.security-password-form button:hover,
+.reviews-search button:hover { background: #4b1750; color: #f2eebf; }
+.profile-logout button,
+.profile-logout span { border-radius: 999px; background: #320c35; color: #f2eebf; }
+.saved-address-card,
+.payment-method-card,
+.security-account-card,
+.security-password-card,
+.address-form-card { border-color: #ded8a0; border-radius: 20px; background: #fdfcf5; }
+.help-ticket-list,
+.chat-list-panel { border-color: #ded8a0; background: #fdfcf5; }
+.help-message-welcome p,
+.help-ticket-empty,
+.chat-list-empty { color: #716b61; }
+body:has(.profile-page) .profile-page :is(
+    button,
+    .profile-photo-button,
+    .profile-login-prompt a,
+    .saved-address-actions a,
+    .address-form-actions a
+) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 9px 18px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: #320c35;
+    color: #f2eebf;
+    font: 600 13px "Sora", sans-serif;
+    line-height: 1.25;
+    text-decoration: none;
+    cursor: pointer;
+}
+body:has(.profile-page) .profile-page :is(
+    button:hover,
+    .profile-photo-button:hover,
+    .profile-login-prompt a:hover,
+    .saved-address-actions a:hover,
+    .address-form-actions a:hover
+) { background: #4b1750; color: #f2eebf; text-decoration: none; }
+.biodata-card { width: min(100%, 190px); }
+.biodata-card .profile-photo-button,
+.biodata-card .profile-photo-input,
+.biodata-card .photo-hint,
+.biodata-card .photo-error { width: 100%; max-width: 100%; box-sizing: border-box; }
+@media (max-width: 900px) {
+    .biodata-card { width: min(100%, 150px); }
+}
+@media (max-width: 700px) {
+    .biodata-card { width: min(100%, 130px); }
+}
+@media (max-width: 480px) {
+    .biodata-card { width: min(100%, 120px); }
+}
