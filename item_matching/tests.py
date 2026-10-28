@@ -257,3 +257,5 @@ class DashboardTests(Base):
         self.client.force_login(self.owner)
         r = self.client.get(reverse('item_matching:dashboard'), {'tab': 'nope'})
         self.assertEqual(r.context['tab'], 'incoming')
+
+

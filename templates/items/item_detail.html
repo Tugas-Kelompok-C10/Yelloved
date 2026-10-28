@@ -83,6 +83,7 @@
                 {% endif %}
                 <a class="explore-button explore-button-secondary" href="{% url 'items:explore_items' %}">Kembali ke Explore</a>
             </div>
+            {% include 'item_matching/_item_requests.html' %}
         </div>
     </article>
     {% if item.source == 'dummyjson' %}<p class="explore-photo-credit"><a href="{% static 'img/items/SOURCES.md' %}">Sumber dan lisensi foto katalog</a></p>{% endif %}
