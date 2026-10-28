@@ -18,6 +18,10 @@
                 <a class="{% block profile_help_active %}{% endblock %}" href="{% url 'account_profile:help_messages' %}">Bantuan</a>
             </section>
             <section>
+                <h2>Matching</h2>
+                <a href="{% url 'item_matching:dashboard' %}">Request &amp; Penawaran</a>
+            </section>
+            <section>
                 <h2>Purchase</h2>
                 <a href="{% url 'transactions:transaction_history' %}?status=pending">Awaiting payment</a>
                 <a href="{% url 'transactions:transaction_history' %}">Daftar Transaksi</a>

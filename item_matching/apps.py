@@ -4,3 +4,6 @@ from django.apps import AppConfig
 class ItemMatchingConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "item_matching"
+
+    def ready(self):
+        from . import signals  # noqa: F401

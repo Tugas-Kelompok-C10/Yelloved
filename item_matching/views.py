@@ -3,25 +3,27 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from items.models import Item
 from wanted_board.models import WantedPost
 
 from . import services
+from .contacts import contact_for
 from .forms import ItemOfferForm, ItemRequestForm
 from .matching import evaluate, suggest_items_for_wanted, suggest_wanted_for_item
 from .models import ItemOffer, ItemRequest
 from .services import MatchingError
-
-TABS = ('incoming', 'sent', 'offers_received', 'offers_sent')
+from .summary import tabs_with_stats
+from .tabs import TAB_KEYS
 
 
 @login_required(login_url='login')
 @require_GET
 def dashboard(request):
     tab = request.GET.get('tab', 'incoming')
-    if tab not in TABS:
+    if tab not in TAB_KEYS:
         tab = 'incoming'
     user = request.user
     requests_qs = ItemRequest.objects.select_related('item', 'offered_item', 'requester', 'item__owner')
@@ -32,11 +34,22 @@ def dashboard(request):
         'offers_received': offers_qs.filter(wanted_post__requester=user),
         'offers_sent': offers_qs.filter(offerer=user),
     }
-    pending = {key: qs.filter(status='pending').count() for key, qs in data.items()}
+    tabs = tabs_with_stats(user)
+    active = next(t for t in tabs if t['key'] == tab)
+    rows = list(data[tab])
+    for row in rows:
+        # Contact details are revealed only to the two parties, and only once a match is accepted.
+        if row.status == 'accepted':
+            other = {'incoming': lambda r: r.requester, 'sent': lambda r: r.item.owner,
+                     'offers_received': lambda r: r.offerer,
+                     'offers_sent': lambda r: r.wanted_post.requester}[tab](row)
+            row.counterpart = other
+            row.contact = contact_for(other) if other else None
+            # Paid items continue to the checkout page; free/swap items only need the handover.
+            row.checkout = tab in ('sent', 'offers_received') and row.item.listing_type == Item.ListingType.SALE
     return render(request, 'item_matching/dashboard.html', {
-        'name': 'Yelloved', 'tab': tab, 'rows': data[tab], 'pending': pending,
-        'tabs': [('incoming', 'Request Masuk'), ('sent', 'Request Terkirim'),   #request = ada yang minta barang. penawaran = ada yang menawarkan barang
-                 ('offers_received', 'Penawaran Masuk'), ('offers_sent', 'Penawaran Terkirim')],
+        'name': 'Yelloved', 'tab': tab, 'rows': rows, 'tabs': tabs, 'active': active,
+        'is_request_tab': tab in ('incoming', 'sent'),
     })
 
 
@@ -97,6 +110,11 @@ def _act(request, func, object_id, tab, success):
         messages.error(request, str(exc))
     else:
         messages.success(request, success)
+    # Return to the page the action was taken from (item/wanted detail) when it is a safe local URL.
+    target = request.POST.get('next', '')
+    if target and url_has_allowed_host_and_scheme(target, allowed_hosts={request.get_host()},
+                                                  require_https=request.is_secure()):
+        return redirect(target)
     return _dashboard_redirect(tab)
 
 
