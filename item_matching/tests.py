@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 
@@ -49,9 +50,9 @@ class ItemRequestRulesTests(Base):
         item = make_item(self.owner)
         self.client.force_login(self.buyer)
         url = reverse('item_matching:request_create', args=[item.pk])
-        self.client.post(url, {'message': 'mau'})
+        self.client.post(url, {'offer_price': '45000', 'message': 'mau'})
         self.assertEqual(ItemRequest.objects.count(), 1)
-        r = self.client.post(url, {'message': 'lagi'})
+        r = self.client.post(url, {'offer_price': '40000', 'message': 'lagi'})
         self.assertEqual(r.status_code, 200)
         self.assertEqual(ItemRequest.objects.count(), 1)
 
@@ -86,6 +87,61 @@ class ItemRequestRulesTests(Base):
         self.client.force_login(self.buyer)
         r = self.client.get(reverse('item_matching:request_create', args=[item.pk]))
         self.assertNotIn('offered_item', r.context['form'].fields)
+
+
+class OfferPriceTests(Base):
+    """Nominal penawaran (offer_price) pada request barang."""
+
+    def url(self, item):
+        return reverse('item_matching:request_create', args=[item.pk])
+
+    def test_sale_request_saves_offer_price_and_optional_message(self):
+        item = make_item(self.owner)
+        self.client.force_login(self.buyer)
+        r = self.client.post(self.url(item), {'offer_price': '45000'})     # tanpa pesan
+        self.assertRedirects(r, reverse('item_matching:dashboard') + '?tab=sent')
+        req = ItemRequest.objects.get()
+        self.assertEqual(req.offer_price, Decimal('45000'))
+        self.assertEqual(req.message, '')
+        self.assertEqual(req.offer_price_display, 'Rp45.000')
+
+    def test_sale_request_requires_a_positive_offer_price(self):
+        item = make_item(self.owner)
+        self.client.force_login(self.buyer)
+        for bad in ({}, {'offer_price': ''}, {'offer_price': '0'}, {'offer_price': '-5000'},
+                    {'offer_price': 'abc'}):
+            r = self.client.post(self.url(item), bad)
+            self.assertEqual(r.status_code, 200)
+            self.assertIn('offer_price', r.context['form'].errors)
+        self.assertFalse(ItemRequest.objects.exists())
+
+    def test_free_and_swap_items_have_no_offer_price_field(self):
+        free = make_item(self.owner, listing_type='free', price=None)
+        swap = make_item(self.owner, title='Kipas', listing_type='swap', price=None)
+        mine = make_item(self.buyer, title='Tas')
+        self.client.force_login(self.buyer)
+        r = self.client.get(self.url(free))
+        self.assertNotIn('offer_price', r.context['form'].fields)
+        # nominal yang ikut terkirim tetap diabaikan
+        self.client.post(self.url(free), {'offer_price': '1000'})
+        self.client.post(self.url(swap), {'offer_price': '1000', 'offered_item': mine.pk})
+        self.assertEqual(ItemRequest.objects.count(), 2)
+        self.assertFalse(ItemRequest.objects.exclude(offer_price=None).exists())
+
+    def test_model_rejects_offer_price_on_non_sale_item(self):
+        free = make_item(self.owner, listing_type='free', price=None)
+        req = ItemRequest(item=free, requester=self.buyer, offer_price=Decimal('1000'))
+        with self.assertRaises(ValidationError):
+            req.full_clean()
+
+    def test_dashboard_shows_offer_price_on_request_tabs(self):
+        item = make_item(self.owner)
+        ItemRequest.objects.create(item=item, requester=self.buyer, offer_price=Decimal('45000'))
+        dash = reverse('item_matching:dashboard')
+        self.client.force_login(self.owner)
+        self.assertContains(self.client.get(dash, {'tab': 'incoming'}), 'Rp45.000')
+        self.client.force_login(self.buyer)
+        self.assertContains(self.client.get(dash, {'tab': 'sent'}), 'Rp45.000')
 
 
 class RequestTransitionTests(Base):

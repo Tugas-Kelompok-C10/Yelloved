@@ -3,7 +3,7 @@
 {% block meta %}<title>Request {{ item.title }} | {{ name }}</title><link rel="stylesheet" href="{% static 'css/explore.css' %}"><link rel="stylesheet" href="{% static 'css/item_matching.css' %}">{% endblock %}
 {% block content %}
 <main class="explore-page matching-page" lang="id">
-    <a class="explore-back" href="{{ item.get_absolute_url }}">← Kembali ke barang</a>
+    <a class="explore-back" href="{{ item.get_absolute_url }}">‹ <span>Back</span></a>
     <section class="matching-form-card">
         <h1>Request barang</h1>
         <p class="matching-meta"><strong>{{ item.title }}</strong> · {{ item.get_listing_type_display }} · {{ item.price_display }}</p>
@@ -12,7 +12,12 @@
             {% for error in form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
             {% for field in form %}
                 <div class="matching-field">
-                    {{ field.label_tag }}{{ field }}
+                    {{ field.label_tag }}
+                    {% if field.name == 'offer_price' %}
+                        <div class="matching-money"><span>Rp</span>{{ field }}</div>
+                    {% else %}
+                        {{ field }}
+                    {% endif %}
                     {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
                     {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
                 </div>

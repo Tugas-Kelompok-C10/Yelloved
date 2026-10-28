@@ -74,6 +74,10 @@
                         <div class="order-total">
                             <span>Harga</span>
                             <strong>{{ row.item.price_display }}</strong>
+                            {% if is_request_tab and row.offer_price_display %}
+                                <span>Penawaran</span>
+                                <strong>{{ row.offer_price_display }}</strong>
+                            {% endif %}
                         </div>
                     </div>
 
