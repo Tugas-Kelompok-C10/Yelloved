@@ -1,29 +1,53 @@
+{% load matching_tags %}
 <dialog class="wanted-modal wanted-item-offer-modal" id="item-offer-modal" aria-labelledby="item-offer-title">
     <div class="wanted-modal-header">
         <h2 id="item-offer-title">Offer an Item</h2>
         <button class="wanted-modal-close" type="button" data-close-item-offer-modal aria-label="Close offer modal">×</button>
     </div>
-    <p>Share a few details about the item you would like to offer.</p>
 
-    <form class="wanted-form" data-item-offer-form enctype="multipart/form-data">
-        <div class="wanted-form-field">
-            <label for="offered-item-photo">Reference photo *</label>
-            <input id="offered-item-photo" type="file" name="image" accept=".jpg,.jpeg,.png,.webp" data-reference-image required>
-            <small class="wanted-form-help">JPG, JPEG, PNG, or WEBP; maximum 5 MB and 4096 × 4096 pixels.</small>
+    {% if not wanted_post.pk %}
+        {# Halaman contoh (sample) bukan wanted post sungguhan, jadi belum bisa ditawar. #}
+        <p>Ini hanya contoh wanted post, jadi belum bisa menerima penawaran.</p>
+        <div class="wanted-modal-actions">
+            <button class="wanted-button wanted-action-secondary" type="button" data-close-item-offer-modal>Close</button>
         </div>
-        <div class="wanted-form-field">
-            <label for="offered-item-price">Offered price *</label>
-            <input id="offered-item-price" type="number" name="price" min="0" step="1000" inputmode="numeric" placeholder="150000" required>
+    {% elif not user.is_authenticated %}
+        <p>Masuk dulu untuk menawarkan barangmu.</p>
+        <div class="wanted-modal-actions">
+            <a class="wanted-button wanted-action-offer" href="{% url 'login' %}?next={{ request.path|urlencode }}">Masuk</a>
         </div>
-        <div class="wanted-form-field">
-            <label for="offered-item-description">Short description *</label>
-            <textarea id="offered-item-description" name="description" rows="3" maxlength="240" placeholder="Briefly describe the item and its condition." required></textarea>
-        </div>
-        <div class="wanted-modal-actions wanted-modal-actions-split">
-            <button class="wanted-button wanted-action-secondary" type="button" data-close-item-offer-modal>Cancel</button>
-            <button class="wanted-button wanted-action-offer" type="submit">Submit Offer</button>
-        </div>
-    </form>
+    {% else %}
+        {% own_available_items user as my_items %}
+        {% if my_items %}
+            <p>Pilih barang yang sudah kamu unggah untuk ditawarkan ke wanted post ini.</p>
+            <form class="wanted-form" method="post" action="{% url 'item_matching:offer_create' wanted_post.pk %}">
+                {% csrf_token %}
+                <div class="wanted-form-field">
+                    <label for="offered-item">Barang yang ditawarkan *</label>
+                    <select id="offered-item" name="item" required>
+                        <option value="">Pilih barangmu</option>
+                        {% for item in my_items %}
+                            <option value="{{ item.pk }}">{{ item.title }} · {{ item.price_display }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="wanted-form-field">
+                    <label for="offered-item-message">Pesan (opsional)</label>
+                    <textarea id="offered-item-message" name="message" rows="3" maxlength="1000" placeholder="Jelaskan kondisi barang dan cara kamu bisa dihubungi."></textarea>
+                </div>
+                <div class="wanted-modal-actions wanted-modal-actions-split">
+                    <button class="wanted-button wanted-action-secondary" type="button" data-close-item-offer-modal>Cancel</button>
+                    <button class="wanted-button wanted-action-offer" type="submit">Kirim penawaran</button>
+                </div>
+            </form>
+        {% else %}
+            <p>Kamu belum punya barang yang tersedia untuk ditawarkan. Unggah barangmu dulu, lalu kembali ke sini.</p>
+            <div class="wanted-modal-actions wanted-modal-actions-split">
+                <button class="wanted-button wanted-action-secondary" type="button" data-close-item-offer-modal>Cancel</button>
+                <a class="wanted-button wanted-action-offer" href="{% url 'items:item_create' %}">Jual Barang</a>
+            </div>
+        {% endif %}
+    {% endif %}
 </dialog>
 
 <script>
@@ -38,17 +62,6 @@
         });
         modal.addEventListener("click", (event) => {
             if (event.target === modal) modal.close();
-        });
-        modal.querySelector("[data-item-offer-form]")?.addEventListener("submit", (event) => {
-            event.preventDefault();
-            event.currentTarget.reset();
-            modal.close();
-            window.YellovedToast?.show({
-                title: "Offer submitted",
-                message: "Your item details were added to this request.",
-                type: "success",
-                duration: 3000,
-            });
         });
     })();
 </script>

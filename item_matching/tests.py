@@ -198,6 +198,47 @@ class ItemOfferTests(Base):
         self.assertEqual(ItemOffer.objects.count(), 1)
 
 
+class WantedOfferModalTests(Base):
+    """Tombol "Offer an Item" di halaman wanted post: pilih barang sendiri, atau ajak jual barang."""
+
+    def setUp(self):
+        super().setUp()
+        self.post = make_post(self.buyer)                    # pembuat wanted post
+        self.detail = reverse('wanted_board:wanted_detail', args=[self.post.pk])
+
+    def test_modal_lists_only_own_available_items(self):
+        mine = make_item(self.owner, title='Lampu saya')
+        make_item(self.owner, title='Sudah terjual', status='sold')
+        make_item(self.other, title='Punya orang lain')
+        self.client.force_login(self.owner)
+        r = self.client.get(self.detail)
+        self.assertContains(r, 'Lampu saya')
+        self.assertNotContains(r, 'Sudah terjual')
+        self.assertNotContains(r, 'Punya orang lain')
+        self.assertContains(r, reverse('item_matching:offer_create', args=[self.post.pk]))
+        self.assertContains(r, f'value="{mine.pk}"')
+
+    def test_modal_links_to_item_create_when_user_has_no_items(self):
+        self.client.force_login(self.owner)
+        r = self.client.get(self.detail)
+        self.assertContains(r, 'Jual Barang')
+        self.assertContains(r, reverse('items:item_create'))
+        self.assertNotContains(r, 'name="item"')
+
+    def test_anonymous_visitor_is_asked_to_log_in(self):
+        r = self.client.get(self.detail)
+        self.assertContains(r, reverse('login'))
+        self.assertNotContains(r, 'name="item"')
+
+    def test_submitting_modal_form_creates_offer(self):
+        mine = make_item(self.owner, title='Lampu saya')
+        self.client.force_login(self.owner)
+        r = self.client.post(reverse('item_matching:offer_create', args=[self.post.pk]), {'item': mine.pk})
+        self.assertRedirects(r, reverse('item_matching:dashboard') + '?tab=offers_sent')
+        offer = ItemOffer.objects.get()
+        self.assertEqual((offer.item, offer.offerer, offer.message), (mine, self.owner, ''))
+
+
 class MatchingScoreTests(Base):
     def test_matching_item_scores_and_explains(self):
         m = evaluate(make_item(self.owner), make_post(self.buyer))
