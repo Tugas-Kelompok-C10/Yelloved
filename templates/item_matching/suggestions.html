@@ -4,10 +4,10 @@
 {% block content %}
 <main class="explore-page matching-page" lang="id">
     {% if mode == 'wanted' %}
-        <a class="explore-back" href="{% url 'wanted_board:wanted_detail' wanted_post.pk %}">← Kembali ke wanted post</a>
+        <a class="explore-back" href="{% url 'wanted_board:wanted_detail' wanted_post.pk %}">‹ <span>Back</span></a>
         <header class="matching-header"><h1>Barang yang cocok</h1><p>Rekomendasi untuk “{{ wanted_post.title }}”.</p></header>
     {% else %}
-        <a class="explore-back" href="{{ item.get_absolute_url }}">← Kembali ke barang</a>
+        <a class="explore-back" href="{{ item.get_absolute_url }}">‹ <span>Back</span></a>
         <header class="matching-header"><h1>Wanted post yang cocok</h1><p>Orang yang mungkin membutuhkan “{{ item.title }}”.</p></header>
     {% endif %}
     <section class="matching-list">

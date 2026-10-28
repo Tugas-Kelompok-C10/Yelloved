@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
 
@@ -21,6 +22,10 @@ class ItemRequest(models.Model):
                                   related_name='item_requests')
     offered_item = models.ForeignKey(Item, null=True, blank=True, on_delete=models.SET_NULL,
                                      related_name='swap_offers', verbose_name='Barang yang ditukarkan')
+    # Nominal yang ditawarkan peminta (Rupiah). Hanya dipakai untuk listing bertipe Jual,
+    # jadi boleh kosong (request lama, barang gratis, barang tukar).
+    offer_price = models.DecimalField('Nominal penawaran', max_digits=14, decimal_places=2,
+                                      null=True, blank=True, validators=[MinValueValidator(1)])
     message = models.TextField('Pesan', max_length=1000, blank=True)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -55,12 +60,21 @@ class ItemRequest(models.Model):
                 errors['offered_item'] = 'Barang tukar harus milikmu dan masih tersedia.'
         elif self.offered_item_id is not None:
             errors['offered_item'] = 'Barang tukar hanya untuk listing bertipe Tukar.'
+        if self.offer_price is not None and item.listing_type != Item.ListingType.SALE:
+            errors['offer_price'] = 'Nominal penawaran hanya untuk listing bertipe Jual.'
         if errors:
             raise ValidationError(errors)
 
     @property
     def owner(self):
         return self.item.owner
+
+    @property
+    def offer_price_display(self):
+        """Contoh: Rp45.000. Kosong jika peminta tidak menawar."""
+        if self.offer_price is None:
+            return ''
+        return 'Rp' + f'{self.offer_price:,.0f}'.replace(',', '.')
 
     def __str__(self):
         return f'Request {self.requester} untuk {self.item}'

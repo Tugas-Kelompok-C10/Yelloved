@@ -1,5 +1,6 @@
 from django import template
 
+from ..forms import _own_available_items
 from ..models import ItemRequest
 
 register = template.Library()
@@ -15,3 +16,11 @@ def item_request_state(item, user):
         return {'mine': None, 'incoming': list(pending.select_related('requester'))}
     latest = ItemRequest.objects.filter(item=item, requester=user).first()  # Meta ordering: newest first
     return {'mine': latest, 'incoming': []}
+
+
+@register.simple_tag
+def own_available_items(user):
+    """Barang milik `user` yang masih tersedia (untuk dipilih saat menawarkan barang)."""
+    if not user.is_authenticated:
+        return []
+    return list(_own_available_items(user))
