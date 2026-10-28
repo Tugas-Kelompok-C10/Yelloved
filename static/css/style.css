@@ -189,7 +189,7 @@ main {
 }
 .nav-profile-trigger img { width: 36px; height: 36px; border: 1px solid #ffffff70; border-radius: 50%; object-fit: cover; }
 .nav-profile-trigger svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
-.nav-profile-trigger:hover { color: #fff8b5; }
+.nav-profile-trigger:hover { color: var(--text-hover); }
 .profile-dropdown {
     position: absolute;
     top: calc(100% + 13px);
@@ -3579,7 +3579,7 @@ body:has(.profile-page) .site-header {
     justify-content: center;
     width: 28px;
     height: 32px;
-    color: #F5D76E;
+    color: var(--text);
     text-decoration: none;
     transition: color 0.2s ease, transform 0.2s ease;
 }
@@ -3591,7 +3591,7 @@ body:has(.profile-page) .site-header {
 }
 
 .nav-icon-link:hover {
-    color: #FFE99A;
+    color: var(--text-hover);
     transform: translateY(-1px);
 }
 
