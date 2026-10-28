@@ -435,3 +435,61 @@ main.container.orders-page {
     width: 20px;
     height: 20px;
 }
+
+
+
+/* Aksi pada kartu pesanan */
+.order-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.order-cancel-form {
+    margin: 0;
+}
+
+.order-cancel-button {
+    padding: 10px 16px;
+    border: 1px solid #e7b9b5;
+    border-radius: 9px;
+    background: #fff1f0;
+    color: #a52a22;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.order-cancel-button:hover {
+    background: #fde2df;
+    border-color: #d99c96;
+}
+
+.order-messages {
+    padding: 12px 20px;
+}
+
+.order-message {
+    margin: 0 0 8px;
+    font-size: 14px;
+}
+
+.order-message:last-child {
+    margin-bottom: 0;
+}
+
+@media (max-width: 600px) {
+    .order-card-footer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .order-cancel-form,
+    .order-cancel-button {
+        width: 100%;
+    }
+}

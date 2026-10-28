@@ -20,6 +20,30 @@ class Transaction(models.Model):
 
     order_id = models.CharField(max_length=100, unique=True)
 
+    PAYMENT_METHOD_CHOICES = [
+        ("cod", "COD"),
+        ("qris", "QRIS"),
+        ("va", "Virtual Account"),
+    ]
+
+    payment_method = models.CharField(
+        max_length=10,
+        choices=PAYMENT_METHOD_CHOICES,
+        default="cod",
+    )
+
+    cod_meeting_location = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    cod_meeting_time = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    
+
     buyer = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -48,6 +72,37 @@ class Transaction(models.Model):
         max_length=100,
         blank=True,
         null=True
+    )
+
+    # Informasi pembayaran dari Midtrans
+    midtrans_qr_code_url = models.URLField(
+        max_length=500,
+        blank=True,
+    )
+
+    virtual_account_bank = models.CharField(
+        max_length=20,
+        blank=True,
+    )
+
+    virtual_account_number = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    virtual_account_bill_key = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    virtual_account_biller_code = models.CharField(
+        max_length=50,
+        blank=True,
+    )
+
+    midtrans_expiry_time = models.DateTimeField(
+        null=True,
+        blank=True,
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
