@@ -2,22 +2,18 @@
 {% load static %}
 {% block meta %}<script src="{% static 'js/items/images.js' %}?v=explore-20261026-4" defer></script>
 <title>Explore Items | Yelloved</title>
-<link rel="stylesheet" href="{% static 'css/explore.css' %}?v=explore-20261026-4">
+<link rel="stylesheet" href="{% static 'css/explore.css' %}?v=explore-20261028-1">
 <script src="{% static 'js/items/explore.js' %}?v=explore-20261026-4" defer></script>
 {% endblock %}
 {% block content %}
 <main class="explore-page explore-catalog-page" lang="id">
     <section class="explore-hero" aria-labelledby="explore-title">
-        <span class="explore-eyebrow">DARI SEKITAR KAMPUS, UNTUK KAMU</span>
-        <h1 id="explore-title">Barang lama, cerita baru.</h1>
-        <p>Temukan preloved favoritmu di sekitar UI &amp; Depok.<br>Lebih hemat, lebih dekat, lebih berarti.</p>
-        <span class="explore-hero-note">✦ A little love goes a long way</span>
+        <h1 id="explore-title">Temukan barang preloved di sekitar UI</h1>
+        <p>Pakaian, buku, elektronik, dan kebutuhan kos dari mahasiswa UI.</p>
     </section>
     <section aria-labelledby="explore-catalog-title">
         <div class="explore-heading explore-toolbar">
             <h2 id="explore-catalog-title">Explore Items</h2>
-            {% if user.is_authenticated %}<a class="explore-button" href="{% url 'items:item_create' %}">+ Jual Barang</a>
-            {% else %}<a class="explore-button" href="{% url 'login' %}?next={% url 'items:item_create' %}">+ Jual Barang</a>{% endif %}
         </div>
         <form id="explore-filters" class="explore-search" action="{% url 'items:explore_items' %}" data-endpoint="{% url 'items:items_json' %}" method="get" role="search">
             <div class="explore-field explore-query">
@@ -52,6 +48,19 @@
         <p id="explore-loading" role="status" hidden>Memuat barang…</p>
         <div id="explore-error" class="explore-feedback" role="alert" hidden>Barang gagal dimuat. Periksa koneksi, lalu <button type="button" id="explore-retry">coba lagi</button>.</div>
         <div id="explore-results" aria-live="polite" aria-busy="false">{% include 'items/_results.html' %}</div>
+    </section>
+    <section class="explore-sell-cta" aria-labelledby="explore-sell-title">
+        <div class="explore-sell-copy">
+            <h2 id="explore-sell-title">Punya barang yang sudah tidak terpakai?</h2>
+            <p>Berikan kesempatan kedua untuk barangmu dan bantu mahasiswa UI menemukan yang mereka butuhkan.</p>
+            {% if user.is_authenticated %}
+                <a class="explore-button" href="{% url 'items:item_create' %}">Jual barangmu <span aria-hidden="true">↗</span></a>
+            {% else %}
+                <a class="explore-button" href="{% url 'login' %}?next={% url 'items:item_create' %}">Jual barangmu <span aria-hidden="true">↗</span></a>
+            {% endif %}
+            <small>Gratis, cepat, dan khusus komunitas UI.</small>
+        </div>
+        <img class="explore-sell-art" src="{% static 'img/items/preloved-stickers.svg' %}" width="440" height="300" alt="" aria-hidden="true" loading="lazy">
     </section>
 </main>
 {% endblock %}

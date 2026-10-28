@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="300" viewBox="0 0 440 300" fill="none">
+  <style>
+    .float { animation: drift 6s ease-in-out infinite; }
+    .hanger { animation-duration: 7s; animation-delay: -2s; }
+    .books { animation-duration: 6.6s; animation-delay: -3s; }
+    .lamp { animation-duration: 7.8s; animation-delay: -4s; }
+    .plant { animation-duration: 5.8s; animation-delay: -1s; }
+    @keyframes drift { 0%, 100% { transform: translateY(3px); } 50% { transform: translateY(-3px); } }
+    @media (prefers-reduced-motion: reduce) { .float { animation: none; } }
+  </style>
+  <g stroke="#320c35" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Tote bag sticker -->
+    <g transform="translate(26 95) rotate(-9 62 70)"><g class="float">
+      <path d="M15 34h94l9 102H6z" stroke="#fdfcf5" stroke-width="14"/>
+      <path d="M15 34h94l9 102H6z" fill="#f2eebf"/>
+      <path d="M40 42V26a22 22 0 0 1 44 0v16"/>
+      <path d="M48 83c-13-15-29 5 14 29 43-24 27-44 14-29-7-8-20-8-28 0z" fill="#aedae7"/>
+      <path d="M35 119h14m27 0h14"/>
+    </g></g>
+    <!-- Hanger sticker -->
+    <g transform="translate(148 26) rotate(9 55 42)"><g class="float hanger">
+      <path d="M49 30v-6c-15-9-1-26 9-17 8 8 1 15-5 19l-1 7 47 28c7 4 3 11-3 11H10c-8 0-10-8-3-12z" stroke="#fdfcf5" stroke-width="13"/>
+      <path d="M49 30v-6c-15-9-1-26 9-17 8 8 1 15-5 19l-1 7 47 28c7 4 3 11-3 11H10c-8 0-10-8-3-12z" fill="#aedae7"/>
+      <path d="M30 59h45"/>
+    </g></g>
+    <!-- Books sticker -->
+    <g transform="translate(156 168) rotate(7 58 43)"><g class="float books">
+      <rect x="2" y="44" width="119" height="29" rx="8" stroke="#fdfcf5" stroke-width="14"/>
+      <rect x="2" y="44" width="119" height="29" rx="8" fill="#320c35"/>
+      <path d="M17 51h101v15H17z" fill="#fdfcf5"/>
+      <rect x="10" y="14" width="108" height="30" rx="5" fill="#aedae7"/>
+      <path d="M29 15v28m-9-17h4m18 0h58m-58 8h36"/>
+      <path d="m25 14 15-7 67 7" fill="#f2eebf"/>
+      <path d="M72 51v29l9-6 9 6V51" fill="#f2eebf"/>
+    </g></g>
+    <!-- Desk lamp sticker -->
+    <g transform="translate(283 35) rotate(8 59 71)"><g class="float lamp">
+      <path d="M9 136h90M53 129V80l30-42-17-13" stroke="#fdfcf5" stroke-width="14"/>
+      <path d="M9 136h90M53 129V80l30-42-17-13"/>
+      <path d="m35 8 40 20-14 42-54-28z" stroke="#fdfcf5" stroke-width="12"/>
+      <path d="m35 8 40 20-14 42-54-28z" fill="#f2eebf"/>
+      <path d="m14 49-10 13m29-5-5 17m19-8-2 13" stroke="#805184" stroke-width="2"/>
+      <ellipse cx="53" cy="135" rx="46" ry="9" fill="#aedae7"/>
+      <circle cx="53" cy="80" r="5" fill="#f2eebf"/>
+    </g></g>
+    <!-- Small plant sticker -->
+    <g transform="translate(324 179) rotate(-8 43 40)"><g class="float plant">
+      <path d="M14 38h63l-9 52H23z" stroke="#fdfcf5" stroke-width="14"/>
+      <path d="M46 43V6M46 29C17 28 9 5 14 0c25-2 38 16 32 29M46 38c26-4 36-23 32-30-24-1-37 13-32 30" stroke="#fdfcf5" stroke-width="12"/>
+      <path d="M46 43V6"/>
+      <path d="M46 29C17 28 9 5 14 0c25-2 38 16 32 29M46 38c26-4 36-23 32-30-24-1-37 13-32 30" fill="#aedae7"/>
+      <path d="M14 38h63l-9 52H23z" fill="#f2eebf"/>
+      <path d="M36 63h1m17 0h1m-15 8q6 6 12 0"/>
+    </g></g>
+    <g stroke-width="2" stroke="#805184"><path d="M22 55v12m-6-6h12M279 249v10m-5-5h10M407 123v14m-7-7h14"/><circle cx="144" cy="136" r="4" fill="#f2eebf"/><circle cx="267" cy="127" r="3" fill="#fdfcf5"/></g>
+  </g>
+</svg>
