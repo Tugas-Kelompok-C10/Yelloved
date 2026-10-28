@@ -143,7 +143,8 @@ def _board_context(request, creation_form=None, open_create_modal=False):
         "next_page_url": page_url(page.next_page_number()) if page.has_next() else None,
         "creation_form": (
             creation_form if creation_form is not None else WantedCreateForm(
-                initial={"creation_token": issue_creation_token(request.user)}, user=request.user,
+                initial={"creation_token": issue_creation_token(request.user),
+                         "title": request.GET.get("title", "")[:50]}, user=request.user,
             )
         ),
         "open_create_modal": open_create_modal,

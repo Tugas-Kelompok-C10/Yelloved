@@ -30,7 +30,7 @@
         <span class="wanted-empty-cta">{% include "wanted_board/_pin_icon.html" %} Pin yours here</span>
     </a>
 {% endfor %}
-{% if wanted_cards and wanted_cards|length < 12 %}
+{% if wanted_cards and wanted_cards|length < 12 and not hide_pin_invitation %}
     <a class="wanted-pin-invitation" {% if user.is_authenticated %}href="{% url 'wanted_board:create_wanted' %}" data-open-wanted-modal{% else %}href="{% url 'login' %}?next={% url 'wanted_board:create_wanted' %}"{% endif %}>
         {% include "wanted_board/_pin_icon.html" %} Pin yours here
     </a>

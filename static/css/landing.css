@@ -341,3 +341,37 @@
     .landing-explore { transition: none; }
     .landing-hanging-grid.is-sliding .explore-image-icon { animation: none; }
 }
+
+/* How it works: connected tickets, using only shared palette tokens. */
+.landing-steps { width: min(1280px, calc(100% - 40px)); margin: 0 auto 90px; }
+.landing-steps h2 { margin-bottom: 30px; font: 700 clamp(28px, 3vw, 40px)/1.2 "Trispace", sans-serif; color: var(--violet); }
+.landing-step-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.landing-step { position: relative; display: flex; flex-direction: column; min-width: 0; padding: 28px 26px 18px; border-radius: var(--radius); background: var(--blue); color: var(--violet); }
+.landing-step:nth-child(2) { background: var(--text); }
+.landing-step:nth-child(3) { background: var(--violet); color: var(--paper); }
+.landing-step:not(:first-child)::before,
+.landing-step:not(:last-child)::after { content: ""; position: absolute; z-index: 1; top: 24px; bottom: 24px; width: 16px; background: radial-gradient(circle at center, var(--paper) 0 6px, transparent 6.5px) center top / 16px 28px repeat-y; pointer-events: none; }
+.landing-step:not(:first-child)::before { left: -8px; }
+.landing-step:not(:last-child)::after { right: -8px; }
+.landing-step .landing-step-number { margin-bottom: 10px; font: 600 9px/1.4 "Trispace", sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+.landing-step h3 { margin-bottom: 12px; font-size: 18px; line-height: 1.4; }
+.landing-step > p:last-of-type { margin-bottom: 20px; font-size: 12px; line-height: 1.7; }
+.landing-step-art { display: block; width: 100%; height: 180px; margin-top: auto; }
+.step-paper { fill: var(--light-paper); }
+.step-muted { fill: var(--violet-light-hover); }
+.step-yellow { fill: var(--text); }
+.step-blue { fill: var(--blue); }
+.step-violet { fill: var(--violet); }
+.step-red { fill: var(--error); }
+.step-success { fill: var(--success); }
+.step-lines { fill: none; stroke-width: 6; stroke-linecap: round; }
+.step-blue-stroke { stroke: var(--blue); }
+.step-yellow-stroke { stroke: var(--text); }
+.step-wood-stroke { stroke: var(--board-wood-dark); }
+.step-violet-stroke { stroke: var(--violet); }
+.step-ground { fill: none; stroke: var(--paper); stroke-opacity: .2; stroke-width: 18; }
+@media (max-width: 760px) {
+    .landing-steps { margin-bottom: 56px; }
+    .landing-step-grid { grid-template-columns: 1fr; gap: 16px; }
+    .landing-step-art { height: 150px; }
+}

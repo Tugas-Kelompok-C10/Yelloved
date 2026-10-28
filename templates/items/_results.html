@@ -2,19 +2,7 @@
 <p class="explore-result-count">{{ page_obj.paginator.count }} barang ditemukan</p>
 <div class="explore-grid">
 {% for item in page_obj %}
-    <article class="explore-card">
-        <a class="explore-card-link" href="{{ item.get_absolute_url }}">
-            <div class="explore-image">
-                {% include 'items/_item_image.html' %}
-                <div class="explore-badges"><span>{{ item.condition|condition_badge }}</span><span>{{ item.listing_type|listing_badge }}</span></div>
-            </div>
-            <div class="explore-card-body">
-                <h3>{{ item.title }}</h3>
-                <p class="explore-price">{{ item.price_display }}</p>
-                <p class="explore-location"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.4"/></svg>{{ item.location }}</p>
-            </div>
-        </a>
-    </article>
+    {% include "items/_card.html" with item=item only %}
 {% empty %}
     <div class="explore-empty"><h3>Belum ketemu yang cocok?</h3><p>Coba kata kunci lain, longgarkan filter, atau tambahkan listing pertamamu.</p><a class="explore-button" href="{% url 'items:explore_items' %}">Lihat semua barang</a></div>
 {% endfor %}

@@ -2,6 +2,10 @@ from django.http import JsonResponse
 from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
+from django.urls import reverse
+from django.template.loader import render_to_string
+from urllib.parse import urlencode
+from django.core.paginator import Paginator
 
 from items.models import Item
 from wanted_board.models import WantedPost
@@ -41,17 +45,55 @@ def search_catalogue(request):
     """The navbar searches both catalogues without changing their existing filters."""
     query = request.GET.get("q", "").strip()
     if not query:
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return JsonResponse({"html": ""})
         return redirect("items:explore_items")
     items = Item.objects.filter(status=Item.Status.AVAILABLE).filter(
         Q(title__icontains=query) | Q(description__icontains=query) | Q(location__icontains=query)
-    ).order_by("-created_at", "-pk")[:12]
+    ).order_by("-created_at", "-pk")
     posts = list(WantedPost.objects.select_related("requester").filter(
         Q(title__icontains=query) | Q(description__icontains=query) | Q(location__icontains=query)
-    ).order_by("-created_at", "-pk")[:12])
-    return render(request, "home/search.html", {
-        "name": "Yelloved", "navbar_query": query, "query": query, "items": items,
-        "search_wanted": _wanted_cards(posts, _sample_posts_for(query, "")[:12 - len(posts)]),
-    })
+    ).order_by("-created_at", "-pk"))
+    wanted_cards = _wanted_cards(posts, _sample_posts_for(query, ""),
+                                 user_id=request.user.pk if request.user.is_authenticated else None)
+    # Tabs share one query and keep the two result types in separate sections.
+    selected_type = request.GET.get("type", "all")
+    if selected_type not in {"all", "items", "wanted"}:
+        selected_type = "all"
+    item_count, wanted_count = items.count(), len(wanted_cards)
+    page = None
+    if selected_type == "items":
+        page = Paginator(items, 12).get_page(request.GET.get("page"))
+        displayed_items, displayed_wanted = list(page), []
+    elif selected_type == "wanted":
+        page = Paginator(wanted_cards, 12).get_page(request.GET.get("page"))
+        displayed_items, displayed_wanted = [], list(page)
+    else:
+        displayed_items, displayed_wanted = list(items[:4]), wanted_cards[:4]
+
+    def tab_url(result_type, number=None):
+        params = {"q": query, "type": result_type}
+        if number is not None:
+            params["page"] = number
+        return reverse("search_catalogue") + "?" + urlencode(params)
+
+    context = {
+        "name": "Yelloved", "navbar_query": query, "query": query, "items": displayed_items,
+        "search_wanted": displayed_wanted,
+        "selected_type": selected_type, "item_count": item_count, "wanted_count": wanted_count,
+        "all_url": tab_url("all"), "items_url": tab_url("items"), "wanted_url": tab_url("wanted"),
+        "page_obj": page,
+        "previous_url": tab_url(selected_type, page.previous_page_number()) if page and page.has_previous() else None,
+        "next_url": tab_url(selected_type, page.next_page_number()) if page and page.has_next() else None,
+        "pin_url": reverse("wanted_board:show_wanted") + "?" + urlencode({"create": "1", "title": query[:50]}),
+    }
+    if not request.user.is_authenticated:
+        context["pin_url"] = reverse("login") + "?" + urlencode({"next": context["pin_url"]})
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        # Navbar suggestions always preview both catalogues, independent of the page tab.
+        context["items"], context["search_wanted"] = items[:4], wanted_cards[:4]
+        return JsonResponse({"html": render_to_string("home/_search_suggestions.html", context, request=request)})
+    return render(request, "home/search.html", context)
 
 
 @require_POST

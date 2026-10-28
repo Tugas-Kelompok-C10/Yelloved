@@ -1,0 +1,12 @@
+{% if query %}<a class="nav-search-all" href="{% url 'search_catalogue' %}?q={{ query|urlencode }}">{% include "home/_search_icon.html" %}<span>Search for “{{ query }}”</span></a>{% else %}<a class="nav-search-all" href="{% url 'items:explore_items' %}">{% include "home/_search_icon.html" %}<span>Browse items</span></a>{% endif %}
+<h3>{% if query %}Items for sale or free{% else %}Recently listed items{% endif %}</h3>
+{% for item in items|slice:':4' %}
+<a href="{{ item.get_absolute_url }}"><strong>{{ item.title }}</strong><small>{{ item.price_display }} · {{ item.location }}</small></a>
+{% empty %}
+<p>{% if query %}No items found for “{{ query }}”.{% else %}No items listed yet.{% endif %} Pin what you need on the Wanted Board.</p>
+<a class="nav-search-pin" href="{{ pin_url }}">{% include "wanted_board/_pin_icon.html" %}<span>Pin What You Wanted</span></a>
+{% endfor %}
+<h3>{% if query %}Wanted posts{% else %}Recent wanted posts{% endif %}</h3>
+{% for card in search_wanted|slice:':4' %}
+<a href="{{ card.detail_url }}"><strong>{{ card.title }}</strong><small>{{ card.location }}</small></a>
+{% empty %}<p>No matching wanted posts yet.</p>{% endfor %}
