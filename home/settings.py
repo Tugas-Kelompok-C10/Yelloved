@@ -32,7 +32,9 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-local-development-only')
 DEBUG = PRODUCTION
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "muhammad-adib51-yelloved.pws.cs.ui.ac.id", "cindy-olivia-yelloved.pws.cs.ui.ac.id"]
-
+CSRF_TRUSTED_ORIGINS = [
+    "https://cindy-olivia-yelloved.pws.cs.ui.ac.id",
+]
 
 # Application definition
 
