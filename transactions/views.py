@@ -1,7 +1,12 @@
-
+import uuid
+import midtransclient
+from django.conf import settings
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django.shortcuts import render, redirect
 from django.db import transaction as db_transaction
-
+from django.urls import reverse
+from urllib.parse import urlencode
 from .models import Transaction, CartItem
 from items.models import Item
 from django.contrib.auth.decorators import login_required
@@ -42,7 +47,7 @@ def checkout(request):
         )
         return render(request, "transactions/checkout.html", context)
 
-    allowed_payment_methods = {"qris", "bank_transfer"}
+    allowed_payment_methods = {"cod","qris", "bank_transfer"}
     allowed_banks = {"bca", "bni", "bri", "mandiri", "permata"}
 
     def get_addresses():
@@ -186,11 +191,18 @@ def checkout(request):
                 "Alamat yang ingin dijadikan utama tidak ditemukan."
             )
 
+        
         # ==========================================
-        # SIMPAN METODE PEMBAYARAN
+        # PROSES METODE PEMBAYARAN
         # ==========================================
         elif action == "select_payment":
-            payment_method = request.POST.get("payment_method", "").strip()
+            payment_method = request.POST.get(
+                "payment_method", ""
+            ).strip()
+
+            print("DEBUG ACTION:", action)
+            print("DEBUG PAYMENT METHOD:", payment_method)
+            print("DEBUG POST DATA:", request.POST.dict())
             bank = request.POST.get("bank", "").strip().lower()
 
             if payment_method not in allowed_payment_methods:
@@ -198,12 +210,133 @@ def checkout(request):
                     "Pilih metode pembayaran yang valid."
                 )
 
-            elif payment_method == "bank_transfer" and bank not in allowed_banks:
+            elif (
+                payment_method == "bank_transfer"
+                and bank not in allowed_banks
+            ):
                 context["errors"].append(
                     "Pilih bank untuk pembayaran Virtual Account."
                 )
 
+            elif payment_method == "cod":
+                meeting_location = request.POST.get(
+                    "cod_meeting_location", ""
+                ).strip()
+
+                meeting_time_raw = request.POST.get(
+                    "cod_meeting_time", ""
+                ).strip()
+
+                meeting_time = parse_datetime(meeting_time_raw)
+
+                if not meeting_location or not meeting_time:
+                    context["errors"].append(
+                        "Lengkapi lokasi dan waktu pertemuan COD."
+                    )
+                else:
+                    if timezone.is_naive(meeting_time):
+                        meeting_time = timezone.make_aware(
+                            meeting_time,
+                            timezone.get_current_timezone(),
+                        )
+
+                    # Ambil barang yang akan dibeli.
+                    if selected_item:
+                        order_items = [{
+                            "item": selected_item,
+                            "quantity": 1,
+                        }]
+                    else:
+                        order_items = list(
+                            CartItem.objects.filter(
+                                user=request.user
+                            ).select_related("item")
+                        )
+                        order_items = [
+                            {
+                                "item": entry.item,
+                                "quantity": entry.quantity,
+                            }
+                            for entry in order_items
+                        ]
+
+                    if not order_items:
+                        context["errors"].append(
+                            "Keranjang belanjamu masih kosong."
+                        )
+                    else:
+                        total = sum(
+                            (entry["item"].price or 0)
+                            * entry["quantity"]
+                            for entry in order_items
+                        )
+
+                        item_names = ", ".join(
+                            entry["item"].title
+                            for entry in order_items
+                        )[:255]
+
+                        total_quantity = sum(
+                            entry["quantity"]
+                            for entry in order_items
+                        )
+
+                        try:
+                            with db_transaction.atomic():
+                                order = Transaction.objects.create(
+                                    order_id=f"COD-{uuid.uuid4().hex[:16].upper()}",
+                                    buyer=request.user,
+                                    item_name=item_names,
+                                    quantity=total_quantity,
+                                    total_amount=total,
+                                    payment_method="cod",
+                                    cod_meeting_location=meeting_location,
+                                    cod_meeting_time=meeting_time,
+                                    shipping_address=(
+                                        f"COD - Pertemuan di kampus: "
+                                        f"{meeting_location}"
+                                    ),
+                                    payment_status="pending",
+                                    transaction_status="pending",
+                                )
+
+                                # Kosongkan keranjang hanya jika
+                                # checkout berasal dari keranjang.
+                                if not selected_item:
+                                    CartItem.objects.filter(
+                                        user=request.user
+                                    ).delete()
+
+                        except Exception as e:
+                            print("ERROR CHECKOUT COD:", repr(e))
+                            context["errors"].append(
+                                f"Pesanan gagal dibuat: {e}"
+                            )
+                        
+                        else:
+                            request.session.pop(
+                                "checkout_payment_method", None
+                            )
+                            request.session.pop("checkout_bank", None)
+                            request.session.pop("checkout_address_id", None)
+
+                            messages.success(
+                                request,
+                                f"Pesanan {order.order_id} berhasil dibuat! "
+                                "Pembayaran dilakukan saat bertemu dengan penjual."
+                            )
+
+                            return redirect(
+                                "transactions:checkout_success",
+                                order_id=order.order_id,
+                            )
+
+            
+            
             else:
+                # Buat pesanan sementara di database untuk preview QRIS/VA.
+                # Belum membuat pembayaran melalui Midtrans.
+
                 request.session["checkout_payment_method"] = payment_method
 
                 if payment_method == "bank_transfer":
@@ -212,7 +345,172 @@ def checkout(request):
                     request.session.pop("checkout_bank", None)
 
                 request.session.modified = True
-                return redirect(request.path)
+
+                selected_address = get_selected_address()
+
+                if not selected_address:
+                    context["errors"].append(
+                        "Tambahkan alamat pengiriman sebelum melanjutkan."
+                    )
+                else:
+                    if selected_item:
+                        order_items = [{
+                            "item": selected_item,
+                            "quantity": 1,
+                        }]
+                    else:
+                        cart_entries = list(
+                            CartItem.objects.filter(
+                                user=request.user
+                            ).select_related("item")
+                        )
+
+                        order_items = [
+                            {
+                                "item": entry.item,
+                                "quantity": entry.quantity,
+                            }
+                            for entry in cart_entries
+                        ]
+
+                    if not order_items:
+                        context["errors"].append(
+                            "Keranjang belanjamu masih kosong."
+                        )
+                    else:
+                        total = sum(
+                            (entry["item"].price or 0)
+                            * entry["quantity"]
+                            for entry in order_items
+                        )
+
+                        total_quantity = sum(
+                            entry["quantity"]
+                            for entry in order_items
+                        )
+
+                        item_names = ", ".join(
+                            entry["item"].title
+                            for entry in order_items
+                        )[:255]
+
+                        if total <= 0:
+                            context["errors"].append(
+                                "Total pembayaran tidak valid."
+                            )
+                        else:
+                            order_id = (
+                                f"YL-{uuid.uuid4().hex[:16].upper()}"
+                            )
+
+                            address_parts = [
+                                selected_address.recipient_name,
+                                selected_address.phone_number,
+                                selected_address.street_address,
+                                selected_address.city,
+                                selected_address.province,
+                                selected_address.postal_code,
+                            ]
+
+                            shipping_address = ", ".join(
+                                str(part).strip()
+                                for part in address_parts
+                                if part
+                            )
+
+                            try:
+                                with db_transaction.atomic():
+                                    order = Transaction.objects.create(
+                                        order_id=order_id,
+                                        buyer=request.user,
+                                        item_name=item_names,
+                                        quantity=total_quantity,
+                                        total_amount=total,
+                                        payment_method=(
+                                            "qris"
+                                            if payment_method == "qris"
+                                            else "va"
+                                        ),
+                                        shipping_address=shipping_address,
+                                        payment_status="pending",
+                                        transaction_status="pending",
+                                    )
+
+                            except Exception as e:
+                                print("ERROR CHECKOUT:", repr(e))
+                                context["errors"].append(
+                                    "Pesanan gagal disimpan. Periksa terminal Django."
+                                )
+
+                            else:
+                                try:
+                                    create_midtrans_payment(
+                                        order=order,
+                                        payment_method=(
+                                            "qris"
+                                            if payment_method == "qris"
+                                            else "va"
+                                        ),
+                                        bank_code=(
+                                            bank
+                                            if payment_method == "bank_transfer"
+                                            else "bca"
+                                        ),
+                                    )
+
+                                except Exception as e:
+                                    print("\n========== ERROR MIDTRANS ==========")
+                                    print("Tipe error:", type(e).__name__)
+                                    print(
+                                        "Pesan:",
+                                        getattr(e, "message", None) or str(e)
+                                    )
+                                    print(
+                                        "HTTP status:",
+                                        getattr(e, "http_status_code", None)
+                                    )
+                                    print(
+                                        "Respons API:",
+                                        getattr(e, "api_response_dict", None)
+                                    )
+                                    print("====================================\n")
+
+                                    context["errors"].append(
+                                        "Pembayaran belum berhasil dibuat oleh Midtrans. "
+                                        "Keranjangmu tidak dikosongkan. "
+                                        "Periksa terminal Django untuk detail error."
+                                    )
+
+                                else:
+                                    # Kosongkan keranjang hanya jika Midtrans berhasil
+                                    # menerima permintaan pembuatan pembayaran.
+                                    if not selected_item:
+                                        CartItem.objects.filter(
+                                            user=request.user
+                                        ).delete()
+
+                                    preview_params = {
+                                        "method": (
+                                            "qris"
+                                            if payment_method == "qris"
+                                            else "va"
+                                        ),
+                                        "order_id": order.order_id,
+                                    }
+
+                                    if payment_method == "bank_transfer":
+                                        preview_params["bank"] = bank
+
+                                    preview_url = reverse(
+                                        "transactions:payment_preview"
+                                    )
+                                    query_string = urlencode(preview_params)
+
+                                    return redirect(
+                                        f"{preview_url}?{query_string}"
+                                    )
+
+
 
     # ==========================================
     # DATA UNTUK TEMPLATE
@@ -255,6 +553,57 @@ def checkout(request):
     return render(request, "transactions/checkout.html", context)
 
 
+
+@login_required
+def checkout_success(request, order_id):
+    order = get_object_or_404(
+        Transaction,
+        order_id=order_id,
+        buyer=request.user,
+        payment_method="cod",
+    )
+
+    return render(
+        request,
+        "transactions/checkout_success.html",
+        {"order": order},
+    )
+
+
+@login_required
+def cancel_order(request, order_id):
+    if request.method != "POST":
+        return redirect(
+            "transactions:checkout_success",
+            order_id=order_id,
+        )
+
+    order = get_object_or_404(
+        Transaction,
+        order_id=order_id,
+        buyer=request.user,
+        payment_method="cod",
+    )
+
+    if order.transaction_status != "pending":
+        messages.error(
+            request,
+            "Pesanan ini tidak dapat dibatalkan lagi.",
+        )
+    else:
+        order.transaction_status = "cancelled"
+        order.save(update_fields=["transaction_status", "updated_at"])
+
+        messages.success(
+            request,
+            f"Pesanan {order.order_id} berhasil dibatalkan.",
+        )
+
+    return redirect(
+        "transactions:checkout_success",
+        order_id=order.order_id,
+    )
+
 def transaction_history(request):
     if not request.user.is_authenticated:
         return render(
@@ -277,8 +626,8 @@ def transaction_history(request):
         transactions = transactions.filter(payment_status="pending")
     elif active_status == "processing":
         transactions = transactions.filter(
-            transaction_status="processing"
-        )
+        transaction_status__in=["pending", "processing"]
+    )
     elif active_status == "completed":
         transactions = transactions.filter(
             transaction_status="completed"
@@ -377,3 +726,186 @@ def add_to_cart(request, item_id):
 
     messages.success(request, "Barang berhasil ditambahkan ke keranjang.")
     return redirect("transactions:cart")
+
+def checkout_success_preview(request):
+    return render(request, "transactions/checkout_success.html")
+
+
+def payment_preview(request):
+    payment_method = request.GET.get("method", "qris").lower()
+
+    if payment_method not in {"qris", "va"}:
+        payment_method = "qris"
+
+    bank_names = {
+        "bca": "BCA",
+        "bni": "BNI",
+        "bri": "BRI",
+        "mandiri": "Mandiri",
+        "permata": "Permata",
+    }
+
+    bank_code = request.GET.get("bank", "bca").lower()
+
+    if bank_code not in bank_names:
+        bank_code = "bca"
+
+    order_id = request.GET.get("order_id")
+    order = None
+
+    if order_id and request.user.is_authenticated:
+        order = get_object_or_404(
+            Transaction,
+            order_id=order_id,
+            buyer=request.user,
+            payment_method__in=["qris", "va"],
+        )
+
+    return render(
+        request,
+        "transactions/payment_instructions.html",
+        {
+            "payment_method": payment_method,
+            "bank_code": bank_code,
+            "bank_name": bank_names[bank_code],
+            "order": order,
+        },
+    )
+
+def create_midtrans_payment(order, payment_method, bank_code="bca"):
+    """
+    Membuat transaksi pembayaran melalui Midtrans Core API.
+    Hanya menggunakan kredensial Sandbox pada tahap pengujian.
+    """
+
+    if not settings.MIDTRANS_SERVER_KEY or not settings.MIDTRANS_CLIENT_KEY:
+        raise ValueError(
+            "Konfigurasi kunci Midtrans belum lengkap."
+        )
+
+    core_api = midtransclient.CoreApi(
+        is_production=False,
+        server_key=settings.MIDTRANS_SERVER_KEY,
+        client_key=settings.MIDTRANS_CLIENT_KEY,
+    )
+
+    amount = int(order.total_amount)
+
+    params = {
+        "transaction_details": {
+            "order_id": order.order_id,
+            "gross_amount": amount,
+        },
+        "item_details": [
+            {
+                "id": order.order_id,
+                "price": amount,
+                "quantity": 1,
+                "name": order.item_name[:50],
+            }
+        ],
+    }
+
+    if payment_method == "qris":
+        params["payment_type"] = "qris"
+        params["qris"] = {
+            "acquirer": "gopay",
+        }
+
+    elif payment_method == "va":
+        if bank_code == "mandiri":
+            params["payment_type"] = "echannel"
+            params["echannel"] = {
+                "bill_info1": "Yelloved",
+                "bill_info2": order.order_id[:30],
+            }
+
+        elif bank_code in {"bca", "bni", "bri", "permata"}:
+            params["payment_type"] = "bank_transfer"
+            params["bank_transfer"] = {
+                "bank": bank_code,
+            }
+
+        else:
+            raise ValueError(
+                "Bank Virtual Account tidak didukung."
+            )
+
+    else:
+        raise ValueError(
+            "Metode pembayaran tidak valid."
+        )
+
+    # Kirim permintaan pembayaran ke Midtrans.
+    response = core_api.charge(params)
+
+    # Simpan ID transaksi dari Midtrans.
+    order.midtrans_transaction_id = (
+        response.get("transaction_id") or ""
+    )
+
+    # Simpan informasi kedaluwarsa jika tersedia.
+    expiry_time = response.get("expiry_time")
+
+    if expiry_time:
+        parsed_expiry = parse_datetime(expiry_time)
+
+        if parsed_expiry and timezone.is_naive(parsed_expiry):
+            parsed_expiry = timezone.make_aware(parsed_expiry)
+
+        order.midtrans_expiry_time = parsed_expiry
+
+    # Simpan URL kode QR jika respons menyediakannya.
+    if payment_method == "qris":
+        actions = response.get("actions", [])
+
+        qr_action = next(
+            (
+                action
+                for action in actions
+                if action.get("name") == "generate-qr-code-v2"
+            ),
+            None,
+        )
+
+        if qr_action is None:
+            qr_action = next(
+                (
+                    action
+                    for action in actions
+                    if action.get("name") == "generate-qr-code"
+                ),
+                None,
+            )
+
+        order.midtrans_qr_code_url = (
+            qr_action.get("url", "") if qr_action else ""
+        )
+
+    # Simpan detail Virtual Account.
+    if payment_method == "va":
+        order.virtual_account_bank = bank_code
+
+        if bank_code == "mandiri":
+            order.virtual_account_bill_key = (
+                response.get("bill_key", "")
+            )
+            order.virtual_account_biller_code = (
+                response.get("biller_code", "")
+            )
+
+        else:
+            va_numbers = response.get("va_numbers", [])
+
+            if va_numbers:
+                order.virtual_account_number = (
+                    va_numbers[0].get("va_number", "")
+                )
+            elif response.get("permata_va_number"):
+                order.virtual_account_number = (
+                    response["permata_va_number"]
+                )
+
+    order.save()
+
+    return response
