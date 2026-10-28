@@ -31,6 +31,9 @@ class ItemsTests(TestCase):
         self.assertEqual(self.client.get(self.item.get_absolute_url()).status_code, 200)
 
     def setUp(self):
+        # These tests supply their own catalogue fixtures, independent of startup seeds.
+        Item.objects.filter(external_id__range=(10000001, 10000020)).delete()
+        get_user_model().objects.filter(username='yelloved_community', items__isnull=True).delete()
         self.owner = get_user_model().objects.create_user(username='seller_private', email='private@example.com', password='test-password')
         self.other = get_user_model().objects.create_user(username='other', password='test-password')
         self.data = {'title': 'Kemeja', 'description': 'Linen kampus', 'category': 'fashion', 'condition': 'good', 'price': '45000', 'listing_type': 'sale', 'location': 'Depok', 'image_url': 'https://example.com/photo.jpg', 'status': 'available'}
@@ -193,7 +196,7 @@ class ItemsTests(TestCase):
         explore = reverse('items:explore_items')
         create = reverse('items:item_create')
         response = self.client.get(explore)
-        self.assertContains(response, 'Jual barangmu')
+        self.assertContains(response, 'List your item')
         self.assertContains(response, '/accounts/login/?next=/explore/create/')
         self.client.force_login(self.owner)
         self.assertContains(self.client.get(explore), 'href="/explore/create/"')
@@ -212,7 +215,7 @@ class ItemsTests(TestCase):
         self.assertEqual(item.title, data['title'])
         self.assertEqual(item.status, 'unavailable')
         delete = reverse('items:item_delete', args=[item.pk])
-        self.assertContains(self.client.get(delete), 'Ya, Hapus Item')
+        self.assertContains(self.client.get(delete), 'Yes, delete item')
         self.assertTrue(Item.objects.filter(pk=item.pk).exists())
         self.client.post(delete)
         self.assertFalse(Item.objects.filter(pk=item.pk).exists())
@@ -312,10 +315,11 @@ class ItemsTests(TestCase):
         token = re.search('name="csrfmiddlewaretoken" value="([^"]+)"', html).group(1)
         url = reverse('item_matching:request_create', args=[legacy.pk])
         self.assertEqual(client.post(url, {'message': 'Tanpa token'}).status_code, 403)
-        response = client.post(url, {'csrfmiddlewaretoken': token, 'message': 'Saya tertarik.'})
+        response = client.post(url, {'csrfmiddlewaretoken': token, 'message': 'Saya tertarik.', 'offer_price': '54000'})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse('item_matching:dashboard') + '?tab=sent')
         self.assertEqual(ItemRequest.objects.get(item=legacy).requester, self.other)
+        self.assertEqual(ItemRequest.objects.get(item=legacy).offer_price, 54000)
         client.force_login(legacy.owner)
         response = client.get(legacy.get_absolute_url())
         self.assertFalse(response.context['can_request_item'])

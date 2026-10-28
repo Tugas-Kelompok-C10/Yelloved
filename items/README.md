@@ -62,3 +62,23 @@ Importer membuat akun khusus `yelloved_community` (nama **Yelloved Community**) 
 Refresh hanya mengelola data lama `source=dummyjson, owner=NULL` atau katalog ber-`external_id` milik akun demo tersebut. Item yang sudah dimiliki pengguna lain dan listing manual tanpa external_id tetap dilindungi. Katalog tidak dapat diedit/dihapus melalui CRUD biasa, termasuk oleh penjual demo.
 
 Send Offer memakai POST+CSRF ke `item_matching:request_create`, dengan pesan/barang tukar dari form matching yang asli. Sukses mengikuti redirect backend ke daftar request terkirim. Nominal penawaran tidak memiliki input, tidak dikirim, dan belum disimpan; kesepakatan dilakukan melalui chat/request. Guest harus login dan pemilik tidak dapat merequest itemnya sendiri.
+
+## Automatic offline catalogue (20 items)
+
+`python manage.py migrate` installs `0008_seed_catalogue_items`: exactly 20 curated
+student/dorm demo listings, inspired by DummyJSON Products and frozen directly in
+the migration. No API call, photo download, or import command is needed. Existing
+local catalogue photos are reused; attribution remains in `static/img/items/SOURCES.md`.
+
+Local `external_id` values `10000001`–`10000020` are reserved migration seed IDs,
+not real DummyJSON product IDs. Prices are affordable preloved IDR values; two
+listings are free. Existing manual listings and previous API imports are retained,
+so an already populated database can contain more than 20 total items.
+
+The dedicated seller is **Yelloved Community** (`yelloved_community`, unusable
+password). `source='user'` preserves compatibility with the existing matching
+endpoint; demo ownership plus reserved `external_id` identifies catalogue records.
+A conflicting real account or item aborts the migration instead of taking it over.
+Forward replay does not duplicate or reset listings. Reverse deletes only matching
+seed records, preserves repurposed/manual records, and keeps the demo account.
+The optional API `--refresh` command also preserves these 20 offline seeds.
