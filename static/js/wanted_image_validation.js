@@ -1,5 +1,6 @@
 (() => {
-    document.querySelectorAll("[data-reference-image]").forEach((input) => {
+    // Only offered items have photos; wanted posts do not upload images.
+    document.querySelectorAll("[data-offer-image]").forEach((input) => {
         const feedback = document.createElement("small");
         feedback.className = "form-error";
         feedback.setAttribute("aria-live", "polite");
@@ -12,6 +13,7 @@
             input.setCustomValidity(message);
             input.setAttribute("aria-invalid", String(Boolean(message)));
             feedback.textContent = message;
+            input.dispatchEvent(new Event("offer-image-validated", { bubbles: true }));
         };
 
         input.addEventListener("change", async () => {

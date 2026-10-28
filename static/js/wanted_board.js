@@ -3,15 +3,13 @@
     const grid = document.querySelector(".wanted-grid");
     const queryInput = document.getElementById("wanted-query");
     const categoryChips = [...document.querySelectorAll("[data-category-chip]")];
-    const seeMoreButton = document.querySelector(".wanted-see-more");
+    const pagination = document.querySelector("[data-wanted-pagination]");
 
-    if (!form || !grid || !queryInput || !categoryChips.length || !seeMoreButton) return;
+    if (!form || !grid || !queryInput || !categoryChips.length || !pagination) return;
 
     const debounceDelay = 300;
     let debounceTimer;
     let activeRequest;
-    let resizeTimer;
-    let expanded = false;
     let selectedCategory = categoryChips.find((chip) => chip.classList.contains("is-active"))?.dataset.categoryChip || "";
 
     const updateCategoryChips = (category) => {
@@ -23,39 +21,20 @@
         });
     };
 
-    const applyCardLimit = () => {
-        const cards = [...grid.querySelectorAll(".wanted-card")];
-        const buttonLabel = seeMoreButton.querySelector("span");
-        const columns = Math.max(
-            1,
-            window.getComputedStyle(grid).gridTemplateColumns.split(" ").filter(Boolean).length,
-        );
-        const visibleLimit = columns * 5;
-        const hasOverflow = cards.length > visibleLimit;
-
-        if (!hasOverflow) expanded = false;
-
-        cards.forEach((card, index) => {
-            card.hidden = !expanded && index >= visibleLimit;
-        });
-        seeMoreButton.hidden = !hasOverflow;
-        seeMoreButton.classList.toggle("is-expanded", expanded);
-        seeMoreButton.setAttribute("aria-expanded", String(expanded));
-        if (buttonLabel) buttonLabel.textContent = expanded ? "See Less" : "See More";
-    };
-
-    const buildUrl = () => {
+    const buildUrl = (page) => {
         const url = new URL(form.action, window.location.origin);
         const query = queryInput.value.trim();
 
         if (query) url.searchParams.set("q", query);
         if (selectedCategory) url.searchParams.set("category", selectedCategory);
+        if (page > 1) url.searchParams.set("page", page);
 
         return url;
     };
 
-    const loadResults = async () => {
-        const url = buildUrl();
+    // Search/category changes start at page one; page links retain current filters.
+    const loadResults = async (page = 1, scrollToTop = false) => {
+        const url = buildUrl(page);
         activeRequest?.abort();
         const request = new AbortController();
         activeRequest = request;
@@ -74,11 +53,14 @@
             if (!response.ok) throw new Error(`Search failed with status ${response.status}`);
 
             const data = await response.json();
+            if (activeRequest !== request) return;
             grid.innerHTML = data.html;
-            expanded = false;
-            applyCardLimit();
+            pagination.innerHTML = data.pagination_html;
             updateCategoryChips(data.selected_category);
+            if (data.page_number > 1) url.searchParams.set("page", data.page_number);
+            else url.searchParams.delete("page");
             window.history.replaceState({}, "", url);
+            if (scrollToTop) window.scrollTo({ top: 0, left: 0, behavior: "instant" });
         } catch (error) {
             if (error.name !== "AbortError") window.location.assign(url);
         } finally {
@@ -108,17 +90,13 @@
         loadResults();
     });
 
-    seeMoreButton.addEventListener("click", () => {
-        expanded = !expanded;
-        applyCardLimit();
+    pagination.addEventListener("click", (event) => {
+        const link = event.target.closest("a[data-wanted-page]");
+        if (!link || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        window.clearTimeout(debounceTimer);
+        loadResults(Number(link.dataset.wantedPage), true);
     });
-
-    window.addEventListener("resize", () => {
-        window.clearTimeout(resizeTimer);
-        resizeTimer = window.setTimeout(applyCardLimit, 120);
-    });
-
-    applyCardLimit();
 
     const placeholder = queryInput.dataset.typingPlaceholder;
     if (!queryInput.value && placeholder) {

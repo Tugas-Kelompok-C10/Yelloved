@@ -1,6 +1,9 @@
+from urllib.parse import urlencode
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
 from django.http import Http404, HttpResponseNotAllowed, JsonResponse
@@ -41,11 +44,10 @@ def _sample_posts_for(query, category):
     return sample_posts
 
 
-def _wanted_cards(wanted_posts, sample_posts):
+def _wanted_cards(wanted_posts, sample_posts, user_id=None):
     cards = [
         {
             "title": post.title,
-            "image_url": post.image.url if post.image else "",
             "description": post.description,
             "category_label": post.get_category_display(),
             "budget": post.budget,
@@ -55,6 +57,7 @@ def _wanted_cards(wanted_posts, sample_posts):
             "status_label": post.get_status_display(),
             "detail_url": reverse("wanted_board:wanted_detail", args=[post.pk]),
             "is_sample": False,
+            "is_owner": post.requester_id == user_id,
         }
         for post in wanted_posts
     ]
@@ -72,11 +75,25 @@ def _wanted_cards(wanted_posts, sample_posts):
     return cards
 
 
+def _page_numbers(current, total):
+    """Show at most six page numbers, keeping the first, current and last pages."""
+    if total <= 6:
+        return list(range(1, total + 1))
+    start = max(2, min(current - 1, total - 4))
+    numbers = [1, *range(start, start + 4), total]
+    result = []
+    for number in numbers:
+        if result and number - result[-1] > 1:
+            result.append(Paginator.ELLIPSIS)
+        result.append(number)
+    return result
+
+
 def _board_context(request, creation_form=None, open_create_modal=False):
     query = request.GET.get("q", "").strip()
     category = request.GET.get("category", "").strip()
 
-    wanted_posts = WantedPost.objects.select_related("requester")
+    wanted_posts = WantedPost.objects.select_related("requester").order_by("-created_at", "-pk")
     if query:
         wanted_posts = wanted_posts.filter(
             Q(title__icontains=query)
@@ -87,7 +104,26 @@ def _board_context(request, creation_form=None, open_create_modal=False):
         wanted_posts = wanted_posts.filter(category=category)
 
     sample_posts = _sample_posts_for(query, category)
-    wanted_cards = _wanted_cards(wanted_posts, sample_posts)
+    # Paginate real posts first, then samples, without loading all database rows.
+    post_count = wanted_posts.count()
+    paginator = Paginator(range(post_count + len(sample_posts)), 12)
+    page = paginator.get_page(request.GET.get("page"))
+    start = (page.number - 1) * paginator.per_page
+    end = start + paginator.per_page
+    wanted_cards = _wanted_cards(
+        wanted_posts[min(start, post_count):min(end, post_count)],
+        sample_posts[max(0, start - post_count):max(0, end - post_count)],
+        user_id=request.user.pk if request.user.is_authenticated else None,
+    )
+    page.object_list = wanted_cards
+
+    def page_url(number):
+        params = {"page": number}
+        if query:
+            params["q"] = query
+        if category:
+            params["category"] = category
+        return f"{reverse('wanted_board:show_wanted')}?{urlencode(params)}"
 
     return {
         "name": "Yelloved",
@@ -97,10 +133,17 @@ def _board_context(request, creation_form=None, open_create_modal=False):
         "categories": WantedPost.Category.choices,
         "sample_posts": sample_posts,
         "wanted_cards": wanted_cards,
-        "total_count": len(wanted_cards),
+        "total_count": paginator.count,
+        "page_obj": page,
+        "pagination_links": [
+            {"number": number, "url": page_url(number) if number != paginator.ELLIPSIS else None}
+            for number in _page_numbers(page.number, paginator.num_pages)
+        ],
+        "previous_page_url": page_url(page.previous_page_number()) if page.has_previous() else None,
+        "next_page_url": page_url(page.next_page_number()) if page.has_next() else None,
         "creation_form": (
             creation_form if creation_form is not None else WantedCreateForm(
-                initial={"creation_token": issue_creation_token(request.user)}
+                initial={"creation_token": issue_creation_token(request.user)}, user=request.user,
             )
         ),
         "open_create_modal": open_create_modal,
@@ -126,6 +169,10 @@ def show_wanted(request):
                     f"{'s' if total_count != 1 else ''} found"
                 ),
                 "selected_category": context["selected_category"],
+                "page_number": context["page_obj"].number,
+                "pagination_html": render_to_string(
+                    "wanted_board/_pagination.html", context, request=request,
+                ),
             }
         )
     return render(request, "wanted_post.html", context)
@@ -196,7 +243,7 @@ def create_wanted(request):
     if request.method != "POST":
         return HttpResponseNotAllowed(["GET", "POST"])
 
-    form = WantedCreateForm(request.POST, request.FILES)
+    form = WantedCreateForm(request.POST, user=request.user)
     try:
         uid = creation_uid(request.POST.get("creation_token", ""), request.user)
     except ValidationError as error:
@@ -209,19 +256,15 @@ def create_wanted(request):
         if form.is_valid():
             defaults = {
                 key: value for key, value in form.cleaned_data.items()
-                if key not in {"image", "creation_token"}
+                if key != "creation_token"
             }
-            # Reserve the unique UID before saving any file. A concurrent retry
-            # returns the winner's row without uploading another copy of its image.
+            # The signed UID makes concurrent retries return the same post.
             with transaction.atomic():
-                wanted_post, created = WantedPost.objects.get_or_create(
-                    pk=uid, defaults={**defaults, "requester": request.user, "image": ""}
+                wanted_post, _ = WantedPost.objects.get_or_create(
+                    pk=uid, defaults={**defaults, "requester": request.user}
                 )
                 if wanted_post.requester_id != request.user.pk:
                     raise Http404("Wanted post not found")
-                if created:
-                    wanted_post.image = form.cleaned_data["image"]
-                    wanted_post.save(update_fields=["image"])
             return _saved_response(request, wanted_post, "Your wanted post has been created.")
 
     if _is_ajax(request):
@@ -247,7 +290,6 @@ def edit_wanted(request, pk):
 
     form = WantedPostForm(
         request.POST,
-        request.FILES,
         instance=wanted_post,
     )
     if form.is_valid():

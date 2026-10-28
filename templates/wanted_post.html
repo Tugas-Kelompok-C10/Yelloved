@@ -10,13 +10,13 @@
 <main class="wanted-page" lang="en">
     <section class="wanted-hero" aria-labelledby="wanted-title">
         <div>
-            <h1 id="wanted-title">Looking for Something?</h1>
-            <p>Post what you need and let the UI<br>community help you find it!</p>
+            <h1 id="wanted-title">Wanted Board</h1>
+            <p>Can’t find what you're looking for? Pin it on the board!</p>
         </div>
         {% if user.is_authenticated %}
-            <a class="wanted-button wanted-button-primary" href="{% url 'wanted_board:create_wanted' %}" data-open-wanted-modal>Post What You Need</a>
+            <a class="wanted-button wanted-button-primary" href="{% url 'wanted_board:create_wanted' %}" data-open-wanted-modal>{% include "wanted_board/_pin_icon.html" %} Pin yours</a>
         {% else %}
-            <a class="wanted-button wanted-button-primary" href="{% url 'login' %}?next={% url 'wanted_board:create_wanted' %}">Log in to Post</a>
+            <a class="wanted-button wanted-button-primary" href="{% url 'login' %}?next={% url 'wanted_board:create_wanted' %}">{% include "wanted_board/_pin_icon.html" %} Log in to Post</a>
         {% endif %}
     </section>
 
@@ -24,8 +24,9 @@
         <div class="wanted-toolbar">
             <form class="wanted-filter" method="get" action="{% url 'wanted_board:show_wanted' %}" role="search" data-ajax-search>
                 <div class="wanted-filter-field wanted-filter-query">
-                    <label for="wanted-query">Search Items</label>
-                    <input id="wanted-query" type="search" name="q" value="{{ query }}" placeholder="" data-typing-placeholder="Looking for Something?" autocomplete="off">
+                    <label class="sr-only" for="wanted-query">Search wanted posts</label>
+                    <svg class="wanted-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg>
+                    <input id="wanted-query" type="search" name="q" value="{{ query }}" placeholder="Search wanted posts, e.g. fan, jacket..." autocomplete="off">
                 </div>
                 <div class="wanted-category-chips" aria-label="Filter by category">
                     <button class="wanted-category-chip{% if not selected_category %} is-active{% endif %}" type="button" data-category-chip="" aria-pressed="{% if not selected_category %}true{% else %}false{% endif %}">All items</button>
@@ -36,16 +37,13 @@
             </form>
         </div>
 
-        <div class="wanted-grid" aria-live="polite" aria-busy="false">
-            {% include "wanted_board/_card_grid.html" %}
+        <div class="wanted-pinboard">
+            <div class="wanted-grid" aria-live="polite" aria-busy="false">
+                {% include "wanted_board/_card_grid.html" %}
+            </div>
         </div>
-        <div class="wanted-see-more-wrap">
-            <button class="wanted-see-more" type="button" aria-expanded="false" hidden>
-                <span>See More</span>
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="m7 10 5 5 5-5"></path>
-                </svg>
-            </button>
+        <div data-wanted-pagination>
+            {% include "wanted_board/_pagination.html" %}
         </div>
     </section>
 </main>
@@ -67,7 +65,7 @@
     </div>
     <p>Add clear details so other users can easily recognize the item you need.</p>
 
-    <form class="wanted-form" method="post" action="{% url 'wanted_board:create_wanted' %}" enctype="multipart/form-data" data-ajax-upload>
+    <form class="wanted-form" method="post" action="{% url 'wanted_board:create_wanted' %}" data-ajax-upload>
         {% csrf_token %}
         {% include "wanted_board/_form_fields.html" with form=creation_form %}
         <div class="wanted-modal-actions">
@@ -82,7 +80,8 @@
         const modal = document.getElementById("create-wanted-modal");
         if (!modal) return;
 
-        document.querySelector("[data-open-wanted-modal]")?.addEventListener("click", (event) => {
+        document.addEventListener("click", (event) => {
+            if (!event.target.closest("[data-open-wanted-modal]")) return;
             event.preventDefault();
             modal.showModal();
         });
@@ -99,5 +98,6 @@
     })();
 </script>
 {% endif %}
+{% include "wanted_board/_item_offer_modal.html" %}
 <script src="{% static 'js/wanted_board.js' %}" defer></script>
 {% endblock content %}

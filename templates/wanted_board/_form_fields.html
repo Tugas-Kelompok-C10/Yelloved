@@ -1,7 +1,7 @@
 {% for field in form.hidden_fields %}{{ field }}{% endfor %}
 {% for field in form.visible_fields %}
     <div class="wanted-form-field" data-upload-field="{{ field.name }}">
-        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="wanted-required" aria-hidden="true">*</span>{% endif %}</label>
         {{ field }}
         {% if field.help_text %}<small class="wanted-form-help">{{ field.help_text }}</small>{% endif %}
         {% for error in field.errors %}<small class="form-error" data-server-error>{{ error }}</small>{% endfor %}

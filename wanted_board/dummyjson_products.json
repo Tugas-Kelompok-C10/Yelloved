@@ -10,7 +10,6 @@
       "rating": 2.56,
       "stock": 99,
       "brand": "Essence",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/beauty/essence-mascara-lash-princess/thumbnail.webp",
       "createdAt": "2025-10-09T14:47:01.588Z"
     },
     {
@@ -22,7 +21,6 @@
       "rating": 2.86,
       "stock": 34,
       "brand": "Glamour Beauty",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/beauty/eyeshadow-palette-with-mirror/thumbnail.webp",
       "createdAt": "2024-12-03T11:29:45.706Z"
     },
     {
@@ -34,7 +32,6 @@
       "rating": 4.64,
       "stock": 89,
       "brand": "Velvet Touch",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/beauty/powder-canister/thumbnail.webp",
       "createdAt": "2025-01-08T18:30:12.844Z"
     },
     {
@@ -46,7 +43,6 @@
       "rating": 4.36,
       "stock": 91,
       "brand": "Chic Cosmetics",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/beauty/red-lipstick/thumbnail.webp",
       "createdAt": "2025-11-22T23:28:00.911Z"
     },
     {
@@ -58,7 +54,6 @@
       "rating": 4.32,
       "stock": 79,
       "brand": "Nail Couture",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/beauty/red-nail-polish/thumbnail.webp",
       "createdAt": "2025-10-03T07:39:53.470Z"
     },
     {
@@ -70,7 +65,6 @@
       "rating": 4.37,
       "stock": 29,
       "brand": "Calvin Klein",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/fragrances/calvin-klein-ck-one/thumbnail.webp",
       "createdAt": "2025-02-27T22:08:36.617Z"
     },
     {
@@ -82,7 +76,6 @@
       "rating": 4.26,
       "stock": 58,
       "brand": "Chanel",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/fragrances/chanel-coco-noir-eau-de/thumbnail.webp",
       "createdAt": "2025-04-13T12:15:53.051Z"
     },
     {
@@ -94,7 +87,6 @@
       "rating": 3.8,
       "stock": 98,
       "brand": "Dior",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/fragrances/dior-j'adore/thumbnail.webp",
       "createdAt": "2025-11-22T12:24:29.033Z"
     },
     {
@@ -106,7 +98,6 @@
       "rating": 3.96,
       "stock": 4,
       "brand": "Dolce & Gabbana",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/fragrances/dolce-shine-eau-de/thumbnail.webp",
       "createdAt": "2024-11-19T07:56:01.798Z"
     },
     {
@@ -118,7 +109,6 @@
       "rating": 2.74,
       "stock": 91,
       "brand": "Gucci",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/fragrances/gucci-bloom-eau-de/thumbnail.webp",
       "createdAt": "2026-07-19T20:10:42.419Z"
     },
     {
@@ -130,7 +120,6 @@
       "rating": 4.77,
       "stock": 88,
       "brand": "Annibale Colombo",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/furniture/annibale-colombo-bed/thumbnail.webp",
       "createdAt": "2026-05-31T06:08:47.181Z"
     },
     {
@@ -142,7 +131,6 @@
       "rating": 3.92,
       "stock": 60,
       "brand": "Annibale Colombo",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/furniture/annibale-colombo-sofa/thumbnail.webp",
       "createdAt": "2024-10-15T17:11:42.387Z"
     },
     {
@@ -154,7 +142,6 @@
       "rating": 2.87,
       "stock": 64,
       "brand": "Furniture Co.",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/furniture/bedside-table-african-cherry/thumbnail.webp",
       "createdAt": "2025-01-02T18:14:51.517Z"
     },
     {
@@ -166,7 +153,6 @@
       "rating": 4.88,
       "stock": 26,
       "brand": "Knoll",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/furniture/knoll-saarinen-executive-conference-chair/thumbnail.webp",
       "createdAt": "2025-07-05T18:32:17.642Z"
     },
     {
@@ -178,7 +164,6 @@
       "rating": 3.59,
       "stock": 7,
       "brand": "Bath Trends",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/furniture/wooden-bathroom-sink-with-mirror/thumbnail.webp",
       "createdAt": "2024-10-08T09:12:20.659Z"
     },
     {
@@ -190,7 +175,6 @@
       "rating": 4.19,
       "stock": 8,
       "brand": "",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/groceries/apple/thumbnail.webp",
       "createdAt": "2026-03-03T03:28:19.029Z"
     },
     {
@@ -202,7 +186,6 @@
       "rating": 4.47,
       "stock": 86,
       "brand": "",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/groceries/beef-steak/thumbnail.webp",
       "createdAt": "2024-10-02T14:03:32.118Z"
     },
     {
@@ -214,7 +197,6 @@
       "rating": 3.13,
       "stock": 46,
       "brand": "",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/groceries/cat-food/thumbnail.webp",
       "createdAt": "2025-02-18T18:35:51.211Z"
     },
     {
@@ -226,7 +208,6 @@
       "rating": 3.19,
       "stock": 97,
       "brand": "",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/groceries/chicken-meat/thumbnail.webp",
       "createdAt": "2026-02-15T02:18:37.851Z"
     },
     {
@@ -238,7 +219,6 @@
       "rating": 4.8,
       "stock": 10,
       "brand": "",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/groceries/cooking-oil/thumbnail.webp",
       "createdAt": "2025-09-25T15:34:34.194Z"
     },
     {
@@ -250,7 +230,6 @@
       "rating": 4.07,
       "stock": 84,
       "brand": "",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/groceries/cucumber/thumbnail.webp",
       "createdAt": "2025-01-12T11:53:56.805Z"
     },
     {
@@ -262,7 +241,6 @@
       "rating": 4.55,
       "stock": 71,
       "brand": "",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/groceries/dog-food/thumbnail.webp",
       "createdAt": "2025-07-10T03:33:14.471Z"
     },
     {
@@ -274,7 +252,6 @@
       "rating": 2.53,
       "stock": 9,
       "brand": "",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/groceries/eggs/thumbnail.webp",
       "createdAt": "2026-02-06T14:03:24.867Z"
     },
     {
@@ -286,7 +263,6 @@
       "rating": 3.78,
       "stock": 74,
       "brand": "",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/groceries/fish-steak/thumbnail.webp",
       "createdAt": "2025-05-24T22:00:13.090Z"
     },
     {
@@ -298,7 +274,6 @@
       "rating": 3.25,
       "stock": 33,
       "brand": "",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/groceries/green-bell-pepper/thumbnail.webp",
       "createdAt": "2024-12-16T06:21:20.741Z"
     },
     {
@@ -310,7 +285,6 @@
       "rating": 3.66,
       "stock": 3,
       "brand": "",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/groceries/green-chili-pepper/thumbnail.webp",
       "createdAt": "2025-08-13T07:35:11.030Z"
     },
     {
@@ -322,7 +296,6 @@
       "rating": 3.97,
       "stock": 34,
       "brand": "",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/groceries/honey-jar/thumbnail.webp",
       "createdAt": "2024-09-24T17:38:48.991Z"
     },
     {
@@ -334,7 +307,6 @@
       "rating": 3.39,
       "stock": 27,
       "brand": "",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/groceries/ice-cream/thumbnail.webp",
       "createdAt": "2025-10-23T18:27:08.836Z"
     },
     {
@@ -346,7 +318,6 @@
       "rating": 3.94,
       "stock": 50,
       "brand": "",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/groceries/juice/thumbnail.webp",
       "createdAt": "2026-04-01T05:44:29.516Z"
     },
     {
@@ -358,7 +329,6 @@
       "rating": 4.93,
       "stock": 99,
       "brand": "",
-      "thumbnail": "https://cdn.dummyjson.com/product-images/groceries/kiwi/thumbnail.webp",
       "createdAt": "2025-08-27T05:46:53.584Z"
     }
   ]

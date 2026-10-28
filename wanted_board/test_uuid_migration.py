@@ -89,6 +89,18 @@ class UUIDPrimaryKeyMigrationTests(TestCase):
                     first_uid,
                 )
                 connection.check_constraints()
+                # Removing request photos must preserve posts and both offer relations.
+                final = [("wanted_board", "0015_remove_wantedpost_image"),
+                         ("item_matching", "0002_wantedpost_uuid_relation")]
+                executor = MigrationExecutor(connection)
+                executor.migrate(final)
+                final_apps = executor.loader.project_state(final).apps
+                final_posts = final_apps.get_model("wanted_board", "WantedPost")
+                self.assertNotIn("image", {field.name for field in final_posts._meta.fields})
+                self.assertEqual(final_posts.objects.using(alias).get(pk=first_uid).location, "UI")
+                self.assertEqual(final_apps.get_model("wanted_board", "Offer").objects.using(alias).get(pk=price_offer.pk).wanted_post_id, first_uid)
+                self.assertEqual(final_apps.get_model("item_matching", "ItemOffer").objects.using(alias).get(pk=item_offer.pk).wanted_post_id, first_uid)
+                connection.check_constraints()
             finally:
                 routing.disable()
                 connection.close()

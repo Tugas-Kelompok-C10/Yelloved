@@ -26,7 +26,7 @@ def make_item(owner, **kw):
 
 def make_post(requester, **kw):
     data = dict(title='Lampu belajar', description='Butuh lampu meja kecil', category='home',
-                budget=Decimal('100000'), location='Kukusan', image='wanted_references/x.png')
+                budget=Decimal('100000'), location='Kukusan')
     data.update(kw)
     return WantedPost.objects.create(requester=requester, **data)
 

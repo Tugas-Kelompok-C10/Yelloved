@@ -10,73 +10,12 @@
         <span>Back</span>
     </a>
 
-    <article class="wanted-detail-card">
-        <div class="wanted-detail-visual">
-            <div class="wanted-detail-media">
-                {% if wanted_post.image %}
-                    <img src="{{ wanted_post.image.url }}" alt="Reference for {{ wanted_post.title }}">
-                {% else %}
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <rect x="3" y="4" width="18" height="16" rx="2"></rect>
-                        <circle cx="8.5" cy="9" r="1.5"></circle>
-                        <path d="m5 17 4.5-4 3.5 3 2.5-2 3.5 3"></path>
-                    </svg>
-                {% endif %}
-            </div>
-            <div class="wanted-detail-poster">
-                <a class="wanted-detail-poster-link" href="{% url 'transactions:pesan' %}">
-                    <span class="wanted-detail-avatar">
-                        {% if wanted_post.requester.account_profile.photo %}
-                            <img src="{{ wanted_post.requester.account_profile.photo.url }}" alt="Profile picture of {{ wanted_post.requester.username }}">
-                        {% else %}
-                            {{ wanted_post.requester.username|first|upper }}
-                        {% endif %}
-                    </span>
-                    <span>
-                        <small>Posted by</small>
-                        <strong>@{{ wanted_post.requester.username }}</strong>
-                    </span>
-                </a>
-                <time class="wanted-detail-posted" datetime="{{ wanted_post.created_at|date:'c' }}">{{ wanted_post.created_at|date:"d M Y, H:i" }}</time>
-            </div>
-        </div>
-
-        <div class="wanted-detail-content">
-            <h1>{{ wanted_post.title }}</h1>
-            <p class="wanted-detail-classification">{{ wanted_post.get_category_display }} <span>·</span> {{ wanted_post.get_listing_type_display }} · <a href="{% url 'account_profile:user_profile' wanted_post.requester.username %}">{{ wanted_post.requester.username }}</a></p>
-            <span class="wanted-detail-budget-label">Maximum budget</span>
-            <strong class="wanted-detail-budget">{% if wanted_post.budget %}{{ wanted_post.budget|rupiah }}{% else %}Flexible budget{% endif %}</strong>
-            <div class="wanted-detail-quick-info" aria-label="Preferred location">
-                <span>
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path>
-                        <circle cx="12" cy="10" r="2.5"></circle>
-                    </svg>
-                    {{ wanted_post.location|default:"Around UI" }}
-                </span>
-            </div>
-
-            <section class="wanted-detail-about" aria-labelledby="wanted-about-title">
-                <h2 id="wanted-about-title">Descriptions</h2>
-                <p>{{ wanted_post.description|linebreaksbr }}</p>
-            </section>
-            {% if user == wanted_post.requester %}
-                <div class="wanted-detail-actions" aria-label="Post management">
-                    <button class="wanted-button wanted-action-offer" type="button" data-open-edit-wanted-modal>Edit</button>
-                    <button class="wanted-button wanted-action-secondary" type="button" data-open-delete-wanted-modal>Delete</button>
-                </div>
-            {% else %}
-                <div class="wanted-detail-actions" aria-label="Item actions">
-                    {% if wanted_post.status != "open" %}
-                        <button class="wanted-button wanted-action-offer" type="button" disabled>Offer an Item</button>
-                    {% else %}
-                        <button class="wanted-button wanted-action-offer" type="button" data-open-item-offer-modal>Offer an Item</button>
-                    {% endif %}
-                    <a class="wanted-button wanted-action-secondary" href="{% url 'transactions:pesan' %}">Chat</a>
-                </div>
-            {% endif %}
-        </div>
-    </article>
+    <div class="wanted-detail-layout">
+        <article class="wanted-detail-card">
+            {% include "wanted_board/_detail_body.html" %}
+        </article>
+        {% if user != wanted_post.requester %}{% include "wanted_board/_item_offer_panel.html" %}{% endif %}
+    </div>
 </main>
 
 {% if user == wanted_post.requester %}
@@ -86,7 +25,7 @@
         <button class="wanted-modal-close" type="button" data-close-edit-wanted-modal aria-label="Close update modal">×</button>
     </div>
     <p>Update the details of the item you are looking for.</p>
-    <form class="wanted-form" method="post" action="{% url 'wanted_board:edit_wanted' wanted_post.pk %}" enctype="multipart/form-data" data-ajax-upload>
+    <form class="wanted-form" method="post" action="{% url 'wanted_board:edit_wanted' wanted_post.pk %}" data-ajax-upload>
         {% csrf_token %}
         {% include "wanted_board/_form_fields.html" with form=edit_form %}
         <div class="wanted-modal-actions wanted-modal-actions-split">
@@ -132,8 +71,5 @@
         bindModal("delete-wanted-modal", "[data-open-delete-wanted-modal]", "[data-close-delete-wanted-modal]");
     })();
 </script>
-{% endif %}
-{% if user != wanted_post.requester %}
-    {% include "wanted_board/_item_offer_modal.html" %}
 {% endif %}
 {% endblock content %}

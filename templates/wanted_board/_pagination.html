@@ -1,0 +1,23 @@
+{% if page_obj.paginator.count %}
+<nav class="wanted-pagination" aria-label="Wanted Board pages">
+    {% if previous_page_url %}
+        <a href="{{ previous_page_url }}" data-wanted-page="{{ page_obj.previous_page_number }}" aria-label="Previous page">←</a>
+    {% else %}
+        <button type="button" disabled aria-disabled="true" aria-label="Previous page">←</button>
+    {% endif %}
+    {% for link in pagination_links %}
+        {% if not link.url %}
+            <span class="wanted-pagination-ellipsis">{{ link.number }}</span>
+        {% elif link.number == page_obj.number %}
+            <span class="is-current" aria-current="page" aria-label="Page {{ link.number }}">{{ link.number }}</span>
+        {% else %}
+            <a href="{{ link.url }}" data-wanted-page="{{ link.number }}" aria-label="Page {{ link.number }}">{{ link.number }}</a>
+        {% endif %}
+    {% endfor %}
+    {% if next_page_url %}
+        <a href="{{ next_page_url }}" data-wanted-page="{{ page_obj.next_page_number }}" aria-label="Next page">→</a>
+    {% else %}
+        <button type="button" disabled aria-disabled="true" aria-label="Next page">→</button>
+    {% endif %}
+</nav>
+{% endif %}

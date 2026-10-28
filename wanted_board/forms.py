@@ -1,23 +1,13 @@
 from django import forms
 
 from .models import Offer, WantedPost
-from .validators import validate_reference_image
-
-
-class ReferenceImageField(forms.ImageField):
-    def to_python(self, data):
-        if data is not None:
-            validate_reference_image(data)
-        return super().to_python(data)
 
 
 class WantedPostForm(forms.ModelForm):
     class Meta:
         model = WantedPost
-        field_classes = {"image": ReferenceImageField}
         fields = (
             "title",
-            "image",
             "description",
             "category",
             "budget",
@@ -25,14 +15,10 @@ class WantedPostForm(forms.ModelForm):
         )
         labels = {
             "title": "Item you are looking for",
-            "image": "Reference picture",
             "description": "What do you need?",
             "category": "Category",
             "budget": "Maximum budget",
             "location": "Your location",
-        }
-        help_texts = {
-            "image": "This picture is for reference only. JPG, JPEG, PNG, or WEBP; maximum 5 MB and 4096 × 4096 pixels.",
         }
         error_messages = {
             "budget": {
@@ -44,10 +30,6 @@ class WantedPostForm(forms.ModelForm):
             "title": forms.TextInput(
                 attrs={"placeholder": "Example: Study desk lamp"}
             ),
-            "image": forms.FileInput(attrs={
-                "accept": ".jpg,.jpeg,.png,.webp",
-                "data-reference-image": "",
-            }),
             "description": forms.Textarea(
                 attrs={
                     "placeholder": "Describe the item, specifications, or details you need.",
@@ -62,6 +44,19 @@ class WantedPostForm(forms.ModelForm):
                 attrs={"placeholder": "Example: Kukusan or UI Campus"}
             ),
         }
+
+    def __init__(self, *args, user=None, **kwargs):
+        provided_initial = kwargs.get("initial", {})
+        super().__init__(*args, **kwargs)
+        if not self.is_bound and self.instance._state.adding and user and user.is_authenticated:
+            address = user.saved_addresses.first()
+            if address and "location" not in provided_initial:
+                # Use the general area, never the private street address.
+                location = ", ".join(part for part in (address.city, address.province) if part)
+                self.initial["location"] = location if len(location) <= 120 else address.city
+        self.fields["location"].help_text = (
+            "Prefilled from your profile's main address when available. You can edit it for this request."
+        )
 
 
 class WantedCreateForm(WantedPostForm):

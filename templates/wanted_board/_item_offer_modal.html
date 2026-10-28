@@ -1,67 +1,9 @@
 {% load matching_tags %}
 <dialog class="wanted-modal wanted-item-offer-modal" id="item-offer-modal" aria-labelledby="item-offer-title">
     <div class="wanted-modal-header">
-        <h2 id="item-offer-title">Offer an Item</h2>
+        <h2 id="item-offer-title">Got this item?</h2>
         <button class="wanted-modal-close" type="button" data-close-item-offer-modal aria-label="Close offer modal">×</button>
     </div>
-
-    {% if not wanted_post.pk %}
-        {# Halaman contoh (sample) bukan wanted post sungguhan, jadi belum bisa ditawar. #}
-        <p>Ini hanya contoh wanted post, jadi belum bisa menerima penawaran.</p>
-        <div class="wanted-modal-actions">
-            <button class="wanted-button wanted-action-secondary" type="button" data-close-item-offer-modal>Close</button>
-        </div>
-    {% elif not user.is_authenticated %}
-        <p>Masuk dulu untuk menawarkan barangmu.</p>
-        <div class="wanted-modal-actions">
-            <a class="wanted-button wanted-action-offer" href="{% url 'login' %}?next={{ request.path|urlencode }}">Masuk</a>
-        </div>
-    {% else %}
-        {% own_available_items user as my_items %}
-        {% if my_items %}
-            <p>Pilih barang yang sudah kamu unggah untuk ditawarkan ke wanted post ini.</p>
-            <form class="wanted-form" method="post" action="{% url 'item_matching:offer_create' wanted_post.pk %}">
-                {% csrf_token %}
-                <div class="wanted-form-field">
-                    <label for="offered-item">Barang yang ditawarkan *</label>
-                    <select id="offered-item" name="item" required>
-                        <option value="">Pilih barangmu</option>
-                        {% for item in my_items %}
-                            <option value="{{ item.pk }}">{{ item.title }} · {{ item.price_display }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="wanted-form-field">
-                    <label for="offered-item-message">Pesan (opsional)</label>
-                    <textarea id="offered-item-message" name="message" rows="3" maxlength="1000" placeholder="Jelaskan kondisi barang dan cara kamu bisa dihubungi."></textarea>
-                </div>
-                <div class="wanted-modal-actions wanted-modal-actions-split">
-                    <button class="wanted-button wanted-action-secondary" type="button" data-close-item-offer-modal>Cancel</button>
-                    <button class="wanted-button wanted-action-offer" type="submit">Kirim penawaran</button>
-                </div>
-            </form>
-        {% else %}
-            <p>Kamu belum punya barang yang tersedia untuk ditawarkan. Unggah barangmu dulu, lalu kembali ke sini.</p>
-            <div class="wanted-modal-actions wanted-modal-actions-split">
-                <button class="wanted-button wanted-action-secondary" type="button" data-close-item-offer-modal>Cancel</button>
-                <a class="wanted-button wanted-action-offer" href="{% url 'items:item_create' %}">Jual Barang</a>
-            </div>
-        {% endif %}
-    {% endif %}
+    <p data-offer-target>Share the item you have and your proposed price.</p>
+    {% include "wanted_board/_item_offer_form.html" %}
 </dialog>
-
-<script>
-    (() => {
-        const modal = document.getElementById("item-offer-modal");
-        const openButton = document.querySelector("[data-open-item-offer-modal]");
-        if (!modal || !openButton) return;
-
-        openButton.addEventListener("click", () => modal.showModal());
-        modal.querySelectorAll("[data-close-item-offer-modal]").forEach((button) => {
-            button.addEventListener("click", () => modal.close());
-        });
-        modal.addEventListener("click", (event) => {
-            if (event.target === modal) modal.close();
-        });
-    })();
-</script>

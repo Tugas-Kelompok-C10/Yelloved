@@ -1,3 +1,5 @@
+"""Legacy validator retained for historical migrations 0010 and 0013 only."""
+
 import warnings
 
 from django.core.exceptions import ValidationError
