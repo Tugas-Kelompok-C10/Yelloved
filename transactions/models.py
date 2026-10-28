@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.conf import settings
 
 
 class Transaction(models.Model):
@@ -54,3 +55,31 @@ class Transaction(models.Model):
 
     def __str__(self):
         return self.order_id
+
+
+
+class CartItem(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="cart_items",
+    )
+    item = models.ForeignKey(
+        "items.Item",
+        on_delete=models.CASCADE,
+        related_name="cart_entries",
+    )
+    quantity = models.PositiveIntegerField(default=1)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-added_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "item"],
+                name="unique_user_cart_item",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.user} - {self.item.title} ({self.quantity})"

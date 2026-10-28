@@ -1259,3 +1259,112 @@ body.address-modal-open {
         height: 38px;
     }
 }
+
+
+
+/* ========================================
+   CHECKOUT ORDER SUMMARY
+======================================== */
+
+.checkout-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    align-items: start;
+    gap: 24px;
+}
+
+.checkout-main-column {
+    display: grid;
+    gap: 20px;
+    min-width: 0;
+}
+
+.checkout-summary-card {
+    position: sticky;
+    top: 24px;
+    padding: 24px;
+    background: #fffdf6;
+    border: 1px solid #e9dfa9;
+    border-radius: 20px;
+    box-shadow: 0 8px 28px rgb(66 16 68 / 5%);
+}
+
+.checkout-summary-heading {
+    margin: 0 0 20px;
+    color: #421044;
+    font-size: 19px;
+    font-weight: 750;
+}
+
+.checkout-summary-item {
+    display: grid;
+    grid-template-columns: 84px minmax(0, 1fr);
+    gap: 14px;
+    padding: 16px 0;
+    border-bottom: 1px solid #eee6c9;
+}
+
+.checkout-summary-image {
+    width: 84px;
+    height: 84px;
+    object-fit: cover;
+    border-radius: 12px;
+    background: #f4edf4;
+}
+
+.checkout-summary-info {
+    min-width: 0;
+}
+
+.checkout-summary-info h3 {
+    margin: 0 0 7px;
+    color: #351039;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.checkout-summary-price {
+    margin: 0;
+    color: #70417b;
+    font-size: 14px;
+    font-weight: 750;
+}
+
+.checkout-summary-quantity {
+    margin: 6px 0 0;
+    color: #81778b;
+    font-size: 12px;
+}
+
+.checkout-summary-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 20px;
+    color: #421044;
+    font-size: 14px;
+}
+
+.checkout-summary-total strong {
+    font-size: 18px;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+.checkout-summary-empty {
+    color: #81778b;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+@media (max-width: 900px) {
+    .checkout-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .checkout-summary-card {
+        position: static;
+    }
+}
