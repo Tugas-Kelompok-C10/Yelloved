@@ -1,24 +1,38 @@
+from decimal import Decimal
+import uuid
+
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator, MinValueValidator
 from django.db import models
 
+from .validators import validate_reference_image
+
+
+class WantedPostQuerySet(models.QuerySet):
+    def update(self, **kwargs):
+        if {"id", "pk"} & kwargs.keys():
+            raise ValidationError("A wanted post ID cannot be changed.")
+        return super().update(**kwargs)
+
+    def bulk_update(self, objs, fields, batch_size=None):
+        if {"id", "pk"} & set(fields):
+            raise ValidationError("A wanted post ID cannot be changed.")
+        return super().bulk_update(objs, fields, batch_size=batch_size)
+
 
 class WantedPost(models.Model):
+    objects = WantedPostQuerySet.as_manager()
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
     class Category(models.TextChoices):
         FASHION = "fashion", "Fashion"
         BOOKS = "books", "Books & Study"
         ELECTRONICS = "electronics", "Electronics"
         HOME = "home", "Home & Living"
+        SKINCARE = "skincare", "Skincare"
+        KITCHEN_HOUSEWARE = "kitchen_houseware", "Kitchen & Houseware"
         OTHER = "other", "Other"
-
-    class Condition(models.TextChoices):
-        NEW = "new", "New"
-        LIGHTLY_USED = "lightly_used", "Lightly used"
-        WELL_USED = "well_used", "Well used"
-
-    class ListingType(models.TextChoices):
-        SELL = "sell", "Sell"
-        FREE = "free", "Free"
 
     class Status(models.TextChoices):
         OPEN = "open", "Open"
@@ -31,12 +45,13 @@ class WantedPost(models.Model):
         related_name="wanted_posts",
     )
     title = models.CharField(max_length=50)
-    image = models.FileField(
+    image = models.ImageField(
         upload_to="wanted_references/",
         validators=[
             FileExtensionValidator(
                 allowed_extensions=("jpg", "jpeg", "png", "webp")
-            )
+            ),
+            validate_reference_image,
         ],
     )
     description = models.TextField()
@@ -45,22 +60,15 @@ class WantedPost(models.Model):
         choices=Category.choices,
         default=Category.OTHER,
     )
-    listing_type = models.CharField(
-        max_length=10,
-        choices=ListingType.choices,
-        default=ListingType.SELL,
-    )
-    preferred_condition = models.CharField(
-        max_length=20,
-        choices=Condition.choices,
-        default=Condition.LIGHTLY_USED,
-    )
     budget = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        blank=True,
+        blank=False,
         null=True,
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(
+            Decimal("0.01"),
+            message="Please enter a maximum budget greater than Rp0.",
+        )],
     )
     location = models.CharField(max_length=120, blank=True)
     status = models.CharField(
@@ -76,6 +84,22 @@ class WantedPost(models.Model):
 
     def __str__(self):
         return self.title
+
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        instance = super().from_db(db, field_names, values)
+        instance._original_pk = instance.pk
+        return instance
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            raise ValidationError("A wanted post ID is required.")
+        self.pk = uuid.UUID(str(self.pk))
+        if getattr(self, "_original_pk", self.pk) != self.pk:
+            raise ValidationError("A wanted post ID cannot be changed.")
+        result = super().save(*args, **kwargs)
+        self._original_pk = self.pk
+        return result
 
 
 class Offer(models.Model):

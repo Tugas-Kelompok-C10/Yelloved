@@ -12,9 +12,12 @@
         <nav class="profile-menu" aria-label="Navigasi akun">
             <section>
                 <h2>Inbox</h2>
-                <a href="#chat">Chat</a>
                 <a href="{% url 'account_profile:reviews' %}">Ulasan</a>
                 <a href="{% url 'account_profile:help_messages' %}">Bantuan</a>
+            </section>
+            <section>
+                <h2>Matching</h2>
+                <a href="{% url 'item_matching:dashboard' %}">Request &amp; Penawaran</a>
             </section>
             <section>
                 <h2>Purchase</h2>

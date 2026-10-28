@@ -86,8 +86,24 @@
 .explore-page .item-form-field { display: grid; gap: 7px; }
 .explore-page .item-form-field label { font-size: 12px; font-weight: 600; }
 .explore-page .item-form-field :is(input, select, textarea) { width: 100%; min-height: 44px; padding: 12px; border: 1px solid #ded8bf; border-radius: 10px; background: var(--paper); color: var(--violet); font: inherit; font-size: 13px; }
+.explore-page .item-form-field input[type="file"] { padding: 6px 8px; color: #716b61; }
+.explore-page .item-form-field input[type="file"]::file-selector-button {
+    margin-right: 12px;
+    padding: 9px 16px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--violet);
+    color: var(--text);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 160ms ease;
+}
+.explore-page .item-form-field input[type="file"]::file-selector-button:hover { background: var(--violet-hover); }
 .explore-page .item-form-field textarea { resize: vertical; }
 .explore-page .item-form-help { font-size: 11px; color: #716b61; }
+.explore-page .item-current-image { width: min(100%, 280px); max-height: 210px; border: 1px solid #e4dfcd; border-radius: 10px; object-fit: cover; }
 .explore-page .errorlist { padding-left: 20px; font-size: 12px; color: #a21d2b; }
 .explore-page .explore-button-secondary { border: 1px solid var(--violet); background: var(--paper); color: var(--violet); }
 .explore-page .explore-button-secondary:hover { background: var(--text); }

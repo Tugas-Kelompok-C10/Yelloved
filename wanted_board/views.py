@@ -1,5 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Q
 from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -7,52 +9,34 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from .forms import OfferForm, WantedPostForm
+from .creation import creation_uid, issue_creation_token
+from .forms import OfferForm, WantedCreateForm, WantedPostForm
 from .models import Offer, WantedPost
 from .sample_data import SAMPLE_WANTED_POSTS
 
 
-def _sample_posts_for(query, category, condition, listing_type):
+def _sample_posts_for(query, category):
     sample_posts = SAMPLE_WANTED_POSTS
     if query:
         normalized_query = query.casefold()
-        if normalized_query in WantedPost.ListingType.values:
-            sample_posts = tuple(
-                post
-                for post in sample_posts
-                if post["listing_type"] == normalized_query
-            )
-        else:
-            sample_posts = tuple(
-                post
-                for post in sample_posts
-                if normalized_query
-                in " ".join(
-                    (
-                        post["title"],
-                        post["description"],
-                        post["location"],
-                        post["poster"],
-                        post["listing_type_label"],
-                        post["category_label"],
-                        post["condition_label"],
-                        post["source_category"],
-                    )
-                ).casefold()
-            )
-    if category in WantedPost.Category.values:
-        sample_posts = tuple(
-            post for post in sample_posts if post["category"] == category
-        )
-    if condition in WantedPost.Condition.values:
-        sample_posts = tuple(
-            post for post in sample_posts if post["condition"] == condition
-        )
-    if listing_type in WantedPost.ListingType.values:
         sample_posts = tuple(
             post
             for post in sample_posts
-            if post["listing_type"] == listing_type
+            if normalized_query
+            in " ".join(
+                (
+                    post["title"],
+                    post["description"],
+                    post["location"],
+                    post["poster"],
+                    post["category_label"],
+                    post["source_category"],
+                )
+            ).casefold()
+        )
+    if category in WantedPost.Category.values:
+        sample_posts = tuple(
+            post for post in sample_posts if post["category"] == category
         )
     return sample_posts
 
@@ -64,8 +48,6 @@ def _wanted_cards(wanted_posts, sample_posts):
             "image_url": post.image.url if post.image else "",
             "description": post.description,
             "category_label": post.get_category_display(),
-            "listing_type_label": post.get_listing_type_display(),
-            "condition_label": post.get_preferred_condition_display(),
             "budget": post.budget,
             "location": post.location or "Around UI",
             "poster": post.requester.username,
@@ -93,29 +75,18 @@ def _wanted_cards(wanted_posts, sample_posts):
 def _board_context(request, creation_form=None, open_create_modal=False):
     query = request.GET.get("q", "").strip()
     category = request.GET.get("category", "").strip()
-    condition = request.GET.get("condition", "").strip()
-    listing_type = request.GET.get("listing_type", "").strip()
 
     wanted_posts = WantedPost.objects.select_related("requester")
     if query:
-        normalized_query = query.casefold()
-        if normalized_query in WantedPost.ListingType.values:
-            wanted_posts = wanted_posts.filter(listing_type=normalized_query)
-        else:
-            wanted_posts = wanted_posts.filter(
-                Q(title__icontains=query)
-                | Q(description__icontains=query)
-                | Q(location__icontains=query)
-                | Q(listing_type__icontains=query)
-            )
+        wanted_posts = wanted_posts.filter(
+            Q(title__icontains=query)
+            | Q(description__icontains=query)
+            | Q(location__icontains=query)
+        )
     if category in WantedPost.Category.values:
         wanted_posts = wanted_posts.filter(category=category)
-    if condition in WantedPost.Condition.values:
-        wanted_posts = wanted_posts.filter(preferred_condition=condition)
-    if listing_type in WantedPost.ListingType.values:
-        wanted_posts = wanted_posts.filter(listing_type=listing_type)
 
-    sample_posts = _sample_posts_for(query, category, condition, listing_type)
+    sample_posts = _sample_posts_for(query, category)
     wanted_cards = _wanted_cards(wanted_posts, sample_posts)
 
     return {
@@ -123,16 +94,14 @@ def _board_context(request, creation_form=None, open_create_modal=False):
         "wanted_posts": wanted_posts,
         "query": query,
         "selected_category": category,
-        "selected_condition": condition,
-        "selected_listing_type": listing_type,
         "categories": WantedPost.Category.choices,
-        "conditions": WantedPost.Condition.choices,
-        "listing_types": WantedPost.ListingType.choices,
         "sample_posts": sample_posts,
         "wanted_cards": wanted_cards,
         "total_count": len(wanted_cards),
         "creation_form": (
-            creation_form if creation_form is not None else WantedPostForm()
+            creation_form if creation_form is not None else WantedCreateForm(
+                initial={"creation_token": issue_creation_token(request.user)}
+            )
         ),
         "open_create_modal": open_create_modal,
     }
@@ -157,8 +126,6 @@ def show_wanted(request):
                     f"{'s' if total_count != 1 else ''} found"
                 ),
                 "selected_category": context["selected_category"],
-                "selected_condition": context["selected_condition"],
-                "selected_listing_type": context["selected_listing_type"],
             }
         )
     return render(request, "wanted_post.html", context)
@@ -166,20 +133,27 @@ def show_wanted(request):
 
 def wanted_detail(request, pk):
     wanted_post = get_object_or_404(
-        WantedPost.objects.select_related("requester").prefetch_related(
-            "offers__offerer"
+        WantedPost.objects.select_related(
+            "requester", "requester__account_profile"
         ),
         pk=pk,
-    )
-    has_offered = (
-        request.user.is_authenticated
-        and wanted_post.offers.filter(offerer=request.user).exists()
     )
     context = {
         "name": "Yelloved",
         "wanted_post": wanted_post,
-        "offer_form": OfferForm(),
-        "has_offered": has_offered,
+        "edit_form": (
+            WantedPostForm(instance=wanted_post)
+            if request.user == wanted_post.requester
+            else None
+        ),
+        "open_edit_modal": (
+            request.user == wanted_post.requester
+            and request.GET.get("edit") == "1"
+        ),
+        "open_delete_modal": (
+            request.user == wanted_post.requester
+            and request.GET.get("delete") == "1"
+        ),
     }
     return render(request, "wanted_board/detail.html", context)
 
@@ -199,18 +173,59 @@ def sample_wanted_detail(request, slug):
     )
 
 
+def _is_ajax(request):
+    return request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+
+def _saved_response(request, wanted_post, message):
+    messages.success(request, message)
+    url = reverse("wanted_board:wanted_detail", args=[wanted_post.pk])
+    if _is_ajax(request):
+        return JsonResponse({"redirect_url": url, "uid": str(wanted_post.pk)})
+    return redirect(url)
+
+
+def _form_errors_response(form):
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=422)
+
+
 @login_required
 def create_wanted(request):
     if request.method == "GET":
         return redirect(f"{reverse('wanted_board:show_wanted')}?create=1")
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["GET", "POST"])
 
-    form = WantedPostForm(request.POST, request.FILES)
-    if request.method == "POST" and form.is_valid():
-        wanted_post = form.save(commit=False)
-        wanted_post.requester = request.user
-        wanted_post.save()
-        messages.success(request, "Your wanted post has been created.")
-        return redirect("wanted_board:wanted_detail", pk=wanted_post.pk)
+    form = WantedCreateForm(request.POST, request.FILES)
+    try:
+        uid = creation_uid(request.POST.get("creation_token", ""), request.user)
+    except ValidationError as error:
+        form.is_valid()
+        form.add_error(None, error)
+    else:
+        existing_post = WantedPost.objects.filter(pk=uid, requester=request.user).first()
+        if existing_post:
+            return _saved_response(request, existing_post, "Your wanted post has been created.")
+        if form.is_valid():
+            defaults = {
+                key: value for key, value in form.cleaned_data.items()
+                if key not in {"image", "creation_token"}
+            }
+            # Reserve the unique UID before saving any file. A concurrent retry
+            # returns the winner's row without uploading another copy of its image.
+            with transaction.atomic():
+                wanted_post, created = WantedPost.objects.get_or_create(
+                    pk=uid, defaults={**defaults, "requester": request.user, "image": ""}
+                )
+                if wanted_post.requester_id != request.user.pk:
+                    raise Http404("Wanted post not found")
+                if created:
+                    wanted_post.image = form.cleaned_data["image"]
+                    wanted_post.save(update_fields=["image"])
+            return _saved_response(request, wanted_post, "Your wanted post has been created.")
+
+    if _is_ajax(request):
+        return _form_errors_response(form)
 
     context = _board_context(
         request,
@@ -223,22 +238,37 @@ def create_wanted(request):
 @login_required
 def edit_wanted(request, pk):
     wanted_post = get_object_or_404(WantedPost, pk=pk, requester=request.user)
+    if request.method == "GET":
+        return redirect(
+            f"{reverse('wanted_board:wanted_detail', args=[wanted_post.pk])}?edit=1"
+        )
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["GET", "POST"])
+
     form = WantedPostForm(
-        request.POST if request.method == "POST" else None,
-        request.FILES if request.method == "POST" else None,
+        request.POST,
+        request.FILES,
         instance=wanted_post,
     )
-    if request.method == "POST" and form.is_valid():
-        form.save()
-        messages.success(request, "Your wanted post has been updated.")
-        return redirect("wanted_board:wanted_detail", pk=wanted_post.pk)
+    if form.is_valid():
+        with transaction.atomic():
+            form.save()
+        return _saved_response(request, wanted_post, "Your wanted post has been updated.")
+
+    if _is_ajax(request):
+        return _form_errors_response(form)
+
+    # ModelForm validation mutates its instance even when other fields fail.
+    # Render the persisted post in the detail behind the bound edit modal.
+    wanted_post.refresh_from_db()
 
     return render(
         request,
-        "wanted_board/form.html",
+        "wanted_board/detail.html",
         {
-            "form": form,
-            "form_title": "Edit wanted post",
+            "edit_form": form,
+            "open_edit_modal": True,
+            "open_delete_modal": False,
             "wanted_post": wanted_post,
             "name": "Yelloved",
         },
@@ -254,11 +284,8 @@ def delete_wanted(request, pk):
         return redirect("wanted_board:show_wanted")
     if request.method != "GET":
         return HttpResponseNotAllowed(["GET", "POST"])
-
-    return render(
-        request,
-        "wanted_board/confirm_delete.html",
-        {"wanted_post": wanted_post, "name": "Yelloved"},
+    return redirect(
+        f"{reverse('wanted_board:wanted_detail', args=[wanted_post.pk])}?delete=1"
     )
 
 
@@ -295,6 +322,7 @@ def create_offer(request, pk):
             offer = form.save(commit=False)
             offer.wanted_post = wanted_post
             offer.offerer = request.user
+            offer.message = ""
             offer.save()
             messages.success(request, "Your offer has been sent.")
         else:

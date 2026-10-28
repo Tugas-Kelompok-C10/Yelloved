@@ -23,7 +23,6 @@
                             <label class="profile-photo-button" for="{{ form.photo.id_for_label }}">Pilih Foto</label>
                             {{ form.photo }}
                             {% for error in form.photo.errors %}<small class="form-error photo-error">{{ error }}</small>{% endfor %}
-                            <small class="photo-hint">JPG, PNG, GIF, WebP · maks. 5 MB</small>
                         </article>
                         <div class="biodata-details">
                         <section>

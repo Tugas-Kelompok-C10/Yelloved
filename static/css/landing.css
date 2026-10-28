@@ -1,0 +1,354 @@
+/* Landing hero — spacing and palette follow the shared Yelloved tokens. */
+.landing-page {
+    color: var(--violet);
+    background: var(--paper);
+}
+
+.landing-hero {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: min(1280px, calc(100% - 40px));
+    min-height: max(680px, calc(100svh - 72px));
+    margin: 0 auto;
+    padding: 116px 40px 164px;
+    overflow: hidden;
+}
+
+.landing-love-form { display: none; }
+
+.landing-content {
+    position: relative;
+    width: 100%;
+    max-width: 720px;
+    text-align: center;
+}
+
+/* Staggered headline with a clickable violet version of the existing logo. */
+.landing-headline {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 22px;
+    font-family: "Trispace", sans-serif;
+    font-size: clamp(32px, 3.5vw, 46px);
+    font-weight: 750;
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+}
+
+.landing-headline-start { justify-self: end; text-align: right; }
+.landing-headline-end { justify-self: start; padding-top: 48px; text-align: left; }
+
+.landing-love-logo {
+    display: grid;
+    flex: none;
+    width: 124px;
+    height: 112px;
+    margin-top: 0;
+    padding: 4px;
+    border: 0;
+    border-radius: var(--radius);
+    background: transparent;
+    cursor: pointer;
+    place-items: center;
+}
+
+.landing-logo-art {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 353 / 296;
+    /* Equalize the PNG's 13px left / 35px right transparent margins. */
+    translate: 3.12% 0;
+    transform-origin: 46.9% 50%;
+    animation: landing-logo-pop 720ms cubic-bezier(0.2, 0.75, 0.3, 1) both;
+    transition: scale 180ms ease;
+}
+
+.landing-logo-hands {
+    position: absolute;
+    inset: 0;
+    background: var(--violet);
+    -webkit-mask: var(--landing-logo-hands) center / contain no-repeat;
+    mask: var(--landing-logo-hands) center / contain no-repeat;
+    /* Rotate around the star's center in the original logo canvas. */
+    transform-origin: 46.9% 48.3%;
+    animation: landing-hands-spin 1.5s ease-in-out 1 forwards;
+}
+
+.landing-logo-star-anchor {
+    position: absolute;
+    top: 48.3%;
+    left: 46.9%;
+    width: 23.51%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+}
+
+.landing-logo-star {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--violet);
+    -webkit-mask: var(--landing-logo-star) center / contain no-repeat;
+    mask: var(--landing-logo-star) center / contain no-repeat;
+    transform-origin: center;
+    animation: landing-star-grow 600ms 220ms cubic-bezier(0.2, 0.75, 0.3, 1) both;
+}
+
+.landing-love-logo:hover .landing-logo-art { scale: 1.04; }
+.landing-love-logo:active .landing-logo-art { scale: 0.94; }
+
+/* Entrance motion scales the artwork without changing its grid position. */
+@keyframes landing-logo-pop {
+    0% { opacity: 0; transform: scale(0.2); }
+    65% { opacity: 1; transform: scale(1.12); }
+    82% { opacity: 1; transform: scale(0.97); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes landing-hands-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes landing-star-grow {
+    from { opacity: 0; transform: scale(0); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Supporting copy and the main destination. */
+.landing-intro { margin-top: 64px; }
+
+.landing-intro > p:first-child {
+    font-family: "Trispace", sans-serif;
+    font-size: clamp(12px, 1.4vw, 17px);
+    font-weight: 650;
+    line-height: 1.7;
+}
+
+.landing-explore {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 208px;
+    min-height: 48px;
+    margin-top: 30px;
+    padding: 12px 24px;
+    border-radius: var(--radius-pill);
+    background: var(--violet);
+    color: var(--paper);
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 160ms ease, transform 160ms ease;
+}
+
+.landing-explore:hover { background: var(--violet-hover); transform: translateY(-2px); }
+
+.landing-feedback {
+    min-height: 20px;
+    margin-top: 16px;
+    color: var(--error);
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+/* Floating +1 hearts. The layer passes clicks through outside its buttons. */
+.landing-hearts {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    pointer-events: none;
+}
+
+.landing-heart {
+    position: absolute;
+    display: grid;
+    min-width: 72px;
+    min-height: 44px;
+    padding: 6px;
+    border: 0;
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--violet);
+    font-family: "Trispace", sans-serif;
+    font-size: 23px;
+    font-weight: 700;
+    cursor: pointer;
+    pointer-events: auto;
+    place-items: center;
+    rotate: var(--heart-tilt, 0deg);
+}
+
+.landing-heart-content,
+.landing-heart-burst { display: inline-flex; align-items: center; gap: 6px; }
+
+.landing-heart-content {
+    animation: landing-heart-float 4s ease-in-out infinite;
+    animation-delay: var(--heart-delay, 0s);
+}
+
+.landing-heart svg,
+.landing-heart-burst svg { flex: none; width: 29px; height: 29px; fill: var(--blue); }
+.landing-heart:hover svg { fill: var(--blue-hover); }
+.landing-heart:active { scale: 0.9; }
+
+.landing-heart--1 { top: 6%; left: 17%; --heart-tilt: 6deg; }
+.landing-heart--2 { top: 6%; right: 20%; --heart-delay: -1.7s; --heart-tilt: -7deg; }
+.landing-heart--3 { top: 33%; left: 3%; --heart-delay: -0.8s; --heart-tilt: 6deg; }
+.landing-heart--4 { top: 40%; left: 18%; --heart-delay: -2.4s; --heart-tilt: -12deg; }
+.landing-heart--5 { top: 28%; right: 3%; --heart-delay: -1.2s; --heart-tilt: 10deg; }
+.landing-heart--6 { bottom: 23%; left: 21%; --heart-delay: -2s; }
+.landing-heart--7 { bottom: 33%; right: 25%; --heart-delay: -0.4s; --heart-tilt: 12deg; }
+.landing-heart--8 { bottom: 19%; right: 0; --heart-delay: -3s; --heart-tilt: -8deg; }
+.landing-heart--9 { bottom: 15%; left: 2%; --heart-delay: -1s; --heart-tilt: -5deg; }
+
+.landing-hero :is(button, a):focus-visible {
+    outline: 3px solid var(--violet-light-hover);
+    outline-offset: 5px;
+}
+
+/* An AJAX-confirmed heart rises from the clicked control. */
+.landing-heart-burst {
+    position: absolute;
+    z-index: 3;
+    color: var(--violet);
+    font-family: "Trispace", sans-serif;
+    font-size: 23px;
+    font-weight: 700;
+    pointer-events: none;
+    animation: landing-heart-rise 800ms ease-out forwards;
+}
+
+@keyframes landing-heart-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-7px); }
+}
+
+@keyframes landing-heart-rise {
+    from { opacity: 1; transform: translate(-50%, -50%) scale(0.8); }
+    to { opacity: 0; transform: translate(-50%, -100px) scale(1.2) rotate(7deg); }
+}
+
+/* Explore invitation with a playful collage of illustrative item cards. */
+.landing-discover {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 40px;
+    width: min(1280px, calc(100% - 40px));
+    margin: 0 auto 100px;
+    padding: 72px 64px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--light-paper);
+}
+
+.landing-discover h2 {
+    font-family: "Trispace", sans-serif;
+    font-size: clamp(30px, 3.6vw, 48px);
+    font-weight: 700;
+    line-height: 1.16;
+    letter-spacing: -0.04em;
+}
+
+.landing-discover-description { max-width: 340px; margin-top: 24px; font-size: 14px; line-height: 1.8; }
+.landing-discover .landing-explore { gap: 12px; width: fit-content; }
+.landing-discover a:focus-visible { outline: 3px solid var(--violet); outline-offset: 5px; }
+
+/* Overlapping cards remain links; no sample listing is presented as a real item. */
+.landing-find-collage { position: relative; min-width: 0; height: 440px; }
+.landing-find {
+    position: absolute;
+    width: 56%;
+    max-width: 240px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--violet);
+    background: var(--paper);
+    text-decoration: none;
+    transition: transform 180ms ease;
+}
+.landing-find--back { top: 12px; right: 0; transform: rotate(8deg); }
+.landing-find--front { top: 104px; left: 0; transform: rotate(-8deg); }
+.landing-find--back:hover { transform: rotate(5deg) translateY(-6px); }
+.landing-find--front:hover { transform: rotate(-5deg) translateY(-6px); }
+.landing-find-image {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    aspect-ratio: 1;
+    border-radius: var(--radius);
+    background: var(--text);
+}
+.landing-find--front .landing-find-image { background: var(--blue); }
+.landing-find-image svg { width: 76px; height: 76px; }
+.landing-find-image > span { font-size: 9px; }
+.landing-find-info { padding: 16px 6px 8px; }
+.landing-find-info h3 { font-size: 13px; font-weight: 500; line-height: 1.6; }
+.landing-find-info p { margin-top: 8px; font-family: "Trispace", sans-serif; font-size: 16px; font-weight: 700; }
+
+/* Wanted invitation mirrors the first section: item cards left, copy right. */
+.landing-wanted .landing-discover-copy { text-align: right; }
+.landing-wanted .landing-discover-description { margin-left: auto; }
+.landing-wanted .landing-find-collage { height: 460px; }
+.landing-find-budget-label { display: block; margin-top: 10px; font-size: 9px; }
+
+/* Stack the Explore invitation while retaining the overlapping composition. */
+@media (max-width: 1000px) {
+    .landing-discover { padding: 48px 32px; gap: 28px; }
+    .landing-find-collage { height: 400px; }
+}
+
+/* Keep the central composition clear on narrow screens. */
+@media (max-width: 760px) {
+    .landing-discover { grid-template-columns: 1fr; width: calc(100% - 24px); margin-bottom: 56px; padding: 36px 24px; gap: 44px; }
+    .landing-find-collage { width: 100%; max-width: 440px; height: 430px; margin: 0 auto; }
+    .landing-hero {
+        width: calc(100% - 24px);
+        min-height: max(620px, calc(100svh - 72px));
+        padding: 112px 12px 130px;
+    }
+
+    .landing-headline { gap: 12px; font-size: clamp(23px, 4.4vw, 33px); }
+    .landing-headline-end { padding-top: 35px; }
+    .landing-love-logo { width: 82px; height: 78px; }
+    .landing-intro { margin-top: 40px; }
+    .landing-heart { min-width: 58px; font-size: 17px; }
+    .landing-heart svg { width: 23px; height: 23px; }
+    .landing-heart--1 { left: 9%; }
+    .landing-heart--2 { right: 8%; }
+    .landing-heart--4 { top: 43%; left: 13%; }
+    .landing-heart--5 { top: 38%; }
+    .landing-heart--7 { bottom: 13%; right: 23%; }
+}
+
+@media (max-width: 400px) {
+    .landing-wanted .landing-find-collage { height: 400px; }
+    .landing-discover { padding: 32px 18px; }
+    .landing-find-collage { height: 380px; }
+    .landing-find-info h3 { font-size: 11px; }
+    .landing-find-info p { font-size: 13px; }
+    .landing-headline { gap: 7px; font-size: 22px; }
+    .landing-love-logo { width: 64px; height: 65px; }
+    .landing-intro > p:first-child { max-width: 270px; margin: 0 auto; }
+    .landing-heart--3, .landing-heart--8 { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .landing-heart-content { animation: none; }
+    .landing-heart-burst { animation: none; transform: translate(-50%, -60px); }
+    .landing-logo-art, .landing-logo-hands, .landing-logo-star {
+        animation: none;
+        transition: none;
+    }
+    .landing-explore { transition: none; }
+    .landing-find { transition: none; }
+}

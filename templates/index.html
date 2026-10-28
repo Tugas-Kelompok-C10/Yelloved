@@ -1,6 +1,112 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block meta %}
+    <title>Yelloved</title>
+    <meta name="description" content="Buy less. Reuse more. Find what you need nearby with Yelloved, a community marketplace around UI.">
+    <link rel="stylesheet" href="{% static 'css/landing.css' %}">
+{% endblock meta %}
+
 {% block content %}
-    <main>
-        <h1>Test test test</h1>
-    </main>
+<main class="landing-page" lang="en">
+    <section class="landing-hero" aria-labelledby="landing-title" data-landing-hero>
+        <audio data-landing-pop src="{% static 'audio/pop.mp3' %}" preload="auto" aria-hidden="true"></audio>
+        <form id="landing-love-form" class="landing-love-form" method="post" action="{% url 'send_love' %}" data-love-form>
+            {% csrf_token %}
+        </form>
+
+        <div class="landing-hearts" role="group" aria-label="Share a little love">
+            {% for position in "123456789" %}
+                <button class="landing-heart landing-heart--{{ position }}" type="submit" form="landing-love-form" aria-label="Send a little love" data-send-love>
+                    <span class="landing-heart-content">
+                        <span aria-hidden="true">+1</span>
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"></path></svg>
+                    </span>
+                </button>
+            {% endfor %}
+        </div>
+
+        <div class="landing-content">
+            <h1 class="sr-only" id="landing-title">Give good things another love.</h1>
+            <div class="landing-headline">
+                <span class="landing-headline-start" aria-hidden="true">Give good<br>things</span>
+                <button class="landing-love-logo" type="submit" form="landing-love-form" aria-label="Give good things another love. Send a heart" title="Send a little love" data-send-love>
+                    <span class="landing-logo-art" aria-hidden="true">
+                        <span class="landing-logo-hands" style="--landing-logo-hands: url('{% static 'img/Yelloved-Hand.png' %}');"></span>
+                        <span class="landing-logo-star-anchor">
+                            <span class="landing-logo-star" style="--landing-logo-star: url('{% static 'img/Yelloved-Star.png' %}');"></span>
+                        </span>
+                    </span>
+                </button>
+                <span class="landing-headline-end" aria-hidden="true">another<br>love.</span>
+            </div>
+
+            <div class="landing-intro">
+                <p>Buy less. Reuse more. Find what you need nearby.</p>
+                <a class="landing-explore" href="{% url 'items:explore_items' %}">Explore</a>
+                <p class="landing-feedback" data-love-message role="status"></p>
+            </div>
+        </div>
+
+        <output class="sr-only" data-heart-count aria-live="polite">{{ heart_count }} hearts shared in this visit.</output>
+        <template data-love-burst>
+            <span class="landing-heart-burst" aria-hidden="true">
+                <span>+1</span>
+                <svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"></path></svg>
+            </span>
+        </template>
+    </section>
+    <!-- Pass it on — illustrative cards accompany the create-listing invitation. -->
+    <section class="landing-discover" aria-labelledby="landing-discover-title">
+        <div class="landing-discover-copy">
+            <h2 id="landing-discover-title">Recently loved,<br>ready to be<br>loved again.</h2>
+            <p class="landing-discover-description">Got something you no longer use? Pass it on to someone in the UI community.</p>
+            <a class="landing-explore" href="{% url 'items:item_create' %}">
+                Pass it On
+            </a>
+        </div>
+
+        <div class="landing-find-collage" aria-label="A preview of what you could find">
+            <a class="landing-find landing-find--back" href="{% url 'items:explore_items' %}" aria-label="Explore items like a campus tote">
+                <div class="landing-find-image">
+                    <svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 29h40l5 38H15l5-38Z"/><path d="M29 30V21a11 11 0 0 1 22 0v9"/></svg>
+                    <span>Image placeholder</span>
+                </div>
+                <div class="landing-find-info"><h3>Everyday campus tote</h3><p>Rp 45.000</p></div>
+            </a>
+            <a class="landing-find landing-find--front" href="{% url 'items:explore_items' %}" aria-label="Explore items like a study lamp">
+                <div class="landing-find-image">
+                    <svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m31 13 22 8 8 23-42-15 12-16Z"/><path d="m39 37 9 28M31 67h34M46 18l6-8"/></svg>
+                    <span>Image placeholder</span>
+                </div>
+                <div class="landing-find-info"><h3>Your next study buddy</h3><p>Rp 75.000</p></div>
+            </a>
+        </div>
+    </section>
+    <!-- Wanted Board invitation — help visitors find something specific. -->
+    <section class="landing-discover landing-wanted" aria-labelledby="landing-wanted-title">
+        <div class="landing-find-collage" aria-label="Illustrative wanted items">
+            <a class="landing-find landing-find--back" href="{% url 'wanted_board:show_wanted' %}" aria-label="Browse requests on the Wanted Board">
+                <div class="landing-find-image">
+                    <svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="22" y="10" width="36" height="60" rx="4"/><path d="M29 19h22v14H29zM29 43h4m6 0h4m6 0h3M29 52h4m6 0h4m6 0h3M29 61h4m6 0h4m6 0h3"/></svg>
+                    <span>Image placeholder</span>
+                </div>
+                <div class="landing-find-info"><h3>Scientific calculator</h3><span class="landing-find-budget-label">Maximum price</span><p>Rp 150.000</p></div>
+            </a>
+            <a class="landing-find landing-find--front" href="{% url 'wanted_board:show_wanted' %}" aria-label="Find more requests on the Wanted Board">
+                <div class="landing-find-image">
+                    <svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M40 19c-9-6-20-7-31-4v46c11-3 22-2 31 4 9-6 20-7 31-4V15c-11-3-22-2-31 4Zm0 0v46M18 26l13 2M18 36l13 2M49 28l13-2M49 38l13-2"/></svg>
+                    <span>Image placeholder</span>
+                </div>
+                <div class="landing-find-info"><h3>A book for next semester</h3><span class="landing-find-budget-label">Maximum price</span><p>Rp 80.000</p></div>
+            </a>
+        </div>
+        <div class="landing-discover-copy">
+            <h2 id="landing-wanted-title">Looking for something specific?</h2>
+            <p class="landing-discover-description">Post what you need, someone nearby might already have exactly what you're looking for.</p>
+            <a class="landing-explore" href="{% url 'wanted_board:show_wanted' %}">Post What You Need</a>
+        </div>
+    </section>
+</main>
+<script src="{% static 'js/landing.js' %}" defer></script>
 {% endblock content %}

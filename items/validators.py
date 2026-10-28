@@ -11,3 +11,8 @@ def validate_item_image(value):
         URLValidator(schemes=['http', 'https'])(value)
     except ValidationError as exc:
         raise ValidationError('Gunakan URL foto HTTP/HTTPS atau aset katalog lokal yang valid.') from exc
+
+
+def validate_item_upload(value):
+    if value.size > 5 * 1024 * 1024:
+        raise ValidationError('Ukuran foto maksimal 5 MB.')

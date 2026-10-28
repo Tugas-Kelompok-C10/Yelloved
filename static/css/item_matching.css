@@ -191,3 +191,368 @@
     flex-wrap: wrap;
   }
 }
+
+/* integrasi: status request di halaman item/wanted, notifikasi, kontak */
+.matching-inline { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin-top: 12px; font-size: 13px; }
+.matching-inline form { display: inline; }
+.matching-inline .explore-reset { background: none; border: 0; cursor: pointer; font: inherit; font-weight: 600; text-decoration: underline; color: var(--violet); }
+.matching-notification-list { list-style: none; display: grid; gap: 2px; padding: 8px 12px; max-height: 280px; overflow: auto; }
+.matching-notification-list a { display: block; padding: 10px 12px; border-radius: 10px; color: var(--violet); font-size: 13px; text-decoration: none; }
+.matching-notification-list a:hover { background: var(--violet-light-hover); }
+.matching-contact { margin-top: 8px; padding: 10px 14px; border-radius: 12px; background: var(--blue); font-size: 13px; }
+.matching-contact a { color: var(--violet); font-weight: 600; }
+.matching-next { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.matching-next a { font-size: 12px; font-weight: 600; color: var(--violet); }
+
+/* ==========================================================================
+   Dashboard — mengikuti layout halaman transaction (.container.orders-page)
+   ========================================================================== */
+
+/* Badge jumlah "menunggu" di dalam rail tab */
+.container.orders-page .orders-tabs a .matching-badge {
+  margin-left: 4px;
+  background: var(--orders-plum);
+  color: #FFFFFF;
+}
+
+.container.orders-page .orders-tabs a.active .matching-badge {
+  background: #FFFFFF;
+  color: var(--orders-plum);
+}
+
+/* Keterangan tab yang sedang aktif */
+.matching-page .matching-tab-intro {
+  margin: 0 0 22px;
+  padding: 18px 22px;
+  border: 1px solid var(--orders-border);
+  border-left: 4px solid var(--orders-plum);
+  border-radius: 14px;
+  background: #FFFFFF;
+  box-shadow: 0 5px 18px rgba(50, 12, 53, 0.045);
+}
+
+.matching-page .matching-tab-intro-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 6px;
+}
+
+.matching-page .matching-tab-intro h2 {
+  margin: 0;
+  color: var(--orders-plum-dark);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+.matching-page .matching-tab-count {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #F3EDF5;
+  color: var(--orders-plum);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.matching-page .matching-tab-intro p {
+  margin: 0;
+  color: var(--orders-muted);
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+/* Kartu: isi lama (judul, peminta, pesan, status, aksi) kini di dalam box order-card */
+.matching-page .order-product-placeholder {
+  overflow: hidden;
+}
+
+.matching-page .order-product-placeholder.has-image {
+  padding: 0;
+  background: #FFFFFF;
+}
+
+.matching-page .order-product-placeholder img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.matching-page .order-product-info {
+  flex: 1 1 auto;
+}
+
+.matching-page .order-product-info h2 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.matching-page .order-product-info h2 a:hover {
+  color: var(--orders-plum);
+  text-decoration: underline;
+}
+
+.matching-page .order-product-info p {
+  margin-bottom: 8px;
+}
+
+.matching-page .order-product-info .matching-note a,
+.matching-page .order-product-info .matching-meta strong {
+  color: var(--orders-plum-dark);
+}
+
+.matching-page .order-product-info .matching-message {
+  max-width: 62ch;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #F8F5F9;
+  color: var(--orders-text);
+  line-height: 1.6;
+}
+
+.matching-page .order-statuses {
+  margin-top: 4px;
+}
+
+/* Status khusus matching (melengkapi status-pending/cancelled milik transaction) */
+.container.orders-page .order-status.status-accepted {
+  border-color: #D4C1DF;
+  background: #EDE2F2;
+  color: #4F1353;
+}
+
+.container.orders-page .order-status.status-rejected,
+.container.orders-page .order-status.status-withdrawn {
+  border-color: #E8CCD5;
+  background: #F9EDF1;
+  color: #913D59;
+}
+
+/* Footer: keterangan di kiri, tombol aksi di kanan */
+.matching-page .matching-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
+
+.matching-page .matching-footer-main {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.matching-page .matching-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.matching-page .matching-actions form {
+  margin: 0;
+}
+
+.matching-page .matching-action {
+  padding: 9px 18px;
+  border: 1px solid var(--orders-plum);
+  border-radius: 10px;
+  background: var(--orders-gradient);
+  color: #FFFFFF;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.matching-page .matching-action:hover {
+  box-shadow: 0 6px 18px rgba(50, 12, 53, 0.18);
+  transform: translateY(-1px);
+}
+
+.matching-page .matching-action-secondary {
+  background: #FFFFFF;
+  color: var(--orders-plum);
+}
+
+.matching-page .matching-action-secondary:hover {
+  background: #F3EDF5;
+}
+
+.matching-page .matching-action:focus-visible {
+  outline: 3px solid #A98AAF;
+  outline-offset: 2px;
+}
+
+/* Kontak setelah diterima (di dalam footer) */
+.matching-page .matching-footer .matching-contact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 16px;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--orders-text);
+  font-size: 12px;
+}
+
+.matching-page .matching-footer .matching-contact a {
+  color: var(--orders-plum);
+  font-weight: 700;
+}
+
+.matching-page .matching-footer .matching-next {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0;
+}
+
+@media (max-width: 700px) {
+  .matching-page .matching-tab-intro {
+    padding: 16px;
+  }
+
+  .matching-page .matching-actions {
+    width: 100%;
+  }
+
+  .matching-page .matching-action {
+    flex: 1 1 0;
+  }
+}
+
+/* ==========================================================================
+   Navbar — ikon Item Matching + popover ringkasan (meniru ikon notifikasi)
+   ========================================================================== */
+
+/* Ikon berada di kiri lonceng (jarak 28px ikon + 16px gap = 44px); geser popover
+   supaya tepi kanannya sejajar dengan popover notifikasi. Sedikit lebih lebar
+   dari popover notifikasi (300px) agar ringkasan tidak terlalu sering membungkus. */
+.nav-matching::after {
+  right: -44px;
+  width: min(340px, calc(100vw - 24px));
+}
+
+.nav-matching .notification-popover {
+  right: -44px;
+  width: min(340px, calc(100vw - 24px));
+}
+
+.nav-matching-trigger {
+  position: relative;
+}
+
+.nav-matching-badge {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #F5D76E;
+  color: #320C35;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 17px;
+  text-align: center;
+  box-shadow: 0 0 0 2px #3C1040;
+}
+
+.matching-summary {
+  overflow-y: auto;
+  padding: 14px 16px 8px;
+}
+
+.matching-summary-lead {
+  margin: 0 0 12px;
+  color: #716b75;
+  font-size: 13px;
+}
+
+.matching-summary-lead strong {
+  color: #320C35;
+}
+
+.matching-summary-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.matching-summary-list a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid #eeeaf1;
+  border-radius: 12px;
+  background: #fdfbfe;
+  color: #29232b;
+  text-decoration: none;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.matching-summary-list a:hover,
+.matching-summary-list a:focus-visible {
+  border-color: #d8c9e5;
+  background: #f5eff8;
+}
+
+.matching-summary-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.matching-summary-text strong {
+  font-size: 14px;
+}
+
+.matching-summary-text small {
+  color: #716b75;
+  font-size: 12px;
+}
+
+.matching-summary-numbers {
+  display: grid;
+  flex: 0 0 auto;
+  justify-items: end;
+  gap: 4px;
+}
+
+.matching-summary-numbers em {
+  color: #716b75;
+  font-size: 11px;
+  font-style: normal;
+}
+
+.matching-pill {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #f3edf5;
+  color: #4f1353;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.matching-pill.is-action {
+  background: #4f1353;
+  color: #fff;
+}
+
+@media (max-width: 700px) {
+  .nav-matching .notification-popover {
+    right: 12px;
+    width: min(340px, calc(100vw - 24px));
+  }
+}

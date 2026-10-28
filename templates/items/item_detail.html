@@ -45,7 +45,7 @@
             </div>
             <div class="explore-detail-note">
                 {% if item.source == 'dummyjson' %}Koleksi inspirasi preloved untuk mahasiswa dan penghuni kos.
-                {% elif user.is_authenticated %}{% if item.owner %}Penjual: {{ item.owner.username }}{% else %}Akun penjual sudah tidak tersedia.{% endif %}
+                {% elif user.is_authenticated %}{% if item.owner %}Penjual: <a href="{% url 'account_profile:user_profile' item.owner.username %}">{{ item.owner.username }}</a>{% else %}Akun penjual sudah tidak tersedia.{% endif %}
                 {% else %}<a href="{% url 'login' %}?next={{ request.path|urlencode }}">Masuk untuk melihat informasi penjual.</a>{% endif %}
             </div>
             {% if can_manage %}<div class="explore-owner-actions"><a class="explore-button" href="{% url 'items:item_update' item.pk %}">Edit Item / Status</a><a class="explore-reset" href="{% url 'items:item_delete' item.pk %}">Hapus Item</a></div>{% endif %}
@@ -61,6 +61,7 @@
                 {% endif %}
                 <a class="explore-button explore-button-secondary" href="{% url 'items:explore_items' %}">Kembali ke Explore</a>
             </div>
+            {% include 'item_matching/_item_requests.html' %}
         </div>
     </article>
     {% if item.source == 'dummyjson' %}<p class="explore-photo-credit"><a href="{% static 'img/items/SOURCES.md' %}">Sumber dan lisensi foto katalog</a></p>{% endif %}

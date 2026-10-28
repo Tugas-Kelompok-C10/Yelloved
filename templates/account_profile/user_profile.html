@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load static %}
+{% load wanted_board_tags %}
+
+{% block meta %}
+<title>Profil {{ profile_user.username }} | Yelloved</title>
+<link rel="stylesheet" href="{% static 'css/user-profile.css' %}?v=11">
+{% endblock %}
+
+{% block content %}
+<main class="public-profile-page" lang="id">
+    <div class="public-profile-frame">
+        <header class="public-profile-header">
+            <div class="public-profile-identity">
+                {% if profile and profile.photo %}
+                    <img class="public-profile-avatar" src="{{ profile.photo.url }}" alt="Foto profil {{ profile_user.username }}">
+                {% else %}
+                    <img class="public-profile-avatar" src="{% static 'img/Default_PP.png' %}" alt="Foto profil default">
+                {% endif %}
+                <div class="public-profile-details">
+                    <h1>{{ profile_user.username }}</h1>
+                    <p class="public-profile-name">{% if profile_user.get_full_name %}{{ profile_user.get_full_name }}{% else %}{{ profile_user.username }}{% endif %}</p>
+                    <div class="public-profile-social-counts"><span><strong>0</strong> followers</span><span><strong>0</strong> following</span></div>
+                </div>
+            </div>
+            {% if is_own_profile %}
+                <div class="public-profile-actions">
+                    <a href="{% url 'account_profile:profile' %}">Edit profil</a>
+                    <a href="{% url 'items:item_create' %}">Tambah produk</a>
+                </div>
+            {% endif %}
+        </header>
+
+        <nav class="public-profile-tabs" aria-label="Konten profil">
+            <a href="?tab=posted"{% if active_tab == "posted" %} class="is-active" aria-current="page"{% endif %}>Posted</a>
+            <a href="?tab=wanted"{% if active_tab == "wanted" %} class="is-active" aria-current="page"{% endif %}>Wanted</a>
+            <a href="?tab=reviews"{% if active_tab == "reviews" %} class="is-active" aria-current="page"{% endif %}>Reviews</a>
+        </nav>
+
+    {% if active_tab == "posted" %}
+        <div class="public-profile-shop">
+            {% if items %}
+                <div class="public-profile-grid">
+                    {% for item in items %}
+                        <article class="public-profile-card">
+                            <a href="{{ item.get_absolute_url }}" class="public-profile-card-link">
+                                <div class="public-profile-card-image"><img src="{{ item.display_image_url }}" alt="{{ item.title }}" loading="lazy"></div>
+                                <div class="public-profile-card-body">
+                                    <p class="public-profile-card-label">{{ item.get_listing_type_display }} · {{ item.get_category_display }}</p>
+                                    <h3>{{ item.title }}</h3>
+                                    <strong>{{ item.price_display }}</strong>
+                                    <p class="public-profile-card-meta">{{ item.location }} <span>·</span> {{ item.get_status_display }}</p>
+                                </div>
+                            </a>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="public-profile-empty-state"><p>Belum ada item</p></div>
+            {% endif %}
+        </div>
+    {% elif active_tab == "wanted" %}
+        <div class="public-profile-shop">
+            {% if wanted_posts %}
+                <div class="public-profile-grid">
+                    {% for post in wanted_posts %}
+                        <article class="public-profile-card">
+                            <a href="{% url 'wanted_board:wanted_detail' post.pk %}" class="public-profile-card-link">
+                                <div class="public-profile-card-image">
+                                    {% if post.image %}<img src="{{ post.image.url }}" alt="Referensi {{ post.title }}" loading="lazy">{% else %}<span class="public-profile-image-fallback" aria-hidden="true">⌕</span>{% endif %}
+                                </div>
+                                <div class="public-profile-card-body">
+                                    <p class="public-profile-card-label">Mencari · {{ post.get_category_display }}</p>
+                                    <h3>{{ post.title }}</h3>
+                                    <strong>{% if post.budget %}{{ post.budget|rupiah }}{% else %}Anggaran fleksibel{% endif %}</strong>
+                                    <p class="public-profile-card-meta">{{ post.location|default:"Lokasi belum ditentukan" }} <span>·</span> {{ post.get_status_display }}</p>
+                                </div>
+                            </a>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="public-profile-empty-state"><p>Belum ada barang yang dicari</p></div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="public-profile-empty-state"><p>Belum ada ulasan</p></div>
+    {% endif %}
+    </div>
+</main>
+{% endblock %}

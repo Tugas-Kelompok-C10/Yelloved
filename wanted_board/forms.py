@@ -1,18 +1,25 @@
 from django import forms
 
 from .models import Offer, WantedPost
+from .validators import validate_reference_image
+
+
+class ReferenceImageField(forms.ImageField):
+    def to_python(self, data):
+        if data is not None:
+            validate_reference_image(data)
+        return super().to_python(data)
 
 
 class WantedPostForm(forms.ModelForm):
     class Meta:
         model = WantedPost
+        field_classes = {"image": ReferenceImageField}
         fields = (
             "title",
             "image",
             "description",
             "category",
-            "listing_type",
-            "preferred_condition",
             "budget",
             "location",
         )
@@ -21,19 +28,26 @@ class WantedPostForm(forms.ModelForm):
             "image": "Reference picture",
             "description": "What do you need?",
             "category": "Category",
-            "listing_type": "Offer type",
-            "preferred_condition": "Preferred condition",
             "budget": "Maximum budget",
             "location": "Your location",
         }
         help_texts = {
-            "image": "This picture is for reference only. Upload a JPG, JPEG, PNG, or WEBP image.",
+            "image": "This picture is for reference only. JPG, JPEG, PNG, or WEBP; maximum 5 MB and 4096 × 4096 pixels.",
+        }
+        error_messages = {
+            "budget": {
+                "required": "Please enter a maximum budget greater than Rp0.",
+                "min_value": "Please enter a maximum budget greater than Rp0.",
+            },
         }
         widgets = {
             "title": forms.TextInput(
                 attrs={"placeholder": "Example: Study desk lamp"}
             ),
-            "image": forms.FileInput(attrs={"accept": ".jpg,.jpeg,.png,.webp"}),
+            "image": forms.FileInput(attrs={
+                "accept": ".jpg,.jpeg,.png,.webp",
+                "data-reference-image": "",
+            }),
             "description": forms.Textarea(
                 attrs={
                     "placeholder": "Describe the item, specifications, or details you need.",
@@ -41,7 +55,8 @@ class WantedPostForm(forms.ModelForm):
                 }
             ),
             "budget": forms.NumberInput(
-                attrs={"min": 0, "step": 1000, "placeholder": "150000"}
+                attrs={"min": "0.01", "step": "0.01", "placeholder": "150000",
+                       "data-wanted-budget": ""}
             ),
             "location": forms.TextInput(
                 attrs={"placeholder": "Example: Kukusan or UI Campus"}
@@ -49,22 +64,28 @@ class WantedPostForm(forms.ModelForm):
         }
 
 
+class WantedCreateForm(WantedPostForm):
+    creation_token = forms.CharField(widget=forms.HiddenInput)
+
+
 class OfferForm(forms.ModelForm):
     class Meta:
         model = Offer
-        fields = ("offered_price", "message")
+        fields = ("offered_price",)
         labels = {
-            "message": "Offer message",
             "offered_price": "Your offer price",
         }
         widgets = {
-            "message": forms.Textarea(
+            "offered_price": forms.NumberInput(
                 attrs={
-                    "placeholder": "Add item details and how the requester can contact you.",
-                    "rows": 4,
+                    "min": 0,
+                    "step": 1000,
+                    "placeholder": "125000",
+                    "inputmode": "numeric",
                 }
             ),
-            "offered_price": forms.NumberInput(
-                attrs={"min": 0, "step": 1000, "placeholder": "125000"}
-            ),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["offered_price"].required = True
