@@ -53,8 +53,18 @@ def items_json(request):
 @require_GET
 def item_detail(request, item_id):
     item = get_object_or_404(Item.objects.select_related('owner'), pk=item_id)
-    return render(request, 'items/item_detail.html', {'name': 'Yelloved', 'item': item,
-                  'can_manage': request.user.is_authenticated and item.owner_id == request.user.pk and item.source == 'user'})
+    can_manage = request.user.is_authenticated and item.owner_id == request.user.pk and item.source == 'user'
+    can_request_item = (request.user.is_authenticated and not can_manage and item.owner_id is not None
+                        and item.source == 'user' and item.status == Item.Status.AVAILABLE)
+    matching_request_form = None
+    if can_request_item:
+        # Reuse the existing matching contract, including its swap item queryset.
+        from item_matching.forms import ItemRequestForm
+        matching_request_form = ItemRequestForm(item=item, user=request.user)
+    return render(request, 'items/item_detail.html', {
+        'name': 'Yelloved', 'item': item, 'can_manage': can_manage,
+        'can_request_item': can_request_item, 'matching_request_form': matching_request_form,
+    })
 
 
 @login_required(login_url='login')
