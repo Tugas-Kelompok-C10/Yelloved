@@ -1,21 +1,11 @@
 {% load wanted_board_tags %}
 {% for card in wanted_cards %}
     <article class="wanted-card"{% if card.is_sample %} data-sample-card{% endif %}>
+        {% if card.is_owner %}<span class="wanted-yours-stamp">Yours!</span>{% endif %}
         <a class="wanted-card-link" href="{{ card.detail_url }}">
-            <div class="wanted-card-media">
-                {% if card.image_url %}
-                    <img src="{{ card.image_url }}" alt="Reference for {{ card.title }}" loading="lazy" referrerpolicy="no-referrer">
-                {% else %}
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <rect x="3" y="4" width="18" height="16" rx="2"></rect>
-                        <circle cx="8.5" cy="9" r="1.5"></circle>
-                        <path d="m5 17 4.5-4 3.5 3 2.5-2 3.5 3"></path>
-                    </svg>
-                {% endif %}
-            </div>
             <div class="wanted-card-body">
                 <h3 title="{{ card.title }}">{{ card.title }}</h3>
-                <span class="wanted-card-budget-label">Maximum price</span>
+                <span class="wanted-card-budget-label">Max Budget</span>
                 <strong class="wanted-card-budget">{% if card.budget %}{{ card.budget|rupiah }}{% else %}Flexible{% endif %}</strong>
                 <p class="wanted-card-location">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -26,11 +16,22 @@
                 </p>
             </div>
         </a>
+        {% if card.is_owner %}
+            <a class="wanted-card-cta" href="{{ card.detail_url }}">Manage post</a>
+        {% else %}
+            <button class="wanted-card-cta" type="button" data-open-item-offer-modal data-offer-title="{{ card.title }}" data-offer-budget="{% if card.budget %}{{ card.budget|rupiah }}{% else %}Flexible{% endif %}" data-offer-post="{{ card.detail_url }}"{% if card.status != "open" %} disabled{% endif %}>I have it!</button>
+        {% endif %}
     </article>
 {% empty %}
-    <div class="wanted-empty">
-        <span aria-hidden="true">⌕</span>
+    <a class="wanted-empty wanted-pin-invitation" {% if user.is_authenticated %}href="{% url 'wanted_board:create_wanted' %}" data-open-wanted-modal{% else %}href="{% url 'login' %}?next={% url 'wanted_board:create_wanted' %}"{% endif %}>
+        <span class="wanted-empty-icon" aria-hidden="true">⌕</span>
         <h3>No matching wanted posts yet</h3>
         <p>Try another search or be the first to share a new request.</p>
-    </div>
+        <span class="wanted-empty-cta">{% include "wanted_board/_pin_icon.html" %} Pin yours here</span>
+    </a>
 {% endfor %}
+{% if wanted_cards and wanted_cards|length < 12 %}
+    <a class="wanted-pin-invitation" {% if user.is_authenticated %}href="{% url 'wanted_board:create_wanted' %}" data-open-wanted-modal{% else %}href="{% url 'login' %}?next={% url 'wanted_board:create_wanted' %}"{% endif %}>
+        {% include "wanted_board/_pin_icon.html" %} Pin yours here
+    </a>
+{% endif %}

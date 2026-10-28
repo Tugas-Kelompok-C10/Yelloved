@@ -3,10 +3,8 @@ import uuid
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import FileExtensionValidator, MinValueValidator
+from django.core.validators import MinValueValidator
 from django.db import models
-
-from .validators import validate_reference_image
 
 
 class WantedPostQuerySet(models.QuerySet):
@@ -45,15 +43,6 @@ class WantedPost(models.Model):
         related_name="wanted_posts",
     )
     title = models.CharField(max_length=50)
-    image = models.ImageField(
-        upload_to="wanted_references/",
-        validators=[
-            FileExtensionValidator(
-                allowed_extensions=("jpg", "jpeg", "png", "webp")
-            ),
-            validate_reference_image,
-        ],
-    )
     description = models.TextField()
     category = models.CharField(
         max_length=20,

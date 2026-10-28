@@ -1,73 +1,14 @@
 from decimal import Decimal
-from io import BytesIO
-
-from PIL import Image
 
 from django.contrib.auth import get_user_model
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, transaction
-from django.test import SimpleTestCase, TestCase
+from django.test import TestCase
 from django.urls import reverse
 
 from .models import Offer, WantedPost
 from .forms import WantedPostForm
 from .creation import issue_creation_token
 from .sample_data import DUMMYJSON_PRODUCTS_URL, SAMPLE_WANTED_POSTS
-
-
-def reference_image(name="reference.png", size=(16, 16), image_format="PNG"):
-    content = BytesIO()
-    Image.new("RGB", size, "green").save(content, format=image_format)
-    return SimpleUploadedFile(name, content.getvalue())
-
-
-class ReferenceImageValidationTests(SimpleTestCase):
-    def form_for(self, image=None, instance=None):
-        return WantedPostForm(
-            {"title": "Desk lamp", "description": "A compact desk lamp.",
-             "category": "home", "budget": "100000", "location": "UI"},
-            {"image": image} if image is not None else {},
-            instance=instance,
-        )
-
-    def test_allowed_image_formats(self):
-        for extension, image_format in (("jpg", "JPEG"), ("jpeg", "JPEG"),
-                                         ("png", "PNG"), ("webp", "WEBP")):
-            with self.subTest(extension=extension):
-                form = self.form_for(reference_image(f"photo.{extension}", image_format=image_format))
-                self.assertTrue(form.is_valid(), form.errors)
-
-    def test_fake_and_corrupted_images_are_rejected(self):
-        corrupt = reference_image().read()[:24]
-        for content in (b"This is not an image", corrupt):
-            form = self.form_for(SimpleUploadedFile("fake.png", content))
-            self.assertFalse(form.is_valid())
-            self.assertIn("Please upload a valid image.", form.errors["image"])
-
-    def test_disallowed_content_cannot_be_renamed_to_png(self):
-        form = self.form_for(reference_image("fake.png", image_format="GIF"))
-        self.assertFalse(form.is_valid())
-        self.assertIn("Please upload a JPG, JPEG, PNG, or WEBP image.", form.errors["image"])
-
-    def test_image_over_five_mb_is_rejected(self):
-        form = self.form_for(SimpleUploadedFile("large.png", b"x" * (5 * 1024 * 1024 + 1)))
-        self.assertFalse(form.is_valid())
-        self.assertIn("Image size must not exceed 5 MB.", form.errors["image"])
-
-    def test_dimension_limit_and_boundary(self):
-        for size, expected in (((4096, 1), True), ((4097, 1), False), ((1, 4097), False)):
-            with self.subTest(size=size):
-                form = self.form_for(reference_image(size=size))
-                self.assertEqual(form.is_valid(), expected, form.errors)
-                if not expected:
-                    self.assertIn("Image dimensions must not exceed 4096 × 4096 pixels.", form.errors["image"])
-
-    def test_creation_requires_image_but_edit_retains_existing_image(self):
-        self.assertFalse(self.form_for().is_valid())
-        post = WantedPost(image="wanted_references/existing.png")
-        form = self.form_for(instance=post)
-        self.assertTrue(form.is_valid(), form.errors)
-        self.assertEqual(form.cleaned_data["image"].name, post.image.name)
 
 
 class WantedBoardModelTests(TestCase):
@@ -154,7 +95,6 @@ class WantedBoardViewTests(TestCase):
                 response = self.client.post(reverse("wanted_board:create_wanted"), {
                     "title": "Desk lamp", "description": "A compact desk lamp.",
                     "category": "home", "location": "UI", "budget": budget,
-                    "image": reference_image(),
                 })
                 self.assertEqual(response.status_code, 200)
                 self.assertContains(response, "Please enter a maximum budget greater than Rp0.")
@@ -170,8 +110,7 @@ class WantedBoardViewTests(TestCase):
                 response = self.client.post(
                     reverse("wanted_board:edit_wanted", args=[self.wanted_post.pk]),
                     {"title": self.wanted_post.title, "description": self.wanted_post.description,
-                     "category": self.wanted_post.category, "budget": budget,
-                     "image": reference_image()},
+                     "category": self.wanted_post.category, "budget": budget},
                 )
                 self.assertEqual(response.status_code, 200)
                 self.assertContains(response, "Please enter a maximum budget greater than Rp0.")
@@ -184,7 +123,7 @@ class WantedBoardViewTests(TestCase):
             form = WantedPostForm({
                 "title": "Desk lamp", "description": "A desk lamp.",
                 "category": "home", "budget": budget,
-            }, {"image": reference_image()})
+            })
             self.assertTrue(form.is_valid(), form.errors)
             self.assertTrue(form.fields["budget"].required)
             self.assertIn('min="0.01"', str(form["budget"]))
@@ -225,18 +164,44 @@ class WantedBoardViewTests(TestCase):
         self.assertIn(self.wanted_post.title, payload["html"])
         self.assertNotIn("Casio Scientific Calculator", payload["html"])
 
-    def test_board_includes_enough_sample_cards_for_see_more(self):
+    def test_board_paginates_real_and_sample_cards(self):
         response = self.client.get(reverse("wanted_board:show_wanted"))
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context["sample_posts"]), 30)
         self.assertContains(response, "Essence Mascara Lash Princess")
         self.assertContains(response, "Annibale Colombo Bed")
-        self.assertContains(response, "Cooking Oil")
-        self.assertContains(response, "Kiwi")
-        self.assertContains(response, "data-sample-card", count=30)
-        self.assertContains(response, "See More")
+        self.assertNotContains(response, "Cooking Oil")
+        self.assertNotContains(response, "Kiwi")
+        self.assertContains(response, "data-sample-card", count=11)
+        self.assertEqual(len(response.context["wanted_cards"]), 12)
+        self.assertContains(response, 'aria-label="Next page"')
+        self.assertNotContains(response, "See More")
         self.assertNotContains(response, "requests found")
+
+        second_page = self.client.get(reverse("wanted_board:show_wanted"), {"page": 3})
+        self.assertContains(second_page, "Kiwi")
+        self.assertNotContains(second_page, self.wanted_post.title)
+        self.assertEqual(len(second_page.context["wanted_cards"]), 7)
+        self.assertEqual(second_page.context["total_count"], 31)
+
+    def test_ajax_pagination_preserves_filters_and_handles_invalid_pages(self):
+        url = reverse("wanted_board:show_wanted")
+        headers = {"HTTP_X_REQUESTED_WITH": "XMLHttpRequest"}
+        response = self.client.get(url, {"page": 2}, **headers)
+        self.assertEqual(response.json()["page_number"], 2)
+        self.assertIn(SAMPLE_WANTED_POSTS[11]["title"], response.json()["html"])
+        self.assertIn('aria-current="page"', response.json()["pagination_html"])
+        for page, expected in (("invalid", 1), ("999", 3), ("-1", 3)):
+            with self.subTest(page=page):
+                self.assertEqual(self.client.get(url, {"page": page}, **headers).json()["page_number"], expected)
+        filtered = self.client.get(url, {"q": "calculus", "category": "books", "page": 2}, **headers).json()
+        self.assertEqual(filtered["page_number"], 1)
+        self.assertIn(self.wanted_post.title, filtered["html"])
+        self.assertEqual(filtered["pagination_html"].count('aria-disabled="true"'), 2)
+        empty = self.client.get(url, {"q": "no-such-wanted-item"}, **headers).json()
+        self.assertIn("No matching wanted posts", empty["html"])
+        self.assertEqual(empty["page_number"], 1)
 
     def test_sample_card_has_a_detail_page(self):
         response = self.client.get(
@@ -252,17 +217,13 @@ class WantedBoardViewTests(TestCase):
         self.assertContains(response, "Fasilkom UI")
         self.assertContains(response, "Skincare")
         self.assertContains(response, "Rp 160.000")
-        self.assertContains(response, "Offer an Item")
+        self.assertContains(response, "Got this item?")
         self.assertContains(response, "@Essence")
         self.assertContains(
             response,
             reverse("transactions:pesan"),
         )
-        self.assertContains(
-            response,
-            "https://cdn.dummyjson.com/product-images/beauty/"
-            "essence-mascara-lash-princess/thumbnail.webp",
-        )
+        self.assertNotContains(response, "wanted-detail-media")
 
     def test_sample_data_uses_all_30_dummyjson_products(self):
         self.assertEqual(DUMMYJSON_PRODUCTS_URL, "https://dummyjson.com/products?limit=30")
@@ -284,8 +245,8 @@ class WantedBoardViewTests(TestCase):
         self.assertContains(response, "Books &amp; Study")
         self.assertContains(response, "Kampus UI")
         self.assertContains(response, "Rp 90.000")
-        self.assertContains(response, "Maximum budget")
-        self.assertContains(response, "Offer an Item")
+        self.assertContains(response, "Max budget")
+        self.assertContains(response, "Got this item?")
         self.assertContains(response, "Chat")
         self.assertContains(response, "@owner")
         self.assertContains(
@@ -295,20 +256,33 @@ class WantedBoardViewTests(TestCase):
         self.assertNotContains(response, ">Buy</a>")
         self.assertNotContains(response, "<dt>Status</dt>", html=True)
 
-    def test_offer_item_button_opens_short_offer_modal(self):
+    def test_detail_has_inline_offer_form_with_disabled_submit(self):
         self.client.login(username="other", password="test-password")
 
         response = self.client.get(
             reverse("wanted_board:wanted_detail", args=[self.wanted_post.pk])
         )
 
-        self.assertContains(response, "Offer an Item")
-        self.assertContains(response, 'id="item-offer-modal"')
+        self.assertContains(response, "Got this item?")
+        self.assertNotContains(response, 'id="item-offer-modal"')
         self.assertContains(response, 'name="image"')
         self.assertContains(response, 'name="price"')
         self.assertContains(response, 'name="description"')
-        self.assertContains(response, "Submit Offer")
+        self.assertContains(response, "Send offer")
+        self.assertContains(response, 'data-send-item-offer disabled')
+        self.assertNotContains(response, 'data-open-item-offer-modal')
         self.assertNotContains(response, "item-matching/wanted/")
+
+    def test_board_offer_buttons_are_separate_from_detail_links(self):
+        response = self.client.get(reverse("wanted_board:show_wanted"))
+        self.assertContains(response, 'id="item-offer-modal"', count=1)
+        self.assertContains(response, '<button class="wanted-card-cta"', count=12)
+        self.assertContains(response, f'data-offer-title="{self.wanted_post.title}"')
+        self.assertContains(response, 'data-send-item-offer disabled')
+        self.client.force_login(self.owner)
+        owned = self.client.get(reverse("wanted_board:show_wanted"))
+        self.assertContains(owned, '>Manage post</a>')
+        self.assertContains(owned, '<span class="wanted-yours-stamp">Yours!</span>', count=1, html=True)
 
     def test_create_requires_login_and_assigns_requester(self):
         create_url = reverse("wanted_board:create_wanted")
@@ -323,7 +297,6 @@ class WantedBoardViewTests(TestCase):
             create_url,
             {
                 "title": "Desk chair",
-                "image": reference_image("desk-chair.png"),
                 "creation_token": issue_creation_token(self.other_user),
                 "description": "Need a compact chair for a dorm room.",
                 "category": WantedPost.Category.HOME,
@@ -333,32 +306,18 @@ class WantedBoardViewTests(TestCase):
         )
 
         created_post = WantedPost.objects.get(title="Desk chair")
-        self.addCleanup(created_post.image.delete, save=False)
         self.assertRedirects(
             response,
             reverse("wanted_board:wanted_detail", args=[created_post.pk]),
         )
         self.assertEqual(created_post.requester, self.other_user)
-        self.assertTrue(created_post.image.name.endswith("desk-chair.png"))
 
-    def test_create_requires_a_reference_image(self):
-        self.client.login(username="other", password="test-password")
-
-        response = self.client.post(
-            reverse("wanted_board:create_wanted"),
-            {
-                "title": "Desk chair",
-                "description": "Need a compact chair for a dorm room.",
-                "category": WantedPost.Category.HOME,
-                "budget": "200000",
-                "location": "Margonda",
-            },
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("image", response.context["creation_form"].errors)
-        self.assertContains(response, "This picture is for reference only.")
-        self.assertFalse(WantedPost.objects.filter(requester=self.other_user).exists())
+    def test_wanted_post_and_create_form_have_no_image_field(self):
+        self.client.force_login(self.other_user)
+        response = self.client.get(reverse("wanted_board:show_wanted"))
+        self.assertNotIn("image", response.context["creation_form"].fields)
+        self.assertNotIn("image", {field.name for field in WantedPost._meta.fields})
+        self.assertNotIn('type="file"', str(response.context["creation_form"]))
 
     def test_create_form_opens_as_modal_and_keeps_validation_errors(self):
         self.client.login(username="other", password="test-password")

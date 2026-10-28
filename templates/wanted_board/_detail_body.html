@@ -1,0 +1,26 @@
+{% load wanted_board_tags %}
+<div class="wanted-detail-content">
+    <h1>{{ wanted_post.title }}</h1>
+    <dl class="wanted-detail-facts">
+        <div><dt>Max budget</dt><dd>{% if wanted_post.budget %}{{ wanted_post.budget|rupiah }}{% else %}Flexible{% endif %}</dd></div>
+        <div><dt>Location</dt><dd>{{ wanted_post.location|default:"Around UI" }}</dd></div>
+        <div><dt>Posted</dt><dd>{% if sample %}{{ wanted_post.posted_on }}{% else %}<time datetime="{{ wanted_post.created_at|date:'c' }}" title="{{ wanted_post.created_at|date:'d M Y, H:i' }}">{{ wanted_post.created_at|timesince }} ago</time>{% endif %}</dd></div>
+        <div><dt>Category</dt><dd>{% if sample %}{{ wanted_post.category_label }}{% else %}{{ wanted_post.get_category_display }}{% endif %}</dd></div>
+    </dl>
+    <section class="wanted-detail-about" aria-labelledby="wanted-about-title">
+        <h2 id="wanted-about-title">Description</h2>
+        <p>{{ wanted_post.description|linebreaksbr }}</p>
+    </section>
+    <div class="wanted-detail-poster">
+        <a class="wanted-detail-poster-link" href="{% url 'transactions:pesan' %}">
+            <span class="wanted-detail-avatar">{% if sample %}{{ wanted_post.poster_initials }}{% elif wanted_post.requester.account_profile.photo %}<img src="{{ wanted_post.requester.account_profile.photo.url }}" alt="Profile picture of {{ wanted_post.requester.username }}">{% else %}{{ wanted_post.requester.username|first|upper }}{% endif %}</span>
+            <span><small>Posted by</small><strong>@{% if sample %}{{ wanted_post.poster }}{% else %}{{ wanted_post.requester.username }}{% endif %}</strong></span>
+        </a>
+    </div>
+    {% if not sample and user == wanted_post.requester %}
+        <div class="wanted-detail-actions" aria-label="Post management">
+            <button class="wanted-button wanted-action-offer" type="button" data-open-edit-wanted-modal>Edit</button>
+            <button class="wanted-button wanted-action-secondary" type="button" data-open-delete-wanted-modal>Delete</button>
+        </div>
+    {% endif %}
+</div>

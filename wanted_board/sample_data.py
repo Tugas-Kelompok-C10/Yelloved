@@ -104,7 +104,6 @@ def _adapt_product(product, index):
         "status": "open",
         "status_label": "Open",
         "posted_on": _posted_on(product.get("createdAt")),
-        "image_url": product.get("thumbnail", ""),
         "rating": product.get("rating"),
         "stock": product.get("stock"),
         "source_category": product.get("category", ""),

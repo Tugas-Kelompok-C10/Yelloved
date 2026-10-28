@@ -1,14 +1,14 @@
 # Wanted Board follow-up work
 
-The following items are on hold at the user's request. Do not implement them
-until the user asks to resume them.
+Items marked ON HOLD remain deferred at the user's request. Do not implement
+them until the user asks to resume them. Completed work is recorded below.
 
-## Server-side pagination — ON HOLD
+## Server-side pagination — IMPLEMENTED
 
-- Current See More/See Less only hides cards in the browser; all matching posts
-  and sample cards are still returned by the backend.
-- Add bounded server queries and incremental AJAX loading with stable ordering.
-- Preserve search/category selection and define how sample posts participate.
+- Replaced See More/See Less with numbered pages of 12 cards (four columns, three rows on desktop) and AJAX navigation.
+- Real posts are ordered by newest creation time and UUID, followed by samples.
+  Only the database rows needed for the requested page are loaded.
+- Search and category remain in page links; changing either starts at page one.
 
 ## Status filtering and transaction completion — ON HOLD
 
@@ -23,8 +23,10 @@ until the user asks to resume them.
 
 ## Offer modal backend — STILL A PROTOTYPE
 
-- Photo, price, and description are currently frontend-only. Submission does not
-  persist an offer, despite its success toast. Backend wiring remains deferred.
+- Photo, price, and description are currently frontend-only. Board buttons open
+  the shared modal; details show the same form inline. Send is disabled until
+  required fields and photo validation pass. Submission retains the draft and
+  explicitly says delivery is not connected yet; backend wiring remains deferred.
 
 ## Implemented in this iteration
 
@@ -33,12 +35,13 @@ until the user asks to resume them.
 - Wanted Board and Item Matching URLs now use UUIDs; older numeric detail URLs
   are no longer supported.
 - Signed, user-bound creation tokens and database-backed idempotent Create.
-- AJAX Create/Edit validation without replacing the form or losing selected files.
-- Removal of replaced/deleted reference images after database commit, provided
-  no other WantedPost references the same file.
-- File cleanup covers future model save/delete operations; it does not scan or
-  delete pre-existing orphan files. Direct SQL and QuerySet image updates bypass
-  model signals and should not be used for replacing reference images.
+- AJAX Create/Edit validation without replacing the form or losing entered details.
+- WantedPost no longer has an image field (migration 0015); create, edit, samples,
+  and detail pages no longer accept or display reference images. Image-cleanup
+  signals were removed. Historical migration validators remain for old upgrades.
+- Offer photo input and browser image validation remain in the prototype modal.
+- New-post locations default to the city/province of the user's main saved address,
+  remain editable, and do not expose the private street address.
 
 ## UUID migration notes
 
@@ -49,4 +52,4 @@ until the user asks to resume them.
 - Pause app writes during this upgrade and back up the database first. These
   data conversion migrations intentionally do not provide a reverse conversion
   to the old integer keys; restore the backup if rollback is required.
-- Pagination, status filtering, and Offer backend wiring remain on hold.
+- Status filtering and Offer backend wiring remain on hold; pagination is implemented.

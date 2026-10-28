@@ -53,7 +53,7 @@
                     headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
                 });
                 if (response.redirected) {
-                    throw new Error("Your session may have expired. Sign in again in another tab, then retry. Your selected photo is still here.");
+                    throw new Error("Your session may have expired. Sign in again in another tab, then retry. Your details are still here.");
                 }
                 if (!(response.headers.get("Content-Type") || "").includes("application/json")) {
                     throw new Error("Unable to save. Please check your connection or sign in again, then retry.");
@@ -64,7 +64,7 @@
                 } else if (response.ok && data.redirect_url) {
                     window.location.assign(data.redirect_url);
                 } else {
-                    throw new Error("Unable to save. Your photo and details have been kept; please retry.");
+                    throw new Error("Unable to save. Your details have been kept; please retry.");
                 }
             } catch (error) {
                 showErrors({ __all__: [{ message: error.message || "Unable to save. Please retry." }] });
