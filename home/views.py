@@ -2,11 +2,14 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
+from items.models import Item
+
 
 def show_main(request):
     context = {
         "name": "Yelloved",
         "heart_count": request.session.get("landing_hearts", 0),
+        "latest_items": Item.objects.filter(status=Item.Status.AVAILABLE).order_by("-created_at", "-pk")[:12],
     }
     return render(request, "index.html", context)
 
