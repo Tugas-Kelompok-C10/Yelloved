@@ -63,6 +63,15 @@ class WantedCreateForm(WantedPostForm):
     creation_token = forms.CharField(widget=forms.HiddenInput)
 
 
+class WantedEditForm(WantedPostForm):
+    revision = forms.CharField(widget=forms.HiddenInput)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.is_bound:
+            self.initial["revision"] = self.instance.updated_at.isoformat()
+
+
 class OfferForm(forms.ModelForm):
     class Meta:
         model = Offer

@@ -26,7 +26,7 @@
                 <div class="wanted-filter-field wanted-filter-query">
                     <label class="sr-only" for="wanted-query">Search wanted posts</label>
                     <svg class="wanted-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg>
-                    <input id="wanted-query" type="search" name="q" value="{{ query }}" placeholder="Search wanted posts, e.g. fan, jacket..." autocomplete="off">
+                    <input id="wanted-query" type="search" name="q" value="{{ query }}" placeholder="Find a wanted post..." autocomplete="off">
                 </div>
                 <div class="wanted-category-chips" aria-label="Filter by category">
                     <button class="wanted-category-chip{% if not selected_category %} is-active{% endif %}" type="button" data-category-chip="" aria-pressed="{% if not selected_category %}true{% else %}false{% endif %}">All items</button>

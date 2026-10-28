@@ -18,7 +18,7 @@
         <form id="explore-filters" class="explore-search" action="{% url 'items:explore_items' %}" data-endpoint="{% url 'items:items_json' %}" method="get" role="search">
             <div class="explore-field explore-query">
                 <label for="id_q">Search Items</label>
-                <input id="id_q" name="q" type="search" maxlength="200" value="{{ filter_form.q.value|default_if_none:'' }}" placeholder="Looking for Something?">
+                <input id="id_q" name="q" type="search" maxlength="200" value="{{ filter_form.q.value|default_if_none:'' }}" placeholder="Search available items...">
             </div>
             <div class="explore-primary-filters">
                 <div class="explore-field"><label for="{{ filter_form.category.id_for_label }}">Category</label>{{ filter_form.category }}</div>
