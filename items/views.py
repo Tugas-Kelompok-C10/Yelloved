@@ -69,6 +69,7 @@ def item_detail(request, item_id):
         'name': 'Yelloved', 'item': item, 'can_manage': can_manage,
         'can_request_item': can_request_item, 'matching_request_form': matching_request_form,
         'seller_items': seller_items,
+        'item_in_cart': request.user.is_authenticated and item.cart_entries.filter(user_id=request.user.pk).exists(),
     })
 
 

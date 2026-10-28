@@ -15,6 +15,8 @@
             {% url 'item_matching:request_create' item.pk as offer_url %}
             {% url 'transactions:pesan' as chat_url %}
             {% url 'transactions:checkout' as buy_url %}
+            {% url 'transactions:add_to_cart' item.pk as cart_add_url %}
+            {% url 'transactions:cart' as cart_url %}
             {% url 'login' as login_url %}
             {% if not user.is_authenticated or item.owner_id != user.pk %}
             <section class="item-actions-card" aria-label="Item actions">
@@ -30,14 +32,19 @@
                     {% endif %}
                 {% endif %}
                         {% if not user.is_authenticated %}
-                            <a class="item-cart-button" href="{{ login_url }}?next={{ buy_url|default:request.path|urlencode }}" aria-label="Cart: go to checkout" title="Go to checkout">
-                        {% elif buy_url and item.status == 'available' and item.listing_type == 'sale' %}
-                            <a class="item-cart-button" href="{{ buy_url }}" aria-label="Cart: go to checkout" title="Go to checkout">
+                            <a class="item-cart-button" href="{{ login_url }}?next={{ request.path|urlencode }}" aria-label="Add to cart" title="Add to cart">
+                        {% elif item.status == 'available' and item.listing_type == 'sale' %}
+                            {% if item_in_cart %}
+                                <a class="item-cart-button" href="{{ cart_url }}" aria-label="Add to cart" title="Add to cart" aria-describedby="item-cart-existing">
+                            {% else %}
+                                <form id="item-add-to-cart-form" action="{{ cart_add_url }}" method="post" hidden>{% csrf_token %}</form>
+                                <button class="item-cart-button" type="submit" form="item-add-to-cart-form" aria-label="Add to cart" title="Add to cart">
+                            {% endif %}
                         {% else %}
-                            <button class="item-cart-button" type="button" disabled aria-label="Cart unavailable" title="Checkout unavailable for this item">
+                            <button class="item-cart-button" type="button" disabled aria-label="Add to cart" title="Add to cart">
                         {% endif %}
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h2l2.5 12h11L21 7H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
-                        {% if not user.is_authenticated or buy_url and item.status == 'available' and item.listing_type == 'sale' %}</a>{% else %}</button>{% endif %}
+                        {% if not user.is_authenticated %}</a>{% elif item.status == 'available' and item.listing_type == 'sale' %}{% if item_in_cart %}</a>{% else %}</button>{% endif %}{% else %}</button>{% endif %}
                     </div>
                 {% if not user.is_authenticated or item.owner_id != user.pk %}
                     <button class="explore-button explore-button-secondary" type="button" id="item-offer-open" aria-haspopup="dialog" aria-controls="item-offer-dialog">Make an Offer</button>
@@ -50,6 +57,7 @@
                     <button class="explore-button explore-button-secondary" type="button" disabled title="Coming soon">Chat</button>
                 {% endif %}
                 </div>
+                {% if item_in_cart %}<p class="item-action-status" id="item-cart-existing">Already in your cart. Open your cart to continue.</p>{% endif %}
                 {% include 'items/_request_status.html' %}
             </section>
             {% endif %}
