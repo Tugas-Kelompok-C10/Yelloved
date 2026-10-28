@@ -24,7 +24,7 @@
       <path d="M30 59h45"/>
     </g></g>
     <!-- Books sticker -->
-    <g transform="translate(156 168) rotate(7 58 43)"><g class="float books">
+    <g id="books-sticker" transform="translate(156 168) rotate(7 58 43)"><g class="float books">
       <rect x="2" y="44" width="119" height="29" rx="8" stroke="#fdfcf5" stroke-width="14"/>
       <rect x="2" y="44" width="119" height="29" rx="8" fill="#320c35"/>
       <path d="M17 51h101v15H17z" fill="#fdfcf5"/>
@@ -44,7 +44,7 @@
       <circle cx="53" cy="80" r="5" fill="#f2eebf"/>
     </g></g>
     <!-- Small plant sticker -->
-    <g transform="translate(324 179) rotate(-8 43 40)"><g class="float plant">
+    <g id="plant-sticker" transform="translate(324 179) rotate(-8 43 40)"><g class="float plant">
       <path d="M14 38h63l-9 52H23z" stroke="#fdfcf5" stroke-width="14"/>
       <path d="M46 43V6M46 29C17 28 9 5 14 0c25-2 38 16 32 29M46 38c26-4 36-23 32-30-24-1-37 13-32 30" stroke="#fdfcf5" stroke-width="12"/>
       <path d="M46 43V6"/>

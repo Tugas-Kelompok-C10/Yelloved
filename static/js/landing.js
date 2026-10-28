@@ -6,7 +6,7 @@
     const count = hero.querySelector("[data-heart-count]");
     const feedback = hero.querySelector("[data-love-message]");
     const template = hero.querySelector("[data-love-burst]");
-    let queue = Promise.resolve();
+    let pending = false;
 
     // Replay from the start for each heart/logo activation, including keyboard input.
     const popAudio = hero.querySelector("[data-landing-pop]");
@@ -36,17 +36,20 @@
 
     form.addEventListener("submit", (event) => {
         event.preventDefault();
+        if (pending) return;
+        pending = true;
         const button = event.submitter || hero.querySelector(".landing-love-logo");
         playPop();
 
-        // Serialize rapid clicks so session updates arrive in their original order.
-        queue = queue.then(async () => {
+        // Allow one request at a time; extra clicks never build a delayed queue.
+        (async () => {
             button.setAttribute("aria-busy", "true");
             try {
                 const response = await fetch(form.action, {
                     method: "POST",
                     body: new FormData(form),
                     credentials: "same-origin",
+                    signal: AbortSignal.timeout(10000),
                     headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
                 });
                 if (!response.ok) throw new Error("Unable to send a heart");
@@ -56,9 +59,11 @@
                 burstHeart(button);
             } catch {
                 feedback.textContent = "That heart couldn't reach us. Please try again.";
+                window.YellovedToast?.show({title: "Oops", message: feedback.textContent, type: "error"});
             } finally {
                 button.removeAttribute("aria-busy");
+                pending = false;
             }
-        });
+        })();
     });
 })();

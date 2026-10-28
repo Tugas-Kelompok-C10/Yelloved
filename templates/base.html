@@ -27,7 +27,7 @@
 
         <link
             rel="stylesheet"
-            href="{% static 'css/style.css' %}?v=auth-42"
+            href="{% static 'css/style.css' %}?v=catalogue-search-history-46"
         >
         <link rel="stylesheet" href="{% static 'css/item_matching.css' %}">
 
@@ -54,7 +54,18 @@
 
             </nav>
 
+            <form class="nav-search" role="search" action="{% url 'search_catalogue' %}" method="get" data-catalogue-search>
+                <label class="sr-only" for="nav-query">Search items or wanted posts</label>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg>
+                <input id="nav-query" type="search" name="q" maxlength="100" value="{{ navbar_query }}" placeholder="Search items or wanted posts..." autocomplete="off" aria-expanded="false" aria-controls="nav-search-results">
+                <button type="button" class="nav-search-clear" aria-label="Clear search" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+                <div id="nav-search-results" class="nav-search-results" hidden aria-label="Search suggestions"></div>
+            </form>
+
         <div class="nav-actions">
+            <a class="nav-icon-link" href="{% url 'items:explore_items' %}" aria-label="Cart" title="Cart">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h2l2 13h12l2-9H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
+            </a>
             {% if user.is_authenticated %}
                 <div class="nav-icon-group">
                     <div class="nav-notification nav-matching">
@@ -67,10 +78,8 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                  stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
                                  aria-hidden="true">
-                                <path d="m17 2 4 4-4 4"/>
-                                <path d="M3 11v-1a4 4 0 0 1 4-4h14"/>
-                                <path d="m7 22-4-4 4-4"/>
-                                <path d="M21 13v1a4 4 0 0 1-4 4H3"/>
+                                <circle cx="12" cy="12" r="9"/>
+                                <path d="M12 7v5l3 2"/>
                             </svg>
                             {% if matching_pending_count %}<span class="nav-matching-badge" aria-hidden="true">{% if matching_pending_count > 9 %}9+{% else %}{{ matching_pending_count }}{% endif %}</span>{% endif %}
                         </a>
@@ -264,7 +273,7 @@
         </div>
     </footer>
     <script src="{% static 'js/toast.js' %}" defer></script>
-    <script src="{% static 'js/wanted_item_offer.js' %}" defer></script>
+    <script src="{% static 'js/wanted_item_offer.js' %}?v=drafts-1" defer></script>
     <script src="{% static 'js/wanted_image_validation.js' %}" defer></script>
     <script src="{% static 'js/wanted_budget_validation.js' %}" defer></script>
     <script src="{% static 'js/wanted_upload_forms.js' %}" defer></script>
@@ -326,6 +335,7 @@
             }
         });
     </script>
+    <script src="{% static 'js/catalogue-search.js' %}?v=recent-searches-5" defer></script>
     </body>
 
 </html>
