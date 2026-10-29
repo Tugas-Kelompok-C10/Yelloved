@@ -31,7 +31,7 @@ class ProfileFavoritesTests(TestCase):
         response = self.client.get(self.url, {'tab': 'favorites'})
         self.assertEqual(response.context['active_tab'], 'favorites')
         self.assertEqual(response.context['favorites_total'], 3)
-        self.assertContains(response, 'Your favorites (')
+        self.assertContains(response, 'Barang favoritmu (')
         for item in self.items:
             self.assertContains(response, item.title)
             self.assertContains(response, item.display_image_url)
@@ -40,7 +40,9 @@ class ProfileFavoritesTests(TestCase):
             self.assertEqual(self.client.get(self.other_url, params).status_code, 403)
         self.assertContains(response, 'href="?tab=favorites" class="is-active" aria-current="page"')
         self.assertContains(response, 'Edit profile')
-        self.assertNotContains(response, 'followers')
+        self.assertEqual(response.context['profile_stats']['followers'], 0)
+        self.assertEqual(response.context['profile_stats']['following'], 0)
+        self.assertContains(response, 'Belum ada ulasan')
 
     def test_listing_type_filters_are_real_in_full_and_partial_responses(self):
         self.client.force_login(self.user)
@@ -88,8 +90,8 @@ class ProfileFavoritesTests(TestCase):
         for item in self.items:
             item.liked_by.remove(self.user)
         response = self.client.get(self.url, {'tab': 'favorites'})
-        self.assertContains(response, 'You have no favorites yet.')
-        self.assertContains(response, 'Browse catalogue')
+        self.assertContains(response, 'Belum ada barang favorit.')
+        self.assertContains(response, 'Jelajahi katalog')
         self.assertContains(response, reverse('items:explore_items'))
         posted = Item.objects.create(owner=self.user, title='My posted item', category='fashion',
                                      condition='good', listing_type='free')
@@ -105,6 +107,30 @@ class ProfileFavoritesTests(TestCase):
             response = self.client.get(self.url, {'tab': 'favorites', 'listing_type': 'sale', 'fragment': fragment},
                                        HTTP_X_REQUESTED_WITH='XMLHttpRequest')
             self.assertEqual(response.status_code, 200)
-            self.assertContains(response, 'You have no favorites yet.')
+            self.assertContains(response, 'Belum ada barang favorit.')
             self.assertEqual(response.context['favorites_total'], 0)
             self.assertFalse(response.context['favorites'].exists())
+
+
+    def test_reference_header_and_read_only_impact_metrics(self):
+        from transactions.models import Transaction
+        Item.objects.create(owner=self.user, title='Sold manual listing', category='books', condition='good',
+                            listing_type='sale', price=25000, status='sold')
+        Item.objects.create(owner=self.user, title='Not completed listing', category='books', condition='good',
+                            listing_type='free', status='unavailable')
+        Transaction.objects.create(buyer=self.user, order_id='profile-completed', item_name='Real purchase',
+                                   quantity=2, total_amount=50000, shipping_address='Depok',
+                                   transaction_status='completed', payment_status='paid')
+        Transaction.objects.create(buyer=self.user, order_id='profile-pending', item_name='Pending purchase',
+                                   quantity=8, total_amount=50000, shipping_address='Depok',
+                                   transaction_status='pending')
+        self.client.force_login(self.user)
+        response = self.client.get(self.url, {'tab': 'favorites'})
+        self.assertContains(response, 'Barang lama, cerita baru.')
+        self.assertContains(response, 'Penyelamat Barang')
+        self.assertContains(response, 'DAMPAK KAMU')
+        self.assertContains(response, 'Tambah produk')
+        self.assertEqual(response.context['impact'], {'reloved_items': 1, 'waste_avoided_kg': 0, 'purchased_items': 2})
+        self.assertEqual(Transaction.objects.get(order_id='profile-pending').transaction_status, 'pending')
+        for tab in ('posted', 'wanted', 'reviews'):
+            self.assertEqual(self.client.get(self.other_url, {'tab': tab}).status_code, 200)

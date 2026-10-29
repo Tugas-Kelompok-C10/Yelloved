@@ -5,37 +5,48 @@
 
 {% block meta %}
 <title>Profile {{ profile_user.username }} | Yelloved</title>
-<link rel="stylesheet" href="{% static 'css/user-profile.css' %}?v=13">
+<link rel="stylesheet" href="{% static 'css/user-profile.css' %}?v=profile-figma-20261029-3">
+<script src="{% static 'js/account_profile/favorites.js' %}?v=2" defer></script>
 {% endblock %}
 
 {% block content %}
-<main class="public-profile-page" lang="en">
+<main class="profile-page public-profile-page" lang="id">
     <div class="public-profile-frame">
+        <div class="public-profile-banner">
+            <p><span aria-hidden="true">♻</span> Barang lama, cerita baru.</p>
+            <svg class="public-profile-recycle" width="220" height="100" viewBox="0 0 220 120" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m34 85 35-60m-29 8 29-8 8 29M120 12l26 45m5-27-5 27-29-5M188 62l-26 29H98m21-20-21 20 21 20"/></svg>
+        </div>
         <header class="public-profile-header">
             <div class="public-profile-identity">
                 {% if profile and profile.photo %}
                     <img class="public-profile-avatar" src="{{ profile.photo.url }}" alt="Profile photo {{ profile_user.username }}">
                 {% else %}
-                    <img class="public-profile-avatar" src="{% static 'img/Default_PP.png' %}" alt="Default profile photo">
+                    <span class="public-profile-avatar public-profile-initial" aria-hidden="true">{{ profile_user.username|slice:':1'|upper }}</span>
                 {% endif %}
                 <div class="public-profile-details">
-                    <h1>{{ profile_user.username }}</h1>
+                    <div class="public-profile-name-row"><h1>{{ profile_user.username }}</h1><span class="public-profile-rescuer"><span aria-hidden="true">♻</span> Penyelamat Barang</span></div>
                     {% if profile_user.get_full_name %}<p class="public-profile-name">{{ profile_user.get_full_name }}</p>{% endif %}
-                    <p class="public-profile-handle">@{{ profile_user.username }} · Joined {{ profile_user.date_joined|date:"F Y" }}</p>
+                    <p class="public-profile-handle">@{{ profile_user.username }} · Mahasiswa UI</p>
+                    <div class="public-profile-stats"><span><strong>{{ profile_stats.followers }}</strong> followers</span><span><strong>{{ profile_stats.following }}</strong> following</span><span>{% if profile_stats.review_count %}{{ profile_stats.review_score }} ({{ profile_stats.review_count }} ulasan){% else %}Belum ada ulasan{% endif %}</span></div>
                 </div>
             </div>
             {% if is_own_profile %}
                 <div class="public-profile-actions">
                     <a href="{% url 'account_profile:profile' %}">Edit profile</a>
-                    <a href="{% url 'items:item_create' %}">Sell</a>
+                    <a href="{% url 'items:item_create' %}">Tambah produk</a>
                 </div>
             {% endif %}
         </header>
 
+        <section class="public-profile-impact" aria-labelledby="profile-impact-title">
+            <div class="public-profile-impact-copy"><h2 id="profile-impact-title">DAMPAK KAMU</h2><p>Barang Yelloved, barang nggak berakhir jadi sampah.</p></div>
+            <dl><div><dt>barang diberi kehidupan kedua</dt><dd>{{ impact.reloved_items }}</dd></div><div><dt>perkiraan limbah yang terhindar</dt><dd>{{ impact.waste_avoided_kg }} <small>kg</small></dd></div><div><dt>barang preloved yang kamu beli</dt><dd>{{ impact.purchased_items }}</dd></div></dl>
+        </section>
+
         <nav class="public-profile-tabs" aria-label="Profile content">
             <a href="?tab=posted"{% if active_tab == "posted" %} class="is-active" aria-current="page"{% endif %}>Posted</a>
             <a href="?tab=wanted"{% if active_tab == "wanted" %} class="is-active" aria-current="page"{% endif %}>Wanted</a>
-            {% if is_own_profile %}<a href="?tab=favorites"{% if active_tab == "favorites" %} class="is-active" aria-current="page"{% endif %}>Favorites</a>{% endif %}
+            {% if is_own_profile %}<a href="?tab=favorites"{% if active_tab == "favorites" %} class="is-active" aria-current="page"{% endif %}><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0l-1 1-1-1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>Favorites</a>{% endif %}
             <a href="?tab=reviews"{% if active_tab == "reviews" %} class="is-active" aria-current="page"{% endif %}>Reviews</a>
         </nav>
 

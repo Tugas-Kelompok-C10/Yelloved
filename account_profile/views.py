@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import redirect_to_login
 from django.contrib.auth.views import LoginView
 from django.core.exceptions import PermissionDenied
-from django.db.models import BooleanField, Value
+from django.db.models import BooleanField, Value, Sum
 from django.views.decorators.http import require_POST
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import JsonResponse
@@ -86,8 +86,18 @@ def user_profile(request, username):
         favorites_total = favorites.count()
         if listing_type:
             favorites = favorites.filter(listing_type=listing_type)
+    # Read-only presentation metrics. No social/review/weight models exist yet.
+    profile_stats = {"followers": 0, "following": 0, "review_score": None, "review_count": 0}
+    impact = {
+        "reloved_items": Item.objects.filter(owner=profile_user, source="user", external_id__isnull=True,
+                                              status=Item.Status.SOLD).count(),
+        "waste_avoided_kg": 0,
+        "purchased_items": profile_user.transactions.filter(transaction_status="completed").aggregate(
+            count=Sum("quantity"))["count"] or 0,
+    }
     context = {
         "name": "Yelloved",
+        "profile_stats": profile_stats, "impact": impact,
         "profile_user": profile_user,
         "profile": profile,
         "items": Item.objects.filter(owner=profile_user, source="user").order_by("-created_at", "-pk"),
