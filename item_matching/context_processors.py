@@ -59,8 +59,8 @@ def matching_notifications(request):
             notes.append({'text': f'{_plural(pending_offers, "item offer")} for your wanted posts',
                           'url': by_key['offers_received']['url']})
         for o in ItemOffer.objects.filter(offerer=user, status__in=DECIDED, updated_at__gte=since
-                                          ).select_related('item')[:3]:
-            notes.append({'text': f'Offer “{o.item.title}” was {o.get_status_display().lower()}',
+                                          ).select_related('item', 'wanted_post')[:3]:
+            notes.append({'text': f'Offer “{o.display_title}” was {o.get_status_display().lower()}',
                           'url': by_key['offers_sent']['url']})
     return {
         'matching_notifications': notes[:6],

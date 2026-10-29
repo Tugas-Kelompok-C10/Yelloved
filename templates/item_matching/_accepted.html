@@ -5,7 +5,7 @@
         {% else %}reach out through Chat.{% endif %}</span>
         <span class="matching-next">
             {% if row.checkout %}<a href="{% url 'transactions:checkout' %}">Continue to checkout →</a>{% endif %}
-            <a href="{% url 'transactions:pesan' %}">Open chat →</a>
+            <a href="{% url 'chat:with_user' row.counterpart.pk %}">Chat</a>
         </span>
     </div>
 {% endif %}

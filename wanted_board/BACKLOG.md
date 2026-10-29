@@ -21,12 +21,15 @@ them until the user asks to resume them. Completed work is recorded below.
 - A closed post means the requester stopped looking without necessarily getting
   the item. Both fulfilled and closed requests should reject new offers.
 
-## Offer modal backend — STILL A PROTOTYPE
+## Offer modal backend — IMPLEMENTED
 
-- Photo, price, and description are currently frontend-only. Board buttons open
+- Photo, price, and description are sent by AJAX to Activity and stored as ItemOffer.
+- Incoming Offers belongs to the wanted owner; Sent Offers belongs to the sender.
+- Submission UUIDs protect retries; server-side image validation and post locking apply.
+- Board buttons open
   the shared modal; details show the same form inline. Send is disabled until
-  required fields and photo validation pass. Submission retains the draft and
-  explicitly says delivery is not connected yet; backend wiring remains deferred.
+  required fields and photo validation pass. Failed submissions retain the form;
+  successful submissions clear its saved draft and update the Activity preview.
 
 ## Implemented in this iteration
 
@@ -39,7 +42,7 @@ them until the user asks to resume them. Completed work is recorded below.
 - WantedPost no longer has an image field (migration 0015); create, edit, samples,
   and detail pages no longer accept or display reference images. Image-cleanup
   signals were removed. Historical migration validators remain for old upgrades.
-- Offer photo input and browser image validation remain in the prototype modal.
+- Offer photo input and browser/server image validation are connected to Activity.
 - New-post locations default to the city/province of the user's main saved address,
   remain editable, and do not expose the private street address.
 
@@ -52,4 +55,4 @@ them until the user asks to resume them. Completed work is recorded below.
 - Pause app writes during this upgrade and back up the database first. These
   data conversion migrations intentionally do not provide a reverse conversion
   to the old integer keys; restore the backup if rollback is required.
-- Status filtering and Offer backend wiring remain on hold; pagination is implemented.
+- Pagination and photo-offer backend wiring are implemented.
