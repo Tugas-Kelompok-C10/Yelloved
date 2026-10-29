@@ -32,10 +32,11 @@ function database() {
 function tab(indexedDB) {
     const window = {addEventListener() {}};
     vm.runInNewContext(fs.readFileSync(path.join(__dirname, '..', 'wanted_item_offer.js'), 'utf8'), {
-        window, indexedDB, crypto: {randomUUID},
+        window, indexedDB, crypto: {randomUUID}, setTimeout, clearTimeout,
         document: {getElementById: () => null, querySelectorAll: () => [], addEventListener() {}},
     });
-    return window.YellovedWantedDraftStore.storage;
+    const store = window.YellovedWantedDraftStore;
+    return Object.assign(store.storage, {discard: store.discard, isDiscarded: store.isDiscarded});
 }
 
 test('two tabs cannot overwrite the same draft revision', async () => {
@@ -57,4 +58,19 @@ test('discarding retains a revision so a stale tab cannot resurrect the draft', 
     await b('delete', 'post', null, initial.revision);
     await assert.rejects(a('put', 'post', {price: '120000'}, initial.revision), /another tab/);
     assert.equal((await a('get', 'post')).deleted, true);
+});
+
+test('discard remains possible when IndexedDB and localStorage are unavailable', async () => {
+    const store = tab({open() {throw new Error('Storage disabled');}});
+    assert.equal((await store.discard('post', null)).removed, false);
+    assert.equal(store.isDiscarded('post'), true);
+});
+
+test('discarding local edits keeps a newer draft from another tab and still permits leaving', async () => {
+    const db = database(), a = tab(db), b = tab(db);
+    const first = await a('put', 'post', {price: '100000'}, null);
+    await b('put', 'post', {price: '120000'}, first.revision);
+    const result = await a.discard('post', first.revision);
+    assert.equal(result.newer, true);
+    assert.equal((await b('get', 'post')).data.price, '120000');
 });

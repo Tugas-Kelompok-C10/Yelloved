@@ -2,16 +2,35 @@
     let modal = document.getElementById('item-offer-modal');
     const bound = new WeakSet();
     const states = new Map();
+    const discarded = new Set();
+    const discardKey = key => `wanted-offer-discarded:${key}`;
+    const clearDiscard = key => {discarded.delete(key); try {localStorage.removeItem(discardKey(key));} catch (_) {}};
+    const isDiscarded = key => {try {return discarded.has(key) || localStorage.getItem(discardKey(key)) === '1';} catch (_) {return discarded.has(key);}};
     let activeForm, guard = false, leaving = false, asking = false;
     const notify = (message, type = 'success') => window.YellovedToast?.show({title: type === 'error' ? 'Unable to save draft' : 'Offer draft', message, type});
     // IndexedDB preserves photos together with text, separately for each account/post.
     const storage = (mode, key, value, revision = null) => new Promise((resolve, reject) => {
-        const request = indexedDB.open('yelloved-offer-drafts', 1);
+        let completed = false, db, tx;
+        const finish = (error, result) => {
+            if (completed) return;
+            completed = true; clearTimeout(timeout);
+            if (error) {try {tx?.abort();} catch (_) {}}
+            db?.close();
+            if (error) reject(error);
+            else {if (mode === 'put') clearDiscard(key); resolve(result);}
+        };
+        const timeout = setTimeout(() => finish(new Error('Browser storage timed out.')), 5000);
+        let request;
+        try {request = indexedDB.open('yelloved-offer-drafts', 1);}
+        catch (error) {finish(error); return;}
         request.onupgradeneeded = () => request.result.createObjectStore('drafts');
-        request.onerror = () => reject(request.error);
+        request.onerror = () => finish(request.error);
+        request.onblocked = () => finish(new Error('Browser storage is blocked.'));
         request.onsuccess = () => {
-            const db = request.result;
-            const tx = db.transaction('drafts', mode === 'get' ? 'readonly' : 'readwrite');
+            db = request.result;
+            if (completed) {db.close(); return;}
+            try {tx = db.transaction('drafts', mode === 'get' ? 'readonly' : 'readwrite');}
+            catch (error) {finish(error); return;}
             const store = tx.objectStore('drafts');
             let result, conflict;
             const operation = store.get(key);
@@ -28,11 +47,20 @@
                 result = {revision: crypto.randomUUID(), deleted: mode === 'delete', data: mode === 'put' ? value : null};
                 store.put(result, key);
             };
-            tx.oncomplete = () => { db.close(); resolve(result); };
-            tx.onabort = tx.onerror = () => { db.close(); reject(conflict || tx.error); };
+            tx.oncomplete = () => finish(null, result);
+            tx.onabort = tx.onerror = () => finish(conflict || tx.error || new Error('Browser storage failed.'));
         };
     });
-    window.YellovedWantedDraftStore = {storage};
+    const discardDraft = async (key, revision) => {
+        try {await storage('delete', key, null, revision); clearDiscard(key); return {removed: true};}
+        catch (error) {
+            if (error.message?.startsWith('This draft changed')) return {removed: false, newer: true};
+            discarded.add(key);
+            try {localStorage.setItem(discardKey(key), '1');} catch (_) {}
+            return {removed: false, newer: false};
+        }
+    };
+    window.YellovedWantedDraftStore = {storage, discard: discardDraft, isDiscarded};
     const postKey = form => `${form.dataset.draftUser}:${form.elements.wanted_post.value.split('/').filter(Boolean).at(-1)}`;
     const snapshot = form => ({price: form.elements.price.value, description: form.elements.description.value, image: form.elements.image.files[0] || null});
     const hasContent = form => { const d = snapshot(form); return Boolean(d.price || d.description.trim() || d.image); };
@@ -53,7 +81,7 @@
             if (states.get(form) !== state) return;
             state.revision = entry?.revision || null;
             const draft = entry?.deleted ? null : (entry?.data || entry);
-            if (!draft || state.dirty) return;
+            if (!draft || state.dirty || isDiscarded(postKey(form))) return;
             form.elements.price.value = draft.price;
             form.elements.description.value = draft.description;
             if (draft.image) {
@@ -87,14 +115,20 @@
             if (choice === 'stay') return;
             const state = states.get(form);
             await state.ready;
-            const saved = await storage(choice === 'save' ? 'put' : 'delete', postKey(form), snapshot(form), state.revision);
-            state.revision = saved.revision;
+            let discardedResult = {removed: true};
+            if (choice === 'save') {
+                const saved = await storage('put', postKey(form), snapshot(form), state.revision);
+                state.revision = saved.revision;
+            } else discardedResult = await discardDraft(postKey(form), state.revision);
             state.dirty = false;
             if (choice === 'discard') form.reset();
-            const message = choice === 'save' ? 'Draft saved on this browser.' : 'Draft discarded.';
-            if (navigating) window.YellovedToast?.queue({title: 'Offer draft', message, type: 'success'});
+            const message = choice === 'save' ? 'Draft saved on this browser.' : discardedResult.removed ? 'Draft discarded.'
+                : discardedResult.newer ? 'Your changes were discarded. A newer draft from another tab was kept.'
+                : 'Changes discarded here. Browser storage is unavailable, so a previously saved draft could not be removed.';
+            const type = discardedResult.removed || discardedResult.newer ? 'success' : 'error';
+            if (navigating) window.YellovedToast?.queue({title: 'Offer draft', message, type});
             done();
-            if (!navigating) notify(message);
+            if (!navigating) notify(message, type);
         } catch (error) {
             notify(error.message?.startsWith('This draft changed') ? error.message
                 : 'Browser storage is unavailable. Your draft is still here; please retry.', 'error');
