@@ -1,4 +1,5 @@
 (() => {
+    let destroy = () => {};
     const init = () => {
     const form = document.querySelector("[data-ajax-search]");
     const grid = document.querySelector(".wanted-grid");
@@ -8,11 +9,18 @@
 
     if (!form || !grid || !queryInput || !categoryChips.length || !pagination) return;
     if (form.dataset.searchBound) return;
+    destroy();
     form.dataset.searchBound = 'true';
 
     const debounceDelay = 300;
     let debounceTimer;
     let activeRequest;
+    let disposed = false;
+    destroy = () => {
+        disposed = true;
+        window.clearTimeout(debounceTimer);
+        activeRequest?.abort();
+    };
     let selectedCategory = categoryChips.find((chip) => chip.classList.contains("is-active"))?.dataset.categoryChip || "";
 
     const updateCategoryChips = (category) => {
@@ -38,6 +46,7 @@
 
     // Search/category changes start at page one; page links retain current filters.
     const loadResults = async (page = 1, scrollToTop = false) => {
+        if (disposed) return;
         const url = buildUrl(page);
         activeRequest?.abort();
         const request = new AbortController();
@@ -57,7 +66,7 @@
             if (!response.ok) throw new Error(`Search failed with status ${response.status}`);
 
             const data = await response.json();
-            if (activeRequest !== request) return;
+            if (disposed || activeRequest !== request) return;
             grid.innerHTML = data.html;
             pagination.innerHTML = data.pagination_html;
             updateCategoryChips(data.selected_category);
@@ -66,7 +75,7 @@
             window.history.replaceState({}, "", url);
             if (scrollToTop) window.scrollTo({ top: 0, left: 0, behavior: "instant" });
         } catch (error) {
-            if (error.name !== "AbortError") window.location.assign(url);
+            if (!disposed && error.name !== "AbortError") window.location.assign(url);
         } finally {
             if (activeRequest === request) {
                 grid.classList.remove("is-loading");
@@ -119,6 +128,6 @@
         }
     }
     };
-    window.YellovedWantedBoard = {init};
+    window.YellovedWantedBoard = {init, destroy: () => destroy()};
     init();
 })();

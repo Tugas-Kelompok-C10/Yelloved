@@ -21,6 +21,7 @@
         const page = new DOMParser().parseFromString(html, 'text/html');
         const current = document.querySelector('main.wanted-page, main.wanted-detail-page');
         const main = document.importNode(page.querySelector('main.wanted-page'), true);
+        window.YellovedWantedBoard?.destroy();
         if (omittedDetail) main.querySelectorAll('.wanted-card').forEach(card => {
             if (card.querySelector('.wanted-card-link')?.getAttribute('href') === omittedDetail) card.remove();
         });
