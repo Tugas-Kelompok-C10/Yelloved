@@ -62,6 +62,7 @@ test('sending is optimistic; failed requests retain a retryable message and reus
     ui.send('Hello');
     assert.match(ui.list.textContent, /Sending/);
     assert.equal(ui.input.value, '');
+    await flush();
     const token = ui.calls[0].data.get('client_id');
     ui.calls[0].resolve(response(503, {message: 'Offline'})); await flush();
     assert.match(ui.list.textContent, /Not sent/);
@@ -69,6 +70,7 @@ test('sending is optimistic; failed requests retain a retryable message and reus
     assert.equal(ui.notifications[0].message, 'Offline');
     assert.equal(ui.calls.length, 1);
     ui.openAction('retry', token);
+    await flush();
     assert.equal(ui.calls[1].data.get('client_id'), token);
     ui.calls[1].resolve(response(201, {entry: {...original, id: token, body: 'Hello'}})); await flush();
     assert.doesNotMatch(ui.list.textContent, /Not sent/);
@@ -77,6 +79,7 @@ test('sending is optimistic; failed requests retain a retryable message and reus
 test('account/session changes clear private UI and ignore a late send response', async () => {
     const ui = harness([original]); await flush();
     ui.send('Private pending message');
+    await flush();
     ui.events['chat:session-ended']({detail: {message: 'Account changed'}});
     assert.equal(ui.input.value, '');
     assert.doesNotMatch(ui.app.textContent, /Original|Private pending/);

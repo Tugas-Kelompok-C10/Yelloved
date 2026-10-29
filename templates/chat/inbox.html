@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
-{% block meta %}<title>Chat | Yelloved</title><script src="{% static 'js/chat.js' %}" defer></script>{% endblock %}
+{% block meta %}<title>Chat | Yelloved</title><script src="{% static 'js/chat_drafts.js' %}" defer></script><script src="{% static 'js/chat.js' %}" defer></script>{% endblock %}
 {% block content %}
 <main class="chat-app" lang="en" data-chat-app data-inbox-url="{% url 'chat:inbox_data' %}"{% if peer %} data-messages-url="{% url 'chat:messages' peer.pk %}" data-read-url="{% url 'chat:mark_read' peer.pk %}" data-peer-id="{{ peer.pk }}"{% endif %}>
     <h1>Chat</h1>

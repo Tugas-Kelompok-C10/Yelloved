@@ -6,9 +6,11 @@
     const compose = app.querySelector('[data-chat-compose]');
     const status = app.querySelector('[data-chat-status]');
     const fileInput = compose?.querySelector('[data-chat-file]');
+    let restoredFile = null, composerTouched = false, drafts;
+    const selectedFile = () => fileInput?.files[0] || restoredFile;
     const updateCompose = () => {
         if (!compose) return;
-        const file = fileInput?.files[0];
+        const file = selectedFile();
         compose.querySelector('[type=submit]').disabled = (!compose.elements.body.value.trim() && !file) || compose.elements.body.value.length > 1000;
         const preview = compose.querySelector('[data-chat-file-preview]');
         if (preview) {preview.hidden = !file; compose.querySelector('[data-chat-file-name]').textContent = file?.name || '';}
@@ -71,7 +73,7 @@
             const previous = entries.get(row.id);
             if (previous && Date.parse(row.revision) < Date.parse(previous.revision)) continue;
             if (!previous || previous.revision !== row.revision) {entries.set(row.id, row); changed = true;}
-            if (outgoing.delete(row.id)) changed = true;
+            if (outgoing.delete(row.id)) {changed = true; drafts?.schedule();}
         }
         return changed;
     };
@@ -125,34 +127,39 @@
     const send = async row => {
         if (row.state === 'sending') return;
         row.state = 'sending'; outgoing.set(row.id, row); render(true);
+        await drafts?.save();
+        if (stopped) return;
         const data = new FormData(); data.set('body', row.body); data.set('client_id', row.id);
         if (row.file) data.set('attachment', row.file);
         try {
             const result = await request(app.dataset.messagesUrl, data);
             if (stopped) return;
             entries.set(result.entry.id, result.entry); outgoing.delete(row.id); render(true);
+            drafts?.schedule();
             loadThreads().catch(() => {});
         } catch (error) {
             if (stopped) return;
-            if (!entries.has(row.id)) {row.state = 'failed'; render(); notify(error.message);}
+            if (!entries.has(row.id)) {row.state = 'failed'; render(); drafts?.schedule(); notify(error.message);}
         }
     };
     if (compose) {
         const input = compose.elements.body, submit = compose.querySelector('[type=submit]');
-        input.addEventListener('input', updateCompose);
+        input.addEventListener('input', () => {composerTouched = true; updateCompose(); drafts?.schedule();});
         fileInput?.addEventListener('change', () => {
+            restoredFile = null; composerTouched = true;
             const file = fileInput.files[0];
             if (file && file.size > 5 * 1024 * 1024) {notify('Attachments must not exceed 5 MB.'); fileInput.value = '';}
             updateCompose();
+            drafts?.schedule();
         });
         compose.querySelector('[data-chat-choose-file]')?.addEventListener('click', () => fileInput.click());
-        compose.querySelector('[data-chat-remove-file]')?.addEventListener('click', () => {fileInput.value = ''; updateCompose();});
+        compose.querySelector('[data-chat-remove-file]')?.addEventListener('click', () => {fileInput.value = ''; restoredFile = null; composerTouched = true; updateCompose(); drafts?.schedule();});
         compose.addEventListener('submit', event => {
             event.preventDefault();
-            const file = fileInput?.files[0];
+            const file = selectedFile();
             if ((!input.value.trim() && !file) || !compose.reportValidity()) return;
             const row = {id: crypto.randomUUID(), body: input.value.trim(), file, mine: true, deleted: false, created_at: new Date().toISOString()};
-            input.value = ''; if (fileInput) fileInput.value = ''; updateCompose(); input.focus(); send(row);
+            composerTouched = true; input.value = ''; restoredFile = null; if (fileInput) fileInput.value = ''; updateCompose(); input.focus(); send(row);
         });
     }
     app.addEventListener('click', event => {
@@ -164,7 +171,7 @@
         if (!control) return;
         const id = control.dataset.messageId, action = control.dataset.chatAction;
         if (action === 'retry') {const row = outgoing.get(id); if (row) send(row); return;}
-        if (action === 'discard') {outgoing.delete(id); render(); return;}
+        if (action === 'discard') {outgoing.delete(id); render(); drafts?.schedule(); return;}
         const row = entries.get(id);
         if (!row || changing.has(id)) return;
         actionTarget = {row, action};
@@ -200,9 +207,25 @@
         if (!document.hidden) await refresh();
         timer = setTimeout(tick, 5000);
     };
+    if (compose) {
+        drafts = window.YellovedChatDrafts?.create({owner: window.YellovedChatHTTP.userId, peer: app.dataset.peerId,
+            snapshot: () => ({composer: {body: compose.elements.body.value, file: selectedFile()},
+                outgoing: [...outgoing.values()].map(row => ({...row, state: 'failed'}))}),
+            restore: saved => {
+                if (stopped) return;
+                if (!composerTouched && saved.composer) {compose.elements.body.value = saved.composer.body || ''; restoredFile = saved.composer.file || null; updateCompose();}
+                for (const row of saved.outgoing || []) if (!entries.has(row.id)) outgoing.set(row.id, {...row, state: 'failed'});
+                render();
+                if (saved.composer?.body || saved.composer?.file || saved.outgoing?.length) notify('Your draft and unsent messages were restored on this browser.', 'success');
+            }, onError: message => notify(`${message} Keep this tab open or copy your text before leaving.`)});
+    }
+    window.addEventListener('beforeunload', event => {
+        if (!window.YellovedChatHTTP.blocked && drafts?.dirty) {event.preventDefault(); event.returnValue = '';}
+    });
     window.addEventListener('focus', () => refresh());
     window.addEventListener('chat:session-ended', event => {
         stopped = true; clearTimeout(timer); entries.clear(); outgoing.clear(); changing.clear();
+        drafts?.stop(); restoredFile = null;
         if (compose) {compose.elements.body.value = ''; if (fileInput) fileInput.value = '';}
         actionForm.elements.body.value = ''; dialog.close();
         const message = node('p', event.detail.message, 'chat-app-status');
