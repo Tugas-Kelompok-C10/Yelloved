@@ -49,7 +49,6 @@
             activeForm = form;
             update(form);
             protectBack();
-            notify('Your saved offer draft has been restored.');
         } catch (_) { /* Form stays usable when storage is unavailable. */ }
     };
     const ask = () => new Promise(resolve => {
@@ -62,7 +61,7 @@
         dialog.addEventListener('cancel', event => { event.preventDefault(); finish('stay'); });
         dialog.showModal();
     });
-    const exit = async (form, done) => {
+    const exit = async (form, done, navigating = false) => {
         if (asking) return;
         if (!isDirty(form)) { done(); return; }
         asking = true;
@@ -72,8 +71,10 @@
             await storage(choice === 'save' ? 'put' : 'delete', postKey(form), snapshot(form));
             states.get(form).dirty = false;
             if (choice === 'discard') form.reset();
-            notify(choice === 'save' ? 'Draft saved on this browser.' : 'Draft discarded.');
+            const message = choice === 'save' ? 'Draft saved on this browser.' : 'Draft discarded.';
+            if (navigating) window.YellovedToast?.queue({title: 'Offer draft', message, type: 'success'});
             done();
+            if (!navigating) notify(message);
         } catch (_) {
             notify('Browser storage is unavailable. Your draft is still here; please retry.', 'error');
         } finally { asking = false; }
@@ -94,7 +95,7 @@
         const link = event.target.closest('a[href]');
         if (link && !event.defaultPrevented && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && !link.target && isDirty(activeForm)) {
             event.preventDefault();
-            exit(activeForm, () => { leaving = true; location.assign(link.href); });
+            exit(activeForm, () => { leaving = true; location.assign(link.href); }, true);
         }
     });
     modal?.addEventListener('click', event => { if (event.target === modal) closeModal(); });
@@ -123,7 +124,7 @@
         guard = false;
         if (!isDirty(activeForm)) { leaving = true; history.back(); return; }
         protectBack();
-        exit(activeForm, () => { leaving = true; history.go(-2); });
+        exit(activeForm, () => { leaving = true; history.go(-2); }, true);
     });
     window.addEventListener('beforeunload', event => {
         if (!leaving && isDirty(activeForm)) { event.preventDefault(); event.returnValue = ''; }

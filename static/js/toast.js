@@ -38,7 +38,27 @@
         return showElement(toast, duration);
     };
 
-    window.YellovedToast = { show };
+    // One-time feedback survives full navigation and browser Back (bfcache).
+    const navigationKey = 'yelloved-navigation-toast';
+    const queue = options => {
+        try {
+            sessionStorage.setItem(navigationKey, JSON.stringify({options, expires: Date.now() + 60000}));
+        } catch (_) { /* Storage can be blocked; navigation must remain usable. */ }
+    };
+    const consume = () => {
+        try {
+            const raw = sessionStorage.getItem(navigationKey);
+            sessionStorage.removeItem(navigationKey);
+            if (!raw) return;
+            const feedback = JSON.parse(raw);
+            if (feedback.expires > Date.now() && feedback.options && typeof feedback.options.message === 'string') {
+                show(feedback.options);
+            }
+        } catch (_) { /* Ignore invalid or unavailable browser storage. */ }
+    };
+    window.YellovedToast = { show, queue };
+    window.addEventListener('pageshow', consume);
+    consume();
     region.querySelectorAll("[data-global-toast]").forEach((toast, index) => {
         const duration = Number(toast.dataset.toastDuration) || 3000;
         window.setTimeout(() => showElement(toast, duration), index * 80);
