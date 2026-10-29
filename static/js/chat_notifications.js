@@ -9,9 +9,7 @@
         if (pending || stopped || document.hidden) return;
         pending = true;
         try {
-            const response = await fetch(root.dataset.chatNotificationsUrl, {credentials: 'same-origin', headers: {Accept: 'application/json'}, cache: 'no-store'});
-            if (!response.ok || response.redirected) throw new Error('Unable to load chat');
-            const data = await response.json();
+            const data = await window.YellovedChatHTTP.request(root.dataset.chatNotificationsUrl);
             if (stopped) return;
             badge.hidden = !data.unread; badge.textContent = data.unread > 99 ? '99+' : String(data.unread);
             trigger.setAttribute('aria-label', data.unread ? `Chat, ${data.unread} unread messages` : 'Chat');
@@ -32,6 +30,7 @@
             if (!data.conversations.length) {const empty = document.createElement('p'); empty.className = 'nav-chat-empty'; empty.textContent = 'No conversations yet.'; fragment.append(empty);}
             preview.replaceChildren(fragment);
         } catch (_) {
+            if (stopped) return;
             if (!snapshot) {preview.textContent = 'Unable to load recent chats. Open Chat to try again.';}
         } finally {pending = false;}
     };
@@ -39,6 +38,11 @@
     trigger.addEventListener('click', refresh);
     window.addEventListener('chat:read', refresh);
     window.addEventListener('focus', refresh);
+    window.addEventListener('chat:session-ended', () => {
+        stopped = true; clearTimeout(timer); snapshot = undefined;
+        badge.hidden = true; badge.textContent = ''; trigger.setAttribute('aria-label', 'Chat');
+        preview.textContent = 'Your chat session changed. Open Chat to continue.';
+    });
     document.addEventListener('visibilitychange', refresh);
     window.addEventListener('pagehide', () => {stopped = true; clearTimeout(timer);});
     window.addEventListener('pageshow', event => {if (event.persisted) {stopped = false; tick();}});

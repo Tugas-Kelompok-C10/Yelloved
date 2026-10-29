@@ -21,15 +21,7 @@
     const notify = (message, type = 'error') => window.YellovedToast?.show({title: type === 'error' ? 'Chat' : 'Success', message, type});
     const csrf = () => compose?.querySelector('[name=csrfmiddlewaretoken]').value;
     const request = async (url, data) => {
-        const response = await fetch(url, {method: data ? 'POST' : 'GET', credentials: 'same-origin',
-            headers: {Accept: 'application/json', ...(data ? {'X-CSRFToken': csrf()} : {})}, body: data});
-        if (response.redirected) throw new Error('Your session has expired. Please sign in again.');
-        if (!(response.headers.get('Content-Type') || '').includes('application/json')) {
-            throw new Error(response.status === 403 ? 'Refresh this page and sign in again before retrying.' : 'Unable to connect. Please retry.');
-        }
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.message || 'Unable to complete this action. Please retry.');
-        return result;
+        return window.YellovedChatHTTP.request(url, data, csrf());
     };
     const node = (tag, text, className) => {
         const element = document.createElement(tag);
@@ -125,6 +117,7 @@
         refreshing = true;
         try { await Promise.all([loadMessages(), loadThreads()]); }
         catch (error) {
+            if (stopped) return;
             if (status) status.textContent = 'Reconnecting… Your current conversation is still shown. We will retry automatically.';
             if (explicit) notify(error.message);
         } finally {refreshing = false;}
@@ -136,9 +129,11 @@
         if (row.file) data.set('attachment', row.file);
         try {
             const result = await request(app.dataset.messagesUrl, data);
+            if (stopped) return;
             entries.set(result.entry.id, result.entry); outgoing.delete(row.id); render(true);
             loadThreads().catch(() => {});
         } catch (error) {
+            if (stopped) return;
             if (!entries.has(row.id)) {row.state = 'failed'; render(); notify(error.message);}
         }
     };
@@ -195,9 +190,10 @@
         changing.add(row.id); entries.set(row.id, optimistic); dialog.close(); render();
         try {
             const result = await request(action === 'edit' ? row.edit_url : row.delete_url, data);
+            if (stopped) return;
             entries.set(row.id, result.entry); notify(result.message, 'success');
-        } catch (error) {entries.set(row.id, row); notify(error.message);}
-        finally {changing.delete(row.id); render(); refresh();}
+        } catch (error) {if (!stopped) {entries.set(row.id, row); notify(error.message);}}
+        finally {changing.delete(row.id); if (!stopped) {render(); refresh();}}
     });
     const tick = async () => {
         if (stopped) return;
@@ -205,6 +201,14 @@
         timer = setTimeout(tick, 5000);
     };
     window.addEventListener('focus', () => refresh());
+    window.addEventListener('chat:session-ended', event => {
+        stopped = true; clearTimeout(timer); entries.clear(); outgoing.clear(); changing.clear();
+        if (compose) {compose.elements.body.value = ''; if (fileInput) fileInput.value = '';}
+        actionForm.elements.body.value = ''; dialog.close();
+        const message = node('p', event.detail.message, 'chat-app-status');
+        const reload = node('a', 'Reload Chat', 'chat-app-secondary'); reload.href = '/chat/';
+        app.replaceChildren(message, reload);
+    });
     window.addEventListener('pagehide', () => {stopped = true; clearTimeout(timer);});
     window.addEventListener('pageshow', event => {if (event.persisted) {stopped = false; tick();}});
     refresh(true).finally(() => {timer = setTimeout(tick, 5000);});

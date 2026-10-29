@@ -12,6 +12,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 
 from .forms import MessageEditForm, MessageForm
 from .models import Conversation, Message
+from .session import session_guard
 
 
 def _pair(user, peer):
@@ -67,6 +68,7 @@ def with_user(request, user_id):
 
 
 @require_GET
+@session_guard
 def inbox_api(request):
     if not request.user.is_authenticated:
         return _error("Your session has expired. Please sign in again.", 401)
@@ -77,6 +79,7 @@ def inbox_api(request):
 
 
 @require_GET
+@session_guard
 def notifications(request):
     if not request.user.is_authenticated:
         return _error("Please sign in again to check chat notifications.", 401)
@@ -89,6 +92,7 @@ def notifications(request):
 
 
 @require_POST
+@session_guard
 def mark_read(request, user_id):
     if not request.user.is_authenticated:
         return _error("Your session has expired. Please sign in again.", 401)
@@ -105,6 +109,7 @@ def mark_read(request, user_id):
 
 
 @require_http_methods(["GET", "POST"])
+@session_guard
 def messages_api(request, user_id):
     if not request.user.is_authenticated:
         return _error("Your session has expired. Please sign in again.", 401)
@@ -185,6 +190,7 @@ def _valid_uuid(value):
 
 
 @require_POST
+@session_guard
 def message_action(request, pk, action):
     if not request.user.is_authenticated:
         return _error("Your session has expired. Please sign in again.", 401)
