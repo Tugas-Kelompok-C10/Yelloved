@@ -4734,7 +4734,7 @@ body:has(.profile-page) .profile-page :is(
 .chat-app-status { padding: 0 24px; color: var(--gray); font-size: 13px; }
 .chat-app-history-actions { display: flex; justify-content: flex-end; gap: 12px; padding: 12px 24px; }
 .chat-app-messages { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; height: 380px; overflow-y: auto; padding: 24px; overscroll-behavior: contain; }
-.chat-app-message { position: relative; max-width: 85%; padding: 16px; border-radius: var(--radius) var(--radius) var(--radius) 0; background: var(--light-paper); color: var(--violet); overflow-wrap: anywhere; }
+.chat-app-message { position: relative; max-width: 85%; padding: 16px; border-radius: var(--radius) var(--radius) var(--radius) 0; background: var(--ligh-blue); color: var(--violet); overflow-wrap: anywhere; }
 .chat-app-message.is-mine { align-self: flex-end; border-radius: var(--radius) var(--radius) 0 var(--radius); background: var(--ligh-blue); }
 .chat-app-message::after { content: ''; position: absolute; bottom: 0; left: -7px; width: 8px; height: 10px; background: var(--ligh-blue); clip-path: polygon(100% 0, 100% 100%, 0 100%); }
 .chat-app-message.is-mine::after { left: auto; right: -7px; background: var(--ligh-blue); clip-path: polygon(0 0, 100% 100%, 0 100%); }
