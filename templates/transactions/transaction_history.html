@@ -4,7 +4,7 @@
 
 {% block meta %}
 <title>Pesanan Saya | Yelloved</title>
-<link rel="stylesheet" href="{% static 'css/transaction_history.css' %}?v=4">
+<link rel="stylesheet" href="{% static 'css/transaction_history.css' %}?v=5">
 {% endblock meta %}
 
 {% block content %}
@@ -12,15 +12,14 @@
 
     <section class="orders-layout">
 
-        
         <!-- Sidebar -->
         <aside class="orders-sidebar">
             <a href="?type=sold&status={{ active_status|default:'all' }}"
-            class="orders-sidebar-link {% if active_type == 'sold' %}active{% endif %}">
+               class="orders-sidebar-link {% if active_type == 'sold' %}active{% endif %}">
                 <span class="sidebar-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="1.8"
-                        stroke-linecap="round" stroke-linejoin="round">
+                         stroke="currentColor" stroke-width="1.8"
+                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M3 10h18l-2-6H5l-2 6Z"/>
                         <path d="M5 10v10h14V10"/>
                         <path d="M9 20v-6h6v6"/>
@@ -30,11 +29,11 @@
             </a>
 
             <a href="?type=bought&status={{ active_status|default:'all' }}"
-            class="orders-sidebar-link {% if active_type != 'sold' %}active{% endif %}">
+               class="orders-sidebar-link {% if active_type != 'sold' %}active{% endif %}">
                 <span class="sidebar-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="1.8"
-                        stroke-linecap="round" stroke-linejoin="round">
+                         stroke="currentColor" stroke-width="1.8"
+                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M5 8h14l1 12H4L5 8Z"/>
                         <path d="M9 9V6a3 3 0 0 1 6 0v3"/>
                     </svg>
@@ -42,7 +41,6 @@
                 <span>Dibeli</span>
             </a>
         </aside>
-
 
         <!-- Konten pesanan -->
         <section class="orders-content">
@@ -71,14 +69,26 @@
                 </nav>
             </header>
 
+            {% if messages %}
+                <div class="order-messages" role="status">
+                    {% for message in messages %}
+                        <p class="order-message order-message-{{ message.tags }}">
+                            {{ message }}
+                        </p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
             {% if transactions %}
                 <section class="orders-list">
                     {% for transaction in transactions %}
                         <article class="order-card">
 
+                            <!-- Header pesanan -->
                             <div class="order-card-top">
                                 <div class="order-reference">
                                     <span class="order-icon" aria-hidden="true">♡</span>
+
                                     <div>
                                         <span class="order-label">ID Pesanan</span>
                                         <strong>{{ transaction.order_id }}</strong>
@@ -90,6 +100,7 @@
                                 </span>
                             </div>
 
+                            <!-- Informasi pesanan -->
                             <div class="order-card-body">
                                 <div class="order-product-placeholder"
                                      aria-hidden="true">♧</div>
@@ -100,22 +111,43 @@
 
                                     <div class="order-statuses">
                                         <span class="order-status status-{{ transaction.payment_status }}">
-                                            Pembayaran: {{ transaction.get_payment_status_display }}
+                                            Pembayaran:
+                                            {{ transaction.get_payment_status_display }}
                                         </span>
+
                                         <span class="order-status status-{{ transaction.transaction_status }}">
-                                            Pesanan: {{ transaction.get_transaction_status_display }}
+                                            Pesanan:
+                                            {{ transaction.get_transaction_status_display }}
                                         </span>
                                     </div>
                                 </div>
 
                                 <div class="order-total">
                                     <span>Total Belanja</span>
-                                    <strong>Rp {{ transaction.total_amount|floatformat:0 }}</strong>
+                                    <strong>
+                                        Rp {{ transaction.total_amount|floatformat:0 }}
+                                    </strong>
                                 </div>
                             </div>
 
+                            <!-- Footer dan aksi pesanan -->
                             <div class="order-card-footer">
                                 <span>Terima kasih telah memilih preloved.</span>
+
+                                {% if active_type != 'sold' and transaction.payment_method == 'cod' and transaction.transaction_status == 'pending' and transaction.payment_status == 'pending' %}
+                                    <form
+                                        method="post"
+                                        action="{% url 'transactions:cancel_order' transaction.order_id %}"
+                                        class="order-cancel-form"
+                                        onsubmit="return confirm('Yakin ingin membatalkan pesanan ini?');"
+                                    >
+                                        {% csrf_token %}
+
+                                        <button type="submit" class="order-cancel-button">
+                                            Batalkan Pesanan
+                                        </button>
+                                    </form>
+                                {% endif %}
                             </div>
 
                         </article>
@@ -129,18 +161,23 @@
                     {% if active_type == 'sold' %}
                         <h2>Belum Ada Penjualan</h2>
                         <p>Kalau kamu jual barang, bakal muncul di sini.</p>
+
                     {% elif active_status == 'pending' %}
                         <h2>Menunggu Pembayaran</h2>
                         <p>Pesanan yang menunggu pembayaran akan muncul di sini.</p>
+
                     {% elif active_status == 'processing' %}
                         <h2>Belum Ada Pesanan Diproses</h2>
                         <p>Pesanan yang sedang diproses akan muncul di sini.</p>
+
                     {% elif active_status == 'completed' %}
                         <h2>Belum Ada Pesanan Selesai</h2>
                         <p>Pesanan yang sudah selesai akan muncul di sini.</p>
+
                     {% elif active_status == 'cancelled' %}
                         <h2>Belum Ada Pesanan Dibatalkan</h2>
                         <p>Pesanan yang dibatalkan akan muncul di sini.</p>
+
                     {% else %}
                         <h2>Belum Ada Pesanan</h2>
                         <p>Kalau kamu membeli barang, pesananmu bakal muncul di sini.</p>

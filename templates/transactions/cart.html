@@ -1,29 +1,22 @@
-
 {% extends 'base.html' %}
-{% load static %}
-
+{% load static items_ui l10n %}
 {% block meta %}
-<title>Keranjang Saya | Yelloved</title>
-<link rel="stylesheet" href="{% static 'css/cart.css' %}">
+<title>My Cart | Yelloved</title>
+<link rel="stylesheet" href="{% static 'css/cart.css' %}?v=cart-selection-20261029-1">
+<script src="{% static 'js/transactions/cart.js' %}?v=1" defer></script>
 {% endblock meta %}
-
 {% block content %}
-
-<main class="cart-container">
+<main class="cart-container" lang="en">
     <header class="cart-header">
         <p class="cart-eyebrow">YELLOVED MARKETPLACE</p>
-        <h1>Keranjang Saya</h1>
-        <p class="cart-subtitle">
-            Periksa kembali barang pilihanmu sebelum checkout.
-        </p>
+        <h1>My Cart</h1>
+        <p class="cart-subtitle">Review your preloved finds before checkout.</p>
     </header>
-
     {% if messages %}
         {% for message in messages %}
-            <div class="cart-message">{{ message }}</div>
+            <div class="cart-message" role="status">{% if message.message == 'Barang berhasil ditambahkan ke keranjang.' %}Item added to your cart.{% elif message.message == 'Kamu tidak bisa membeli barang milik sendiri.' %}You cannot buy your own item.{% else %}{{ message }}{% endif %}</div>
         {% endfor %}
     {% endif %}
-
     {% if cart_items %}
         <div class="cart-layout">
             <section class="cart-list">
@@ -49,37 +42,28 @@
                     </article>
                 {% endfor %}
             </section>
-
-            <aside class="cart-summary">
-                <h2>Ringkasan Belanja</h2>
-                <div class="cart-summary-row">
-                    <span>Total sementara</span>
-                    <strong>Rp{{ total|floatformat:0 }}</strong>
-                </div>
-
-                <a class="cart-checkout-button"
-                   href="{% url 'transactions:checkout' %}">
-                    Lanjut ke Checkout
-                </a>
-
-                <a class="cart-continue-link"
-                   href="{% url 'items:explore_items' %}">
-                    Lanjut Belanja
-                </a>
-            </aside>
-        </div>
-    {% else %}
-        <section class="cart-empty">
-            <div class="cart-empty-icon">🛍️</div>
-            <h2>Keranjangmu masih kosong</h2>
-            <p>
-                Yuk, temukan barang preloved yang cocok untukmu!
-            </p>
-            <a class="cart-shop-button"
-               href="{% url 'items:explore_items' %}">
-                Jelajahi Barang
-            </a>
+            {% endfor %}
         </section>
+        <aside class="cart-summary" aria-labelledby="cart-summary-title">
+            <h2 id="cart-summary-title">Order Summary</h2>
+            <dl>
+                <div class="cart-summary-row"><dt>Selected items</dt><dd data-selected-count>{{ selected_count }}</dd></div>
+                <div class="cart-summary-row"><dt>Subtotal</dt><dd data-selected-total>{{ total_display }}</dd></div>
+                <div class="cart-summary-row"><dt>Payment &amp; delivery</dt><dd>At checkout</dd></div>
+                <div class="cart-summary-total"><dt>Total</dt><dd data-selected-total>{{ total_display }}</dd></div>
+            </dl>
+            <button class="cart-checkout-button" type="submit" name="action" value="checkout"{% if not selected_count %} disabled{% endif %}>Checkout (<span data-checkout-count>{{ selected_count }}</span>)</button>
+            <p class="cart-selection-hint" role="status"{% if selected_count %} hidden{% endif %}>Select at least one item to check out.</p>
+            <a class="cart-continue-link" href="{% url 'items:explore_items' %}">Continue Shopping</a>
+        </aside>
+    </form>
+    {% else %}
+    <section class="cart-empty">
+        <div class="cart-empty-icon" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h2l2.5 12h11L21 7H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg></div>
+        <h2>Your cart is empty</h2>
+        <p>Find preloved clothing, books, and dorm essentials from the UI community.</p>
+        <a class="cart-shop-button" href="{% url 'items:explore_items' %}">Browse Catalogue</a>
+    </section>
     {% endif %}
 </main>
 {% endblock content %}

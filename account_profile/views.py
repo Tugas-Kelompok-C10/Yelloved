@@ -63,17 +63,40 @@ def user_profile(request, username):
     profile_user = get_object_or_404(get_user_model(), username=username)
     profile = Profile.objects.filter(user=profile_user).first()
     active_tab = request.GET.get("tab", "posted")
-    if active_tab not in {"posted", "wanted", "reviews"}:
+    if active_tab not in {"posted", "wanted", "favorites", "reviews"}:
         active_tab = "posted"
-    return render(request, "account_profile/user_profile.html", {
+    is_own_profile = request.user.is_authenticated and request.user.pk == profile_user.pk
+    if active_tab == "favorites":
+        if not request.user.is_authenticated:
+            return redirect_to_login(request.get_full_path())
+        if not is_own_profile:
+            raise PermissionDenied("Favorites are private to their owner.")
+    listing_type = request.GET.get("listing_type", "")
+    if listing_type not in {"sale", "free", "swap"}:
+        listing_type = ""
+    favorites = Item.objects.none()
+    favorites_total = 0
+    if is_own_profile and active_tab == "favorites":
+        favorites = Item.objects.filter(liked_by=request.user).select_related("owner").annotate(
+            is_favorited=Value(True, output_field=BooleanField()),
+        )
+        favorites_total = favorites.count()
+        if listing_type:
+            favorites = favorites.filter(listing_type=listing_type)
+    context = {
         "name": "Yelloved",
         "profile_user": profile_user,
         "profile": profile,
         "items": Item.objects.filter(owner=profile_user, source="user").order_by("-created_at", "-pk"),
         "wanted_posts": WantedPost.objects.filter(requester=profile_user).order_by("-created_at"),
-        "is_own_profile": request.user.is_authenticated and request.user.pk == profile_user.pk,
+        "is_own_profile": is_own_profile,
+        "favorites": favorites, "favorites_total": favorites_total,
+        "listing_type": listing_type,
         "active_tab": active_tab,
-    })
+    }
+    if active_tab == "favorites" and request.GET.get("fragment") == "favorites":
+        return render(request, "account_profile/_favorites.html", context)
+    return render(request, "account_profile/user_profile.html", context)
 
 
 @login_required

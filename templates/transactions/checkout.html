@@ -1,4 +1,3 @@
-
 {% extends 'base.html' %}
 {% load static %}
 
@@ -33,293 +32,456 @@
 
     <!-- LAYOUT CHECKOUT -->
     <div class="checkout-layout">
-        <div class="checkout-main-column">  
+        <div class="checkout-main-column">
 
-    <!-- ALAMAT PENGIRIMAN -->
-    <section class="checkout-address-card">
-        <div class="checkout-card-heading">
-            <span class="checkout-section-icon">01</span>
-            <h2>Alamat Pengiriman</h2>
-        </div>
+            <!-- ALAMAT PENGIRIMAN / JADWAL PERTEMUAN -->
+            <section class="checkout-address-card" id="checkout-delivery-section">
 
-        {% if selected_address %}
-        <div class="selected-address">
-            <div class="selected-address-person">
-                <strong>{{ selected_address.recipient_name }}</strong>
-                <span>{{ selected_address.phone_number }}</span>
-            </div>
+                <!-- Tampilan alamat untuk QRIS dan Virtual Account -->
+                <div id="shipping-address-fields">
+                    <div class="checkout-card-heading">
+                        <span class="checkout-section-icon">01</span>
+                        <h2>Alamat Pengiriman</h2>
+                    </div>
 
-            <p class="selected-address-detail">
-                {{ selected_address.street_address }},
-                {{ selected_address.city }}{% if selected_address.province %},
-                {{ selected_address.province }}{% endif %}
-                {% if selected_address.postal_code %}
-                {{ selected_address.postal_code }}
-                {% endif %}
-            </p>
+                    {% if selected_address %}
+                    <div class="selected-address">
+                        <div class="selected-address-person">
+                            <strong>{{ selected_address.recipient_name }}</strong>
+                            <span>{{ selected_address.phone_number }}</span>
+                        </div>
 
-            {% if selected_address.is_default %}
-            <span class="address-label">UTAMA</span>
-            {% endif %}
-        </div>
-        {% else %}
-        <p class="address-empty">
-            Kamu belum memiliki alamat pengiriman.
-            Tambahkan alamat terlebih dahulu.
-        </p>
-        {% endif %}
+                        <p class="selected-address-detail">
+                            {{ selected_address.street_address }},
+                            {{ selected_address.city }}
+                            {% if selected_address.province %},
+                                {{ selected_address.province }}
+                            {% endif %}
+                            {% if selected_address.postal_code %}
+                                {{ selected_address.postal_code }}
+                            {% endif %}
+                        </p>
 
-        <button type="button"
-                class="address-change-button"
-                data-open-address-modal>
-            {% if selected_address %}Ubah alamat{% else %}Tambah alamat{% endif %}
-        </button>
-    </section>
-
-    <!-- MODAL DAFTAR ALAMAT -->
-    <div class="address-modal-overlay"
-         id="address-modal"
-         aria-hidden="true">
-
-        <section class="address-modal"
-                 role="dialog"
-                 aria-modal="true"
-                 aria-labelledby="address-modal-title">
-
-            <header class="address-modal-header">
-                <h2 id="address-modal-title">Alamat Saya</h2>
-
-                <button type="button"
-                        class="address-modal-close"
-                        data-close-address-modal
-                        aria-label="Tutup">
-                    &times;
-                </button>
-            </header>
-
-            <div class="address-modal-list">
-                {% for address in addresses %}
-                <div class="address-modal-item">
-                    <form method="post" class="address-select-form">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="select_address">
-                        <input type="hidden" name="address_id" value="{{ address.id }}">
-
-                        <button type="submit" class="address-pick-button">
-                            <span class="address-radio" aria-hidden="true">
-                                {% if selected_address.id == address.id %}
-                                <span></span>
-                                {% endif %}
-                            </span>
-
-                            <span class="address-pick-content">
-                                <span class="address-pick-person">
-                                    <strong>{{ address.recipient_name }}</strong>
-                                    <span>{{ address.phone_number }}</span>
-                                </span>
-
-                                <span class="address-pick-detail">
-                                    {{ address.street_address }},
-                                    {{ address.city }}{% if address.province %},
-                                    {{ address.province }}{% endif %}
-                                    {% if address.postal_code %}
-                                    {{ address.postal_code }}
-                                    {% endif %}
-                                </span>
-
-                                <span class="address-pick-badges">
-                                    {% if address.is_default %}
-                                    <span class="address-label">UTAMA</span>
-                                    {% endif %}
-                                    <span class="address-label address-label-category">
-                                        {{ address.label }}
-                                    </span>
-                                </span>
-                            </span>
-                        </button>
-                    </form>
-
-                    <div class="address-item-actions">
-                        <button type="button"
-                                class="address-action-button"
-                                data-edit-address="{{ address.id }}">
-                            Ubah
-                        </button>
-
-                        {% if not address.is_default %}
-                        <form method="post" class="address-default-form">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="set_default">
-                            <input type="hidden" name="address_id" value="{{ address.id }}">
-                            <button type="submit" class="address-action-button">
-                                Jadikan Utama
-                            </button>
-                        </form>
+                        {% if selected_address.is_default %}
+                        <span class="address-label">UTAMA</span>
                         {% endif %}
                     </div>
+                    {% else %}
+                    <p class="address-empty">
+                        Kamu belum memiliki alamat pengiriman.
+                        Tambahkan alamat terlebih dahulu.
+                    </p>
+                    {% endif %}
+
+                    <button
+                        type="button"
+                        class="address-change-button"
+                        data-open-address-modal
+                    >
+                        {% if selected_address %}Ubah alamat{% else %}Tambah alamat{% endif %}
+                    </button>
                 </div>
-                {% empty %}
-                <p class="address-empty">Belum ada alamat tersimpan.</p>
-                {% endfor %}
+
+                <!-- Tampilan jadwal untuk COD -->
+                <div id="cod-meeting-section" hidden>
+                    <div class="checkout-card-heading">
+                        <span class="checkout-section-icon">01</span>
+                        <h2>Jadwal Pertemuan</h2>
+                    </div>
+
+                    <p class="payment-description">
+                        Tentukan lokasi dan waktu untuk bertemu langsung dengan penjual di kampus.
+                    </p>
+
+                    <div class="checkout-field">
+                        <label for="cod-meeting-location">
+                            Lokasi Ketemuan di Kampus
+                        </label>
+
+                        <input
+                            type="text"
+                            id="cod-meeting-location"
+                            name="cod_meeting_location"
+                            form="payment-method-form"
+                            placeholder="Contoh: Perpustakaan Pusat UI"
+                        >
+                    </div>
+
+                    <div class="checkout-field">
+                        <label for="cod-meeting-time">
+                            Tanggal dan Jam Pertemuan
+                        </label>
+
+                        <input
+                            type="datetime-local"
+                            id="cod-meeting-time"
+                            name="cod_meeting_time"
+                            form="payment-method-form"
+                        >
+                    </div>
+
+                    <p class="payment-description">
+                        Pastikan jadwal disepakati bersama penjual.
+                        Lakukan pembayaran langsung saat bertemu di tempat umum kampus.
+                    </p>
+                </div>
+            </section>
+
+            <!-- MODAL DAFTAR ALAMAT -->
+            <div
+                class="address-modal-overlay"
+                id="address-modal"
+                aria-hidden="true"
+            >
+                <section
+                    class="address-modal"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="address-modal-title"
+                >
+                    <header class="address-modal-header">
+                        <h2 id="address-modal-title">Alamat Saya</h2>
+
+                        <button
+                            type="button"
+                            class="address-modal-close"
+                            data-close-address-modal
+                            aria-label="Tutup"
+                        >
+                            &times;
+                        </button>
+                    </header>
+
+                    <div class="address-modal-list">
+                        {% for address in addresses %}
+                        <div class="address-modal-item">
+                            <form method="post" class="address-select-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="select_address">
+                                <input type="hidden" name="address_id" value="{{ address.id }}">
+
+                                <button type="submit" class="address-pick-button">
+                                    <span class="address-radio" aria-hidden="true">
+                                        {% if selected_address.id == address.id %}
+                                        <span></span>
+                                        {% endif %}
+                                    </span>
+
+                                    <span class="address-pick-content">
+                                        <span class="address-pick-person">
+                                            <strong>{{ address.recipient_name }}</strong>
+                                            <span>{{ address.phone_number }}</span>
+                                        </span>
+
+                                        <span class="address-pick-detail">
+                                            {{ address.street_address }},
+                                            {{ address.city }}{% if address.province %},
+                                            {{ address.province }}{% endif %}
+                                            {% if address.postal_code %}
+                                            {{ address.postal_code }}
+                                            {% endif %}
+                                        </span>
+
+                                        <span class="address-pick-badges">
+                                            {% if address.is_default %}
+                                            <span class="address-label">UTAMA</span>
+                                            {% endif %}
+
+                                            <span class="address-label address-label-category">
+                                                {{ address.label }}
+                                            </span>
+                                        </span>
+                                    </span>
+                                </button>
+                            </form>
+
+                            <div class="address-item-actions">
+                                <button
+                                    type="button"
+                                    class="address-action-button"
+                                    data-edit-address="{{ address.id }}"
+                                >
+                                    Ubah
+                                </button>
+
+                                {% if not address.is_default %}
+                                <form method="post" class="address-default-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="set_default">
+                                    <input type="hidden" name="address_id" value="{{ address.id }}">
+
+                                    <button type="submit" class="address-action-button">
+                                        Jadikan Utama
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="address-empty">Belum ada alamat tersimpan.</p>
+                        {% endfor %}
+                    </div>
+
+                    <footer class="address-modal-footer">
+                        <button
+                            type="button"
+                            class="checkout-primary-button"
+                            data-open-new-address-modal
+                            data-reset-address-form
+                        >
+                            + Tambah Alamat Baru
+                        </button>
+                    </footer>
+                </section>
             </div>
 
-            <footer class="address-modal-footer">
-                <button type="button"
-                        class="checkout-primary-button"
-                        data-open-new-address-modal
-                        data-reset-address-form>
-                    + Tambah Alamat Baru
-                </button>
-            </footer>
-        </section>
-    </div>
+            <!-- MODAL TAMBAH / EDIT ALAMAT -->
+            <div
+                class="address-modal-overlay"
+                id="new-address-modal"
+                aria-hidden="true"
+            >
+                <section
+                    class="address-modal new-address-modal"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="new-address-title"
+                >
+                    <header class="address-modal-header">
+                        <h2 id="new-address-title">Alamat Baru</h2>
 
-    <!-- MODAL TAMBAH / EDIT ALAMAT -->
-    <div class="address-modal-overlay"
-         id="new-address-modal"
-         aria-hidden="true">
+                        <button
+                            type="button"
+                            class="address-modal-close"
+                            data-close-new-address-modal
+                            aria-label="Tutup"
+                        >
+                            &times;
+                        </button>
+                    </header>
 
-        <section class="address-modal new-address-modal"
-                 role="dialog"
-                 aria-modal="true"
-                 aria-labelledby="new-address-title">
+                    <form
+                        method="post"
+                        class="new-address-form"
+                        id="new-address-form"
+                    >
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="save_address">
+                        <input type="hidden" name="address_id" value="">
 
-            <header class="address-modal-header">
-                <h2 id="new-address-title">Alamat Baru</h2>
+                        <div class="new-address-grid">
+                            <div class="checkout-field">
+                                <label for="recipient-name">Nama Lengkap</label>
+                                <input
+                                    id="recipient-name"
+                                    type="text"
+                                    name="recipient_name"
+                                    value="{{ request.POST.recipient_name|default:'' }}"
+                                    autocomplete="name"
+                                    placeholder="Nama penerima"
+                                    required
+                                >
+                            </div>
 
-                <button type="button"
-                        class="address-modal-close"
-                        data-close-new-address-modal
-                        aria-label="Tutup">
-                    &times;
-                </button>
-            </header>
+                            <div class="checkout-field">
+                                <label for="phone">Nomor Telepon</label>
+                                <input
+                                    id="phone"
+                                    type="tel"
+                                    name="phone"
+                                    value="{{ request.POST.phone|default:'' }}"
+                                    autocomplete="tel"
+                                    placeholder="Contoh: 081234567890"
+                                    required
+                                >
+                            </div>
+                        </div>
 
-            <form method="post"
-                  class="new-address-form"
-                  id="new-address-form">
+                        <div class="checkout-field">
+                            <label for="province">Provinsi</label>
+                            <select id="province" name="province" required>
+                                <option value="">Pilih Provinsi</option>
+                            </select>
+                        </div>
 
-                {% csrf_token %}
-                <input type="hidden" name="action" value="save_address">
-                <input type="hidden" name="address_id" value="">
+                        <div class="new-address-grid">
+                            <div class="checkout-field">
+                                <label for="regency">Kota/Kabupaten</label>
+                                <select id="regency" name="regency" disabled required>
+                                    <option value="">Pilih Kota/Kabupaten</option>
+                                </select>
+                            </div>
 
-                <div class="new-address-grid">
-                    <div class="checkout-field">
-                        <label for="recipient-name">Nama Lengkap</label>
-                        <input id="recipient-name"
-                               type="text"
-                               name="recipient_name"
-                               value="{{ request.POST.recipient_name|default:'' }}"
-                               autocomplete="name"
-                               placeholder="Nama penerima"
-                               required>
-                    </div>
+                            <div class="checkout-field">
+                                <label for="district">Kecamatan</label>
+                                <select id="district" name="district" disabled required>
+                                    <option value="">Pilih Kecamatan</option>
+                                </select>
+                            </div>
+                        </div>
 
-                    <div class="checkout-field">
-                        <label for="phone">Nomor Telepon</label>
-                        <input id="phone"
-                               type="tel"
-                               name="phone"
-                               value="{{ request.POST.phone|default:'' }}"
-                               autocomplete="tel"
-                               placeholder="Contoh: 081234567890"
-                               required>
-                    </div>
+                        <div class="new-address-grid">
+                            <div class="checkout-field">
+                                <label for="village">Kelurahan/Desa</label>
+                                <select id="village" name="village" disabled required>
+                                    <option value="">Pilih Kelurahan/Desa</option>
+                                </select>
+                            </div>
+
+                            <div class="checkout-field">
+                                <label for="postal-code">Kode Pos</label>
+                                <input
+                                    id="postal-code"
+                                    type="text"
+                                    name="postal_code"
+                                    inputmode="numeric"
+                                    pattern="[0-9]{5}"
+                                    maxlength="5"
+                                    value="{{ request.POST.postal_code|default:'' }}"
+                                    autocomplete="postal-code"
+                                    placeholder="Contoh: 16424"
+                                    required
+                                >
+                            </div>
+                        </div>
+
+                        <div class="checkout-field">
+                            <label for="address">Nama Jalan, Gedung, No. Rumah</label>
+                            <textarea
+                                id="address"
+                                name="address"
+                                rows="3"
+                                autocomplete="street-address"
+                                placeholder="Nama jalan, nomor rumah, RT/RW, dan patokan"
+                                required
+                            >{{ request.POST.address|default:'' }}</textarea>
+                        </div>
+
+                        <div class="checkout-field">
+                            <label for="address-label">Tandai Sebagai</label>
+                            <select id="address-label" name="label">
+                                <option value="Rumah">Rumah</option>
+                                <option value="Kantor">Kantor</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                        </div>
+
+                        <label class="address-default-option">
+                            <input
+                                type="checkbox"
+                                name="is_default"
+                                value="on"
+                                {% if not addresses %}checked{% endif %}
+                            >
+                            Jadikan alamat utama
+                        </label>
+
+                        <footer class="address-modal-footer">
+                            <button
+                                type="button"
+                                class="checkout-secondary-button"
+                                data-close-new-address-modal
+                            >
+                                Batal
+                            </button>
+
+                            <button type="submit" class="checkout-primary-button">
+                                Simpan Alamat
+                            </button>
+                        </footer>
+                    </form>
+                </section>
+            </div>
+
+            <!-- METODE PEMBAYARAN -->
+            <section class="checkout-address-card checkout-payment-card">
+                <div class="checkout-card-heading">
+                    <span class="checkout-section-icon">02</span>
+                    <h2>Metode Pembayaran</h2>
                 </div>
 
-                <div class="checkout-field">
-                    <label for="province">Provinsi</label>
-                    <select id="province" name="province" required>
-                        <option value="">Pilih Provinsi</option>
-                    </select>
-                </div>
+                <p class="payment-description">
+                    Pilih metode pembayaran yang paling nyaman untukmu.
+                </p>
 
-                <div class="new-address-grid">
-                    <div class="checkout-field">
-                        <label for="regency">Kota/Kabupaten</label>
-                        <select id="regency" name="regency" disabled required>
-                            <option value="">Pilih Kota/Kabupaten</option>
+                <form method="post" id="payment-method-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="select_payment">
+
+                    <div class="payment-options">
+                        <label class="payment-option">
+                            <input
+                                type="radio"
+                                name="payment_method"
+                                value="cod"
+                                {% if selected_payment_method == "cod" %}checked{% endif %}
+                            >
+
+                            <span class="payment-option-icon">COD</span>
+                            <span class="payment-option-content">
+                                <strong>COD</strong>
+                                <small>Bayar langsung kepada penjual saat bertemu di kampus.</small>
+                            </span>
+                        </label>
+
+                        <label class="payment-option">
+                            <input
+                                type="radio"
+                                name="payment_method"
+                                value="qris"
+                                {% if selected_payment_method == "qris" or not selected_payment_method %}checked{% endif %}
+                            >
+
+                            <span class="payment-option-icon">QR</span>
+                            <span class="payment-option-content">
+                                <strong>QRIS</strong>
+                                <small>Bayar melalui aplikasi yang mendukung QRIS</small>
+                            </span>
+                        </label>
+
+                        <label class="payment-option">
+                            <input
+                                type="radio"
+                                name="payment_method"
+                                value="bank_transfer"
+                                {% if selected_payment_method == "bank_transfer" %}checked{% endif %}
+                            >
+
+                            <span class="payment-option-icon">VA</span>
+                            <span class="payment-option-content">
+                                <strong>Virtual Account</strong>
+                                <small>Transfer melalui rekening bank</small>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- PILIH BANK UNTUK VIRTUAL ACCOUNT -->
+                    <div
+                        class="payment-bank-selection"
+                        id="payment-bank-selection"
+                        {% if selected_payment_method != "bank_transfer" %}hidden{% endif %}
+                    >
+                        <label for="payment-bank">Pilih Bank</label>
+
+                        <select name="bank" id="payment-bank">
+                            <option value="">Pilih bank</option>
+                            <option value="bca" {% if selected_bank == "bca" %}selected{% endif %}>BCA</option>
+                            <option value="bni" {% if selected_bank == "bni" %}selected{% endif %}>BNI</option>
+                            <option value="bri" {% if selected_bank == "bri" %}selected{% endif %}>BRI</option>
+                            <option value="mandiri" {% if selected_bank == "mandiri" %}selected{% endif %}>Mandiri</option>
+                            <option value="permata" {% if selected_bank == "permata" %}selected{% endif %}>Permata</option>
                         </select>
                     </div>
-
-                    <div class="checkout-field">
-                        <label for="district">Kecamatan</label>
-                        <select id="district" name="district" disabled required>
-                            <option value="">Pilih Kecamatan</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="new-address-grid">
-                    <div class="checkout-field">
-                        <label for="village">Kelurahan/Desa</label>
-                        <select id="village" name="village" disabled required>
-                            <option value="">Pilih Kelurahan/Desa</option>
-                        </select>
-                    </div>
-
-                    <div class="checkout-field">
-                        <label for="postal-code">Kode Pos</label>
-                        <input id="postal-code"
-                               type="text"
-                               name="postal_code"
-                               inputmode="numeric"
-                               pattern="[0-9]{5}"
-                               maxlength="5"
-                               value="{{ request.POST.postal_code|default:'' }}"
-                               autocomplete="postal-code"
-                               placeholder="Contoh: 16424"
-                               required>
-                    </div>
-                </div>
-
-                <div class="checkout-field">
-                    <label for="address">Nama Jalan, Gedung, No. Rumah</label>
-                    <textarea id="address"
-                              name="address"
-                              rows="3"
-                              autocomplete="street-address"
-                              placeholder="Nama jalan, nomor rumah, RT/RW, dan patokan"
-                              required>{{ request.POST.address|default:'' }}</textarea>
-                </div>
-
-                <div class="checkout-field">
-                    <label for="address-label">Tandai Sebagai</label>
-                    <select id="address-label" name="label">
-                        <option value="Rumah">Rumah</option>
-                        <option value="Kantor">Kantor</option>
-                        <option value="Lainnya">Lainnya</option>
-                    </select>
-                </div>
-
-                <label class="address-default-option">
-                    <input type="checkbox"
-                           name="is_default"
-                           value="on"
-                           {% if not addresses %}checked{% endif %}>
-                    Jadikan alamat utama
-                </label>
-
-                <footer class="address-modal-footer">
-                    <button type="button"
-                            class="checkout-secondary-button"
-                            data-close-new-address-modal>
-                        Batal
-                    </button>
 
                     <button type="submit" class="checkout-primary-button">
-                        Simpan Alamat
+                        Bayar Sekarang
                     </button>
-                </footer>
-            </form>
-        </section>
-    </div>
+                </form>
+            </section>
 
-    <!-- METODE PEMBAYARAN -->
-    <section class="checkout-address-card checkout-payment-card">
-        <div class="checkout-card-heading">
-            <span class="checkout-section-icon">02</span>
-            <h2>Metode Pembayaran</h2>
+            <p class="checkout-note">
+                Pastikan nama penerima, nomor HP, dan alamat sudah benar.
+            </p>
         </div>
 
         <p class="payment-description">
@@ -416,26 +578,18 @@
                         {{ entry.item.price_display }}
                     </p>
 
-                    <p class="checkout-summary-quantity">
-                        Jumlah: {{ entry.quantity }}
-                    </p>
+                <div class="checkout-summary-total">
+                    <span>Total belanja</span>
+                    <strong>Rp{{ total|floatformat:0 }}</strong>
                 </div>
-            </article>
-            {% endfor %}
-
-            <div class="checkout-summary-total">
-                <span>Total belanja</span>
-                <strong>Rp{{ total|floatformat:0 }}</strong>
-            </div>
-        {% else %}
-            <p class="checkout-summary-empty">
-                Keranjangmu masih kosong. Tambahkan barang terlebih dahulu.
-            </p>
-            <a href="/transactions/cart/">Kembali ke keranjang</a>
-        {% endif %}
-    </aside>
-</div>
-
+            {% else %}
+                <p class="checkout-summary-empty">
+                    Keranjangmu masih kosong. Tambahkan barang terlebih dahulu.
+                </p>
+                <a href="/transactions/cart/">Kembali ke keranjang</a>
+            {% endif %}
+        </aside>
+    </div>
 </main>
 
 <script src="{% static 'js/checkout.js' %}" defer></script>

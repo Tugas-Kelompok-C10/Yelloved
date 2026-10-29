@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static items_ui %}
 {% load wanted_board_tags %}
 {% load account_ui %}
 
@@ -11,6 +11,7 @@
 {% block content %}
 <main class="public-profile-page" lang="en">
     <div class="public-profile-frame">
+        <div class="public-profile-banner"><div class="public-profile-banner-copy"><span>Yelloved community</span><p>A little care. A second life.</p></div><svg width="110" height="90" viewBox="0 0 110 90" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m14 44 30-30h37v37L51 81z"/><circle cx="67" cy="28" r="5"/><path d="M68 23C66 5 92 3 98 14"/></svg></div>
         <header class="public-profile-header">
             <div class="public-profile-identity">
                 {% if profile and profile.photo %}
@@ -20,8 +21,8 @@
                 {% endif %}
                 <div class="public-profile-details">
                     <h1>{{ profile_user.username }}</h1>
-                    <p class="public-profile-name">{% if profile_user.get_full_name %}{{ profile_user.get_full_name }}{% else %}{{ profile_user.username }}{% endif %}</p>
-                    <div class="public-profile-social-counts"><span><strong>0</strong> followers</span><span><strong>0</strong> following</span></div>
+                    {% if profile_user.get_full_name %}<p class="public-profile-name">{{ profile_user.get_full_name }}</p>{% endif %}
+                    <p class="public-profile-handle">@{{ profile_user.username }} · Joined {{ profile_user.date_joined|date:"F Y" }}</p>
                 </div>
             </div>
             {% if is_own_profile %}
@@ -35,6 +36,7 @@
         <nav class="public-profile-tabs" aria-label="Profile content">
             <a href="?tab=posted"{% if active_tab == "posted" %} class="is-active" aria-current="page"{% endif %}>Posted</a>
             <a href="?tab=wanted"{% if active_tab == "wanted" %} class="is-active" aria-current="page"{% endif %}>Wanted</a>
+            {% if is_own_profile %}<a href="?tab=favorites"{% if active_tab == "favorites" %} class="is-active" aria-current="page"{% endif %}>Favorites</a>{% endif %}
             <a href="?tab=reviews"{% if active_tab == "reviews" %} class="is-active" aria-current="page"{% endif %}>Reviews</a>
         </nav>
 
@@ -60,6 +62,11 @@
                 <div class="public-profile-empty-state"><p>No items listed yet</p></div>
             {% endif %}
         </div>
+    {% elif active_tab == "favorites" %}
+        <section class="public-profile-favorites" aria-label="Your favorite items">
+            <p class="profile-favorites-feedback" role="status" aria-live="polite" hidden></p>
+            <div id="profile-favorites-content" aria-live="polite">{% include 'account_profile/_favorites.html' %}</div>
+        </section>
     {% elif active_tab == "wanted" %}
         <div class="public-profile-shop">
             {% if wanted_posts %}
