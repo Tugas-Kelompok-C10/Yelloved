@@ -12,10 +12,12 @@ from .models import Profile
 
 
 class AccountFeedbackTests(TestCase):
-    def test_public_profile_has_no_promotional_banner(self):
+    def test_public_profile_has_requested_banner_without_fake_stats(self):
         response = self.client.get(reverse("account_profile:user_profile", args=[self.user.username]))
         self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, "public-profile-banner")
+        self.assertContains(response, "public-profile-banner")
+        self.assertContains(response, "Barang lama, cerita baru.")
+        self.assertContains(response, "Belum ada ulasan")
         self.assertNotContains(response, "A little care. A second life.")
 
     def setUp(self):
