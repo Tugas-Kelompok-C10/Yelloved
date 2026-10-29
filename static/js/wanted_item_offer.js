@@ -107,6 +107,7 @@
             const form = modal.querySelector('[data-item-offer-form]');
             form.reset();
             form.elements.wanted_post.value = trigger.dataset.offerPost;
+            form.querySelector('[data-offer-chat]').href = trigger.dataset.offerChat;
             modal.querySelector('[data-offer-target]').textContent = `${trigger.dataset.offerTitle} · Max budget ${trigger.dataset.offerBudget}`;
             activeForm = form;
             const ready = restore(form);

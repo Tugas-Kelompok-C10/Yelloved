@@ -221,7 +221,7 @@ class WantedBoardViewTests(TestCase):
         self.assertContains(response, "@Essence")
         self.assertContains(
             response,
-            reverse("transactions:pesan"),
+            reverse("chat:inbox"),
         )
         self.assertNotContains(response, "wanted-detail-media")
 
@@ -251,7 +251,7 @@ class WantedBoardViewTests(TestCase):
         self.assertContains(response, "@owner")
         self.assertContains(
             response,
-            reverse("transactions:pesan"),
+            reverse("chat:with_user", args=[self.owner.pk]),
         )
         self.assertNotContains(response, ">Buy</a>")
         self.assertNotContains(response, "<dt>Status</dt>", html=True)

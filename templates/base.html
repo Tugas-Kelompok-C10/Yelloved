@@ -27,7 +27,7 @@
 
         <link
             rel="stylesheet"
-            href="{% static 'css/style.css' %}?v=account-palette-48"
+            href="{% static 'css/style.css' %}?v=chat-app-49"
         >
         <link rel="stylesheet" href="{% static 'css/item_matching.css' %}">
 
@@ -179,6 +179,9 @@
                     </div>
                 </div>
 
+                <a href="{% url 'chat:inbox' %}" class="nav-icon-link" title="Chat" aria-label="Chat">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H5l-3 2v-7.5A8.5 8.5 0 0 1 10.5 6H13"/><path d="M8 11h9M8 15h6"/></svg>
+                </a>
                 {% cart_listing_count user as nav_cart_count %}
                 <a href="{% url 'transactions:cart' %}"
                     class="nav-icon-link nav-cart-link"
@@ -278,7 +281,7 @@
     {% if request.resolver_match.namespace == 'account_profile' or request.resolver_match.url_name == 'login' %}
     <script src="{% static 'js/account.js' %}?v=account-refresh-3" defer></script>
     {% endif %}
-    <script src="{% static 'js/wanted_item_offer.js' %}?v=drafts-2" defer></script>
+    <script src="{% static 'js/wanted_item_offer.js' %}?v=drafts-3" defer></script>
     <script src="{% static 'js/wanted_image_validation.js' %}" defer></script>
     <script src="{% static 'js/wanted_budget_validation.js' %}" defer></script>
     <script src="{% static 'js/wanted_upload_forms.js' %}" defer></script>

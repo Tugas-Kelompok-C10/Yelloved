@@ -59,6 +59,7 @@ def _wanted_cards(wanted_posts, sample_posts, user_id=None):
             "detail_url": reverse("wanted_board:wanted_detail", args=[post.pk]),
             "is_sample": False,
             "is_owner": post.requester_id == user_id,
+            "chat_url": reverse("chat:with_user", args=[post.requester_id]),
         }
         for post in wanted_posts
     ]
@@ -70,6 +71,7 @@ def _wanted_cards(wanted_posts, sample_posts, user_id=None):
                 args=[post["slug"]],
             ),
             "is_sample": True,
+            "chat_url": reverse("chat:inbox"),
         }
         for post in sample_posts
     )

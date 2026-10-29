@@ -4428,8 +4428,7 @@ body:has(.profile-page) { background: var(--paper); }
 .notification-panel,
 .privacy-panel,
 .reviews-panel,
-.help-messages-panel,
-.chat-workspace {
+.help-messages-panel {
     border-color: var(--border);
     border-radius: var(--radius);
     background: var(--paper);
@@ -4491,15 +4490,11 @@ body:has(.profile-page) { background: var(--paper); }
 .reviews-period select,
 .reviews-search input { min-height: 42px; font-size: 14px; }
 .reviews-empty-state { min-height: 64px; margin: 0 24px; font-size: 14px; }
-.help-messages-panel,
-.chat-workspace { min-height: 560px; }
-.help-ticket-header,
-.chat-list-header { min-height: 64px; padding: 0 20px; }
-.help-ticket-header h1,
-.chat-list-header h1 { font-size: 18px; }
+.help-messages-panel { min-height: 560px; }
+.help-ticket-header { min-height: 64px; padding: 0 20px; }
+.help-ticket-header h1 { font-size: 18px; }
 .help-ticket-header select,
-.help-ticket-empty,
-.chat-list-empty { font-size: 13px; }
+.help-ticket-empty { font-size: 13px; }
 .help-message-illustration { width: 140px; height: 126px; }
 .help-message-card { width: 82px; height: 76px; }
 .help-message-card svg { width: 58px; height: 58px; }
@@ -4520,7 +4515,7 @@ body:has(.profile-page) { background: var(--paper); }
     .profile-menu section + section { margin-top: 0; }
     .profile-logout { margin: 0 20px 20px auto; }
     .profile-panel, .address-panel, .payment-panel, .notification-panel, .privacy-panel,
-    .help-messages-panel, .chat-workspace { min-height: 420px; }
+    .help-messages-panel { min-height: 420px; }
     .profile-biodata { grid-template-columns: minmax(0, 130px) minmax(0, 1fr); gap: 20px; padding: 20px; }
     .biodata-photo-placeholder { width: min(100%, 130px); height: auto; aspect-ratio: 1; }
     .profile-photo-input { top: 136px; width: 130px; }
@@ -4536,7 +4531,7 @@ body:has(.profile-page) { background: var(--paper); }
     .profile-photo-input { top: 126px; width: 120px; }
     .profile-photo-button, .photo-hint, .photo-error { width: 120px; }
     .address-page-content, .payment-page-content, .notification-page-content, .privacy-page-content { padding: 16px; }
-    .help-messages-panel, .chat-workspace { grid-template-columns: minmax(110px, 35%) minmax(0, 1fr); }
+    .help-messages-panel { grid-template-columns: minmax(110px, 35%) minmax(0, 1fr); }
     .help-message-welcome { padding: 12px; }
     .help-message-welcome h2 { font-size: 17px; }
     .help-message-welcome p { font-size: 12px; }
@@ -4552,8 +4547,7 @@ body:has(.profile-page) { background: var(--paper); color: var(--violet); }
 .notification-panel,
 .privacy-panel,
 .reviews-panel,
-.help-messages-panel,
-.chat-workspace {
+.help-messages-panel {
     border: 2px solid var(--border);
     border-radius: var(--radius);
     background: var(--light-paper);
@@ -4564,8 +4558,7 @@ body:has(.profile-page) { background: var(--paper); color: var(--violet); }
 .profile-identity,
 .profile-tabs,
 .reviews-tabs,
-.help-ticket-header,
-.chat-list-header { border-color: var(--border); }
+.help-ticket-header { border-color: var(--border); }
 .profile-tabs,
 .reviews-tabs { background: var(--paper); }
 .profile-menu h2,
@@ -4580,7 +4573,6 @@ body:has(.profile-page) { background: var(--paper); color: var(--violet); }
 .profile-menu a { border-radius: var(--radius); color: var(--violet); }
 .profile-menu a:hover,
 .profile-menu a.profile-menu-active,
-.profile-menu a.chat-menu-active { background: var(--paper); color: var(--violet); }
 .profile-tabs a { color: var(--violet); }
 .profile-tabs a.active::after { height: 3px; background: var(--violet); }
 .profile-biodata,
@@ -4632,11 +4624,9 @@ body:has(.profile-page) { background: var(--paper); color: var(--violet); }
 .security-account-card,
 .security-password-card,
 .address-form-card { border-color: var(--border); border-radius: var(--radius); background: var(--paper); }
-.help-ticket-list,
-.chat-list-panel { border-color: var(--border); background: var(--paper); }
+.help-ticket-list { border-color: var(--border); background: var(--paper); }
 .help-message-welcome p,
-.help-ticket-empty,
-.chat-list-empty { color: var(--gray); }
+.help-ticket-empty { color: var(--gray); }
 body:has(.profile-page) .profile-page :is(
     button,
     .profile-photo-button,
