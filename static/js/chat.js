@@ -173,7 +173,10 @@
         try {
             const result = await request(app.dataset.messagesUrl, data);
             if (stopped) return;
-            entries.set(result.entry.id, result.entry); outgoing.delete(row.id); render(true);
+            const alreadyDelivered = initialVersion !== null && result.entry.created_version <= initialVersion && !entries.has(result.entry.id);
+            if (!alreadyDelivered) entries.set(result.entry.id, result.entry);
+            else notify('This message was already delivered. Load older messages to find it.', 'success');
+            outgoing.delete(row.id); render(true);
             drafts?.schedule();
             loadThreads().catch(() => {});
         } catch (error) {
@@ -254,7 +257,7 @@
     const tick = async () => {
         if (stopped) return;
         if (!document.hidden) await refresh();
-        timer = setTimeout(tick, 5000);
+        if (!stopped) timer = setTimeout(tick, 5000);
     };
     if (compose) {
         drafts = window.YellovedChatDrafts?.create({owner: window.YellovedChatHTTP.userId, peer: app.dataset.peerId,
@@ -274,7 +277,14 @@
                         url.searchParams.set('resolve', ids.slice(offset, offset + 50).join(','));
                         const result = await request(url);
                         if (stopped) return;
-                        if (merge(result.messages, true)) render();
+                        let resolved = false;
+                        for (const row of result.messages) {
+                            if (outgoing.delete(row.id)) resolved = true;
+                            // Resolve confirms delivery only. It must never add an
+                            // old unloaded message to the current history window.
+                            if (entries.has(row.id)) merge([row]);
+                        }
+                        if (resolved) {drafts?.schedule(); render();}
                     }
                 })().catch(error => {if (!stopped) notify(error.message);});
                 if (saved.composer?.body || saved.composer?.file || saved.outgoing?.length) notify('Your draft and unsent messages were restored on this browser.', 'success');
@@ -295,6 +305,6 @@
         app.replaceChildren(message, reload);
     });
     window.addEventListener('pagehide', () => {stopped = true; clearTimeout(timer);});
-    window.addEventListener('pageshow', event => {if (event.persisted) {stopped = false; tick();}});
-    refresh(true).finally(() => {timer = setTimeout(tick, 5000);});
+    window.addEventListener('pageshow', event => {if (event.persisted && !window.YellovedChatHTTP.blocked) {stopped = false; tick();}});
+    refresh(true).finally(() => {if (!stopped) timer = setTimeout(tick, 5000);});
 })();

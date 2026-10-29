@@ -45,6 +45,6 @@
     });
     document.addEventListener('visibilitychange', refresh);
     window.addEventListener('pagehide', () => {stopped = true; clearTimeout(timer);});
-    window.addEventListener('pageshow', event => {if (event.persisted) {stopped = false; tick();}});
+    window.addEventListener('pageshow', event => {if (event.persisted && !window.YellovedChatHTTP.blocked) {stopped = false; tick();}});
     tick();
 })();

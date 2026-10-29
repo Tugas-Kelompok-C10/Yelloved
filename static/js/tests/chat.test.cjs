@@ -149,3 +149,15 @@ test('conversation pages remain visible after polling refreshes the inbox', asyn
     assert.match(text, /Person 2/); assert.match(text, /Person 52/);
     assert.equal(control.hidden, true);
 });
+
+test('retrying an already-delivered older message does not skip unloaded history', async () => {
+    const ui = harness([], url => url.pathname === '/messages/'
+        ? {messages: [], sync_cursor: 100, has_older: true} : {conversations: []});
+    await flush(); ui.send('Retry me'); await flush();
+    const token = ui.calls[0].data.get('client_id');
+    ui.calls[0].resolve(response(200, {entry: {...original, id: token, body: 'Old delivered message', created_version: 2}}));
+    await flush();
+    assert.doesNotMatch(ui.list.textContent, /Old delivered message|Not sent/);
+    assert.match(ui.notifications[0].message, /already delivered/);
+    assert.equal(ui.app.selectors['[data-chat-older]'].hidden, false);
+});
