@@ -152,6 +152,7 @@
             if (form.matches('[data-ajax-delete]')) await removeOptimistically(form);
             else {
                 const data = savedCreates.get(form) || await post(form);
+                window.YellovedWantedUnsaved?.markSaved(form);
                 if (data.detail_html) {
                     document.querySelector('.wanted-detail-card').innerHTML = data.detail_html;
                     form.elements.revision.value = data.revision;
