@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Q, OuterRef, Subquery
 from django.db.models.functions import Coalesce
-from django.http import JsonResponse
+from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
@@ -42,6 +42,8 @@ def _entry(message, user):
     return {"id": str(message.pk), "body": message.body if not message.deleted_at else "",
         "mine": message.sender_id == user.pk, "deleted": bool(message.deleted_at),
         "created_at": message.created_at.isoformat(), "revision": message.edited_at.isoformat(),
+        "attachment": ({"name": message.attachment_name, "url": reverse("chat:attachment", args=[message.pk])}
+                       if message.attachment and not message.deleted_at else None),
         "edit_url": reverse("chat:message_action", args=[message.pk, "edit"]),
         "delete_url": reverse("chat:message_action", args=[message.pk, "delete"])}
 
@@ -93,17 +95,52 @@ def messages_api(request, user_id):
         batch = list(reversed(batch[:50]))
         return JsonResponse({"messages": [_entry(entry, request.user) for entry in batch], "has_older": has_older})
 
-    form = MessageForm(request.POST)
+    form = MessageForm(request.POST, request.FILES)
     if not form.is_valid():
-        return JsonResponse({"message": "Enter a message of 1–1000 characters.", "errors": form.errors.get_json_data()}, status=422)
-    with transaction.atomic():
-        conversation, _ = Conversation.objects.get_or_create(**pair)
-        message, created = Message.objects.get_or_create(pk=form.cleaned_data["client_id"], defaults={
-            "conversation": conversation, "sender": request.user, "body": form.cleaned_data["body"]})
-        if message.sender_id != request.user.pk or message.conversation_id != conversation.pk:
-            transaction.set_rollback(True)
-            return _error("This send token belongs to a different message. Please compose a new message.", 409)
+        errors = form.errors.get_json_data()
+        detail = next((item["message"] for group in errors.values() for item in group), "Unable to send this message.")
+        return JsonResponse({"message": detail, "errors": errors}, status=422)
+    written = None
+    try:
+        with transaction.atomic():
+            conversation, _ = Conversation.objects.get_or_create(**pair)
+            message, created = Message.objects.get_or_create(pk=form.cleaned_data["client_id"], defaults={
+                "conversation": conversation, "sender": request.user, "body": form.cleaned_data["body"]})
+            if message.sender_id != request.user.pk or message.conversation_id != conversation.pk:
+                transaction.set_rollback(True)
+                return _error("This send token belongs to a different message. Please compose a new message.", 409)
+            upload = form.cleaned_data.get("attachment")
+            if created and upload:
+                message.attachment.save(upload.name, upload, save=False)
+                written = message.attachment.name
+                message.attachment_name = upload.chat_display_name
+                message.attachment_type = upload.chat_content_type
+                message.save(update_fields=["attachment", "attachment_name", "attachment_type"])
+    except Exception as error:
+        if written:
+            try: Message._meta.get_field("attachment").storage.delete(written)
+            except OSError: pass
+        if isinstance(error, OSError):
+            return _error("The attachment could not be saved. Your message was not sent. Please retry.", 503)
+        raise
     return JsonResponse({"entry": _entry(message, request.user)}, status=201 if created else 200)
+
+
+@login_required
+@require_GET
+def attachment(request, pk):
+    message = get_object_or_404(Message.objects.filter(
+        Q(conversation__first_user=request.user) | Q(conversation__second_user=request.user)), pk=pk, deleted_at__isnull=True)
+    if not message.attachment:
+        raise Http404("Attachment unavailable")
+    try:
+        stream = message.attachment.open("rb")
+    except OSError as error:
+        raise Http404("Attachment unavailable") from error
+    response = FileResponse(stream, as_attachment=True, filename=message.attachment_name, content_type=message.attachment_type)
+    response["X-Content-Type-Options"] = "nosniff"
+    response["Cache-Control"] = "private, no-store"
+    return response
 
 
 def _valid_uuid(value):
@@ -138,9 +175,14 @@ def message_action(request, pk, action):
         if not revision or timezone.is_naive(revision):
             return _error("Refresh the conversation before deleting this message.", 422)
     now = timezone.now()
-    changes = {"edited_at": now, "body": form.cleaned_data["body"]} if action == "edit" else {"edited_at": now, "deleted_at": now, "body": ""}
+    attachment_file = message.attachment.name
+    changes = {"edited_at": now, "body": form.cleaned_data["body"]} if action == "edit" else {
+        "edited_at": now, "deleted_at": now, "body": "", "attachment": "", "attachment_name": "", "attachment_type": ""}
     changed = Message.objects.filter(pk=pk, sender=request.user, edited_at=revision, deleted_at__isnull=True).update(**changes)
     if not changed:
         return _error("This message changed in another tab or was deleted. Refresh the chat before trying again.", 409)
+    if action == "delete" and attachment_file:
+        from .signals import remove_attachment
+        transaction.on_commit(lambda: remove_attachment(attachment_file))
     message.refresh_from_db()
     return JsonResponse({"message": "Message updated." if action == "edit" else "Message deleted.", "entry": _entry(message, request.user)})

@@ -5,6 +5,14 @@
     const list = app.querySelector('[data-chat-messages]');
     const compose = app.querySelector('[data-chat-compose]');
     const status = app.querySelector('[data-chat-status]');
+    const fileInput = compose?.querySelector('[data-chat-file]');
+    const updateCompose = () => {
+        if (!compose) return;
+        const file = fileInput?.files[0];
+        compose.querySelector('[type=submit]').disabled = (!compose.elements.body.value.trim() && !file) || compose.elements.body.value.length > 1000;
+        const preview = compose.querySelector('[data-chat-file-preview]');
+        if (preview) {preview.hidden = !file; compose.querySelector('[data-chat-file-name]').textContent = file?.name || '';}
+    };
     const older = app.querySelector('[data-chat-older]');
     const dialog = document.querySelector('[data-chat-dialog]');
     const actionForm = dialog.querySelector('form');
@@ -45,6 +53,12 @@
             const bubble = node('article', undefined, `chat-app-message${row.mine ? ' is-mine' : ''}`);
             bubble.dataset.messageId = row.id;
             bubble.append(node('p', row.deleted ? 'Message deleted.' : row.body));
+            if (!row.deleted && (row.attachment || row.file)) {
+                const attachment = row.attachment;
+                const link = node(attachment ? 'a' : 'span', attachment?.name || row.file.name, 'chat-app-attachment');
+                if (attachment) {link.href = attachment.url; link.setAttribute('download', '');}
+                bubble.append(link);
+            }
             const time = node('time', new Date(row.created_at).toLocaleString([], {dateStyle: 'short', timeStyle: 'short'}));
             time.dateTime = row.created_at; bubble.append(time);
             const controls = node('div', undefined, 'chat-app-message-actions');
@@ -113,6 +127,7 @@
         if (row.state === 'sending') return;
         row.state = 'sending'; outgoing.set(row.id, row); render(true);
         const data = new FormData(); data.set('body', row.body); data.set('client_id', row.id);
+        if (row.file) data.set('attachment', row.file);
         try {
             const result = await request(app.dataset.messagesUrl, data);
             entries.set(result.entry.id, result.entry); outgoing.delete(row.id); render(true);
@@ -123,12 +138,19 @@
     };
     if (compose) {
         const input = compose.elements.body, submit = compose.querySelector('[type=submit]');
-        input.addEventListener('input', () => {submit.disabled = !input.value.trim() || input.value.length > 1000;});
+        input.addEventListener('input', updateCompose);
+        fileInput?.addEventListener('change', () => {
+            const file = fileInput.files[0];
+            if (file && file.size > 5 * 1024 * 1024) {notify('Attachments must not exceed 5 MB.'); fileInput.value = '';}
+            updateCompose();
+        });
+        compose.querySelector('[data-chat-remove-file]')?.addEventListener('click', () => {fileInput.value = ''; updateCompose();});
         compose.addEventListener('submit', event => {
             event.preventDefault();
-            if (!input.value.trim() || !compose.reportValidity()) return;
-            const row = {id: crypto.randomUUID(), body: input.value.trim(), mine: true, deleted: false, created_at: new Date().toISOString()};
-            input.value = ''; submit.disabled = true; input.focus(); send(row);
+            const file = fileInput?.files[0];
+            if ((!input.value.trim() && !file) || !compose.reportValidity()) return;
+            const row = {id: crypto.randomUUID(), body: input.value.trim(), file, mine: true, deleted: false, created_at: new Date().toISOString()};
+            input.value = ''; if (fileInput) fileInput.value = ''; updateCompose(); input.focus(); send(row);
         });
     }
     app.addEventListener('click', event => {

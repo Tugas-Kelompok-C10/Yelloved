@@ -4,6 +4,12 @@ from django.conf import settings
 from django.db import models
 from django.db.models import F, Q
 from django.utils import timezone
+from .storage import ChatAttachmentStorage
+
+
+def attachment_path(instance, filename):
+    from pathlib import Path
+    return f"{uuid.uuid4().hex}{Path(filename).suffix.lower()}"
 
 
 class Conversation(models.Model):
@@ -27,6 +33,9 @@ class Message(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     edited_at = models.DateTimeField(default=timezone.now)
     deleted_at = models.DateTimeField(null=True, blank=True)
+    attachment = models.FileField(storage=ChatAttachmentStorage(), upload_to=attachment_path, blank=True)
+    attachment_name = models.CharField(max_length=180, blank=True)
+    attachment_type = models.CharField(max_length=60, blank=True)
 
     class Meta:
         ordering = ["created_at", "id"]

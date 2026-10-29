@@ -20,7 +20,9 @@
             <form class="chat-app-compose" data-chat-compose>
                 {% csrf_token %}
                 <label for="chat-body">Message <span class="chat-app-required" aria-hidden="true">*</span></label>
-                <textarea id="chat-body" name="body" maxlength="1000" rows="2" placeholder="Write a message…" required></textarea>
+                <textarea id="chat-body" name="body" maxlength="1000" rows="2" placeholder="Write a message…"></textarea>
+                <label for="chat-attachment">Attach a file (JPG, PNG, WEBP, PDF, TXT; max 5 MB)</label><input id="chat-attachment" type="file" name="attachment" accept=".jpg,.jpeg,.png,.webp,.pdf,.txt" data-chat-file>
+                <div data-chat-file-preview hidden><span data-chat-file-name></span><button type="button" class="chat-app-secondary" data-chat-remove-file>Remove attachment</button></div>
                 <div class="chat-app-compose-actions"><small class="chat-app-muted">Up to 1000 characters</small><button class="chat-app-primary" type="submit" disabled>Send</button></div>
             </form>
             {% else %}<div class="chat-app-empty"><h2>Hello, {{ user.first_name|default:user.username }}!</h2><p>Choose a conversation or chat with someone from the Wanted Board.</p></div>{% endif %}
