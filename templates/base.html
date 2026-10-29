@@ -1,195 +1,277 @@
+
 {% load static transaction_cart chat_tags %}
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-        <link
-            href="https://fonts.googleapis.com/css2?family=Sora:wght@100..800&display=swap"
-            rel="stylesheet"
-        >
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@100..800&display=swap"
+        rel="stylesheet"
+    >
 
-        <link
-            href="https://fonts.googleapis.com/css2?family=Trispace:wght@100..800&display=swap"
-            rel="stylesheet"
-        >
+    <link
+        href="https://fonts.googleapis.com/css2?family=Trispace:wght@100..800&display=swap"
+        rel="stylesheet"
+    >
 
-        
-        <link
-            href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap"
-            rel="stylesheet"
-        >
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap"
+        rel="stylesheet"
+    >
 
+    <link
+        rel="stylesheet"
+        href="{% static 'css/style.css' %}?v=chat-composer-50"
+    >
 
-        <link
-            rel="stylesheet"
-            href="{% static 'css/style.css' %}?v=chat-composer-50"
-        >
-        <link rel="stylesheet" href="{% static 'css/item_matching.css' %}">
+    <link rel="stylesheet" href="{% static 'css/item_matching.css' %}">
+    <link rel="stylesheet" href="{% static 'css/transaction_toast.css' %}?v=2">
+    <link rel="stylesheet" href="{% static 'css/cart-badge.css' %}?v=1">
 
-        <link rel="stylesheet" href="{% static 'css/cart-badge.css' %}?v=1">
-        <script src="{% static 'js/chat_session.js' %}" defer></script>
-        {% block meta %}
-        {% endblock meta %}
-        {% if request.resolver_match.namespace == 'account_profile' or request.resolver_match.url_name == 'login' %}
+    <script src="{% static 'js/chat_session.js' %}" defer></script>
+
+    {% block meta %}
+    {% endblock meta %}
+
+    {% if request.resolver_match.namespace == 'account_profile' or request.resolver_match.url_name == 'login' %}
         <link rel="stylesheet" href="{% static 'css/account.css' %}?v=account-refresh-3">
-        {% endif %}
-    </head>
+    {% endif %}
+</head>
 
-    <body>
-        
-    <header class="site-header">
-        <div class="container">
-            <a href="{% url 'show_main' %}" class="brand">
-                <img src="{% static 'img/Yelloved.png' %}" alt="Yelloved Logo">
-            </a>
+<body>
 
-            <nav>
-                <a href="{% url 'items:explore_items' %}">Catalogue</a>
-                <a href="{% url 'wanted_board:show_wanted' %}">Wanted Board</a>
+<header class="site-header">
+    <div class="container">
+        <a href="{% url 'show_main' %}" class="brand">
+            <img src="{% static 'img/Yelloved.png' %}" alt="Yelloved Logo">
+        </a>
 
-                
+        <nav>
+            <a href="{% url 'items:explore_items' %}">Catalogue</a>
+            <a href="{% url 'wanted_board:show_wanted' %}">Wanted Board</a>
+
             {% if user.is_authenticated %}
             {% endif %}
+        </nav>
 
-            </nav>
+        <form
+            class="nav-search"
+            role="search"
+            action="{% url 'search_catalogue' %}"
+            method="get"
+            data-catalogue-search
+        >
+            <label class="sr-only" for="nav-query">Search items or wanted posts</label>
 
-            <form class="nav-search" role="search" action="{% url 'search_catalogue' %}" method="get" data-catalogue-search>
-                <label class="sr-only" for="nav-query">Search items or wanted posts</label>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg>
-                <input id="nav-query" type="search" name="q" maxlength="100" value="{{ navbar_query }}" placeholder="Search items or wanted posts..." autocomplete="off" aria-expanded="false" aria-controls="nav-search-results">
-                <button type="button" class="nav-search-clear" aria-label="Clear search" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
-                <div id="nav-search-results" class="nav-search-results" hidden aria-label="Search suggestions"></div>
-            </form>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <circle cx="10.5" cy="10.5" r="6.5"/>
+                <path d="m16 16 4 4"/>
+            </svg>
+
+            <input
+                id="nav-query"
+                type="search"
+                name="q"
+                maxlength="100"
+                value="{{ navbar_query }}"
+                placeholder="Search items or wanted posts..."
+                autocomplete="off"
+                aria-expanded="false"
+                aria-controls="nav-search-results"
+            >
+
+            <button type="button" class="nav-search-clear" aria-label="Clear search" hidden>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                    <path d="m6 6 12 12M18 6 6 18"/>
+                </svg>
+            </button>
+
+            <div id="nav-search-results" class="nav-search-results" hidden aria-label="Search suggestions"></div>
+        </form>
 
         <div class="nav-actions">
-            
             {% if user.is_authenticated %}
                 {% cart_listing_count user as nav_cart_count %}
-                <a href="{% url 'transactions:cart' %}"
+
+                <a
+                    href="{% url 'transactions:cart' %}"
                     class="nav-icon-link nav-cart-link"
                     title="Cart ({{ nav_cart_count }})"
-                    aria-label="Cart, {{ nav_cart_count }} items">
-                        <svg viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="1.8"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            aria-hidden="true">
-                            <circle cx="9" cy="21" r="1"/>
-                            <circle cx="20" cy="21" r="1"/>
-                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                        </svg>{% if nav_cart_count %}<span class="nav-cart-count" aria-hidden="true">{{ nav_cart_count }}</span>{% endif %}
-                    </a>
+                    aria-label="Cart, {{ nav_cart_count }} items"
+                >
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                    >
+                        <circle cx="9" cy="21" r="1"/>
+                        <circle cx="20" cy="21" r="1"/>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                    </svg>
+
+                    {% if nav_cart_count %}
+                        <span class="nav-cart-count" aria-hidden="true">{{ nav_cart_count }}</span>
+                    {% endif %}
+                </a>
+
                 <div class="nav-icon-group">
                     <div class="nav-notification nav-matching">
-                        <a href="{% url 'item_matching:dashboard' %}"
-                           class="nav-icon-link nav-matching-trigger"
-                           title="Item Matching &amp; Exchange"
-                           aria-label="Item Matching &amp; Exchange{% if matching_pending_count %}, {{ matching_pending_count }} need your action{% endif %}"
-                           aria-haspopup="true"
-                           aria-controls="matching-popover">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
-                                 aria-hidden="true">
+                        <a
+                            href="{% url 'item_matching:dashboard' %}"
+                            class="nav-icon-link nav-matching-trigger"
+                            title="Item Matching &amp; Exchange"
+                            aria-label="Item Matching &amp; Exchange{% if matching_pending_count %}, {{ matching_pending_count }} need your action{% endif %}"
+                            aria-haspopup="true"
+                            aria-controls="matching-popover"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <circle cx="12" cy="12" r="9"/>
                                 <path d="M12 7v5l3 2"/>
                             </svg>
-                            {% if matching_pending_count %}<span class="nav-matching-badge" aria-hidden="true">{% if matching_pending_count > 9 %}9+{% else %}{{ matching_pending_count }}{% endif %}</span>{% endif %}
+
+                            {% if matching_pending_count %}
+                                <span class="nav-matching-badge" aria-hidden="true">
+                                    {% if matching_pending_count > 9 %}9+{% else %}{{ matching_pending_count }}{% endif %}
+                                </span>
+                            {% endif %}
                         </a>
+
                         <section class="notification-popover matching-popover" id="matching-popover" aria-label="Item Matching &amp; Exchange summary">
                             <header class="notification-popover-header">
                                 <h2>Activity</h2>
-                                <a href="{% url 'item_matching:dashboard' %}" aria-label="Open Item Matching &amp; Exchange" title="Open Item Matching &amp; Exchange">
+
+                                <a
+                                    href="{% url 'item_matching:dashboard' %}"
+                                    aria-label="Open Item Matching &amp; Exchange"
+                                    title="Open Item Matching &amp; Exchange"
+                                >
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                         <path d="M5 12h14"/>
                                         <path d="m13 6 6 6-6 6"/>
                                     </svg>
                                 </a>
                             </header>
+
                             {% if matching_summary.total %}
-                            <div class="matching-summary">
-                                <p class="matching-summary-lead">
-                                    {% if matching_summary.action_needed %}<strong>{{ matching_summary.action_needed }}</strong> need your action{% else %}Nothing needs your action{% endif %}{% if matching_summary.waiting %} · {{ matching_summary.waiting }} awaiting a response{% endif %}
-                                </p>
-                                <ul class="matching-summary-list">
-                                    {% for tab in matching_summary.tabs %}
-                                    <li>
-                                        <a href="{{ tab.url }}">
-                                            <span class="matching-summary-text"><strong>{{ tab.label }}</strong><small>{{ tab.short }}</small></span>
-                                            <span class="matching-summary-numbers">
-                                                {% if tab.pending %}<b class="matching-pill{% if tab.actionable %} is-action{% endif %}">{{ tab.pending }} {% if tab.actionable %}action needed{% else %}pending{% endif %}</b>{% endif %}
-                                                <em>{{ tab.total }} total</em>
-                                            </span>
-                                        </a>
-                                    </li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
+                                <div class="matching-summary">
+                                    <p class="matching-summary-lead">
+                                        {% if matching_summary.action_needed %}
+                                            <strong>{{ matching_summary.action_needed }}</strong> need your action
+                                        {% else %}
+                                            Nothing needs your action
+                                        {% endif %}
+
+                                        {% if matching_summary.waiting %}
+                                            · {{ matching_summary.waiting }} awaiting a response
+                                        {% endif %}
+                                    </p>
+
+                                    <ul class="matching-summary-list">
+                                        {% for tab in matching_summary.tabs %}
+                                            <li>
+                                                <a href="{{ tab.url }}">
+                                                    <span class="matching-summary-text">
+                                                        <strong>{{ tab.label }}</strong>
+                                                        <small>{{ tab.short }}</small>
+                                                    </span>
+
+                                                    <span class="matching-summary-numbers">
+                                                        {% if tab.pending %}
+                                                            <b class="matching-pill{% if tab.actionable %} is-action{% endif %}">
+                                                                {{ tab.pending }}
+                                                                {% if tab.actionable %}action needed{% else %}pending{% endif %}
+                                                            </b>
+                                                        {% endif %}
+
+                                                        <em>{{ tab.total }} total</em>
+                                                    </span>
+                                                </a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
                             {% else %}
-                            <div class="notification-empty-state">
-                                <span aria-hidden="true">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="m17 2 4 4-4 4"/>
-                                        <path d="M3 11v-1a4 4 0 0 1 4-4h14"/>
-                                        <path d="m7 22-4-4 4-4"/>
-                                        <path d="M21 13v1a4 4 0 0 1-4 4H3"/>
-                                    </svg>
-                                </span>
-                                <h3>No activity yet</h3>
-                                <p>Request an item or offer yours to a wanted post to get started.</p>
-                            </div>
+                                <div class="notification-empty-state">
+                                    <span aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="m17 2 4 4-4 4"/>
+                                            <path d="M3 11v-1a4 4 0 0 1 4-4h14"/>
+                                            <path d="m7 22-4-4 4-4"/>
+                                            <path d="M21 13v1a4 4 0 0 1-4 4H3"/>
+                                        </svg>
+                                    </span>
+
+                                    <h3>No activity yet</h3>
+                                    <p>Request an item or offer yours to a wanted post to get started.</p>
+                                </div>
                             {% endif %}
+
                             <footer class="notification-popover-footer">
                                 <a href="{% url 'item_matching:dashboard' %}">Open Item Matching &amp; Exchange</a>
                             </footer>
                         </section>
                     </div>
+
                     <div class="nav-notification">
-                        <button type="button"
-                                class="nav-icon-link nav-notification-trigger"
-                                title="Notifikasi"
-                                aria-label="Notifikasi"
-                                aria-haspopup="dialog"
-                                aria-expanded="false"
-                                aria-controls="notification-popover">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
-                                 aria-hidden="true">
+                        <button
+                            type="button"
+                            class="nav-icon-link nav-notification-trigger"
+                            title="Notifikasi"
+                            aria-label="Notifikasi"
+                            aria-haspopup="dialog"
+                            aria-expanded="false"
+                            aria-controls="notification-popover"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
                                 <path d="M10 21h4"/>
                             </svg>
                         </button>
+
                         <section class="notification-popover" id="notification-popover" aria-label="Notifikasi">
                             <header class="notification-popover-header">
                                 <h2>Notifikasi</h2>
-                                <a href="{% url 'account_profile:notifications' %}" aria-label="Pengaturan notifikasi" title="Pengaturan notifikasi">
+
+                                <a
+                                    href="{% url 'account_profile:notifications' %}"
+                                    aria-label="Pengaturan notifikasi"
+                                    title="Pengaturan notifikasi"
+                                >
                                     <svg viewBox="0 0 512 512" fill="currentColor" aria-hidden="true">
                                         <path d="M487.4 315.7 444.8 291c2.9-11.1 4.4-22.9 4.4-35.1s-1.5-24-4.4-35.1l42.6-24.6c7.6-4.4 10.2-14.1 5.8-21.7L454 106.6c-4.4-7.6-14.1-10.2-21.7-5.8l-42.6 24.6c-17.2-14.9-37.5-26.6-59.7-34V42.3c0-8.8-7-15.8-15.8-15.8h-78.4c-8.8 0-15.8 7-15.8 15.8v49.2c-22.2 7.4-42.5 19.1-59.7 34l-42.6-24.6c-7.6-4.4-17.3-1.8-21.7 5.8l-39.2 67.9c-4.4 7.6-1.8 17.3 5.8 21.7L105 221c-2.9 11.1-4.4 22.9-4.4 35.1s1.5 24 4.4 35.1l-42.6 24.6c-7.6 4.4-10.2 14.1-5.8 21.7l39.2 67.9c4.4 7.6 14.1 10.2 21.7 5.8l42.6-24.6c17.2 14.9 37.5 26.6 59.7 34v49.2c0 8.8 7 15.8 15.8 15.8h78.4c8.8 0 15.8-7 15.8-15.8v-49.2c22.2-7.4 42.5-19.1 59.7-34l42.6 24.6c7.6 4.4 17.3 1.8 21.7-5.8l39.2-67.9c4.4-7.6 1.8-17.3-5.8-21.7ZM275 319.1c-34.8 0-63-28.2-63-63s28.2-63 63-63 63 28.2 63 63-28.2 63-63 63Z"/>
                                     </svg>
                                 </a>
                             </header>
+
                             {% if matching_notifications %}
-                            <ul class="matching-notification-list">
-                                {% for note in matching_notifications %}<li><a href="{{ note.url }}">{{ note.text }}</a></li>{% endfor %}
-                            </ul>
+                                <ul class="matching-notification-list">
+                                    {% for note in matching_notifications %}
+                                        <li><a href="{{ note.url }}">{{ note.text }}</a></li>
+                                    {% endfor %}
+                                </ul>
                             {% else %}
-                            <div class="notification-empty-state">
-                                <span aria-hidden="true">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
-                                        <path d="M10 21h4"/>
-                                    </svg>
-                                </span>
-                                <h3>Belum ada notifikasi</h3>
-                                <p>Notifikasi terbaru akan muncul di sini.</p>
-                            </div>
+                                <div class="notification-empty-state">
+                                    <span aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
+                                            <path d="M10 21h4"/>
+                                        </svg>
+                                    </span>
+
+                                    <h3>Belum ada notifikasi</h3>
+                                    <p>Notifikasi terbaru akan muncul di sini.</p>
+                                </div>
                             {% endif %}
+
                             <footer class="notification-popover-footer">
                                 <a href="{% url 'account_profile:notifications' %}">Pengaturan notifikasi</a>
                             </footer>
@@ -197,163 +279,318 @@
                     </div>
                 </div>
 
-                <div class="nav-notification nav-chat" data-chat-notifications data-chat-session="{% chat_session_identity %}" data-chat-user="{{ user.pk }}" data-chat-notifications-url="{% url 'chat:notifications' %}">
-                    <button type="button" class="nav-icon-link nav-notification-trigger" aria-label="Chat" title="Chat" aria-expanded="false" aria-controls="chat-popover">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8l-5 4V6a2 2 0 0 1 2-2Z"/><path d="M7 9h10M7 13h7"/></svg>
+                <div
+                    class="nav-notification nav-chat"
+                    data-chat-notifications
+                    data-chat-session="{% chat_session_identity %}"
+                    data-chat-user="{{ user.pk }}"
+                    data-chat-notifications-url="{% url 'chat:notifications' %}"
+                >
+                    <button
+                        type="button"
+                        class="nav-icon-link nav-notification-trigger"
+                        aria-label="Chat"
+                        title="Chat"
+                        aria-expanded="false"
+                        aria-controls="chat-popover"
+                    >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8l-5 4V6a2 2 0 0 1 2-2Z"/>
+                            <path d="M7 9h10M7 13h7"/>
+                        </svg>
+
                         <span class="nav-chat-badge" data-chat-unread hidden></span>
                     </button>
+
                     <section class="notification-popover nav-chat-popover" id="chat-popover" aria-label="Recent chats">
-                        <header class="notification-popover-header"><h2>Chat</h2><a href="{% url 'chat:inbox' %}">View all</a></header>
-                        <div data-chat-preview><p class="nav-chat-empty">Loading recent chats…</p></div>
+                        <header class="notification-popover-header">
+                            <h2>Chat</h2>
+                            <a href="{% url 'chat:inbox' %}">View all</a>
+                        </header>
+
+                        <div data-chat-preview>
+                            <p class="nav-chat-empty">Loading recent chats…</p>
+                        </div>
                     </section>
                 </div>
+
                 <div class="nav-profile-menu">
-                    <button type="button" class="nav-profile-trigger" aria-label="Menu profil {{ user.username }}" aria-haspopup="true" aria-expanded="false" aria-controls="profile-dropdown">
-                        <img src="{% if user.account_profile.photo %}{{ user.account_profile.photo.url }}{% else %}{% static 'img/Default_PP.png' %}{% endif %}" alt="">
-                        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+                    <button
+                        type="button"
+                        class="nav-profile-trigger"
+                        aria-label="Menu profil {{ user.username }}"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        aria-controls="profile-dropdown"
+                    >
+                        <img
+                            src="{% if user.account_profile.photo %}{{ user.account_profile.photo.url }}{% else %}{% static 'img/Default_PP.png' %}{% endif %}"
+                            alt=""
+                        >
+
+                        <svg viewBox="0 0 16 16" aria-hidden="true">
+                            <path d="m4 6 4 4 4-4"/>
+                        </svg>
                     </button>
+
                     <section class="profile-dropdown" id="profile-dropdown" aria-label="Menu profil">
-                    <a href="{% url 'account_profile:user_profile' user.username %}" class="profile-dropdown-heading">
-                        <img src="{% if user.account_profile.photo %}{{ user.account_profile.photo.url }}{% else %}{% static 'img/Default_PP.png' %}{% endif %}" alt="">
-                        <div>
-                            <strong>{{ user.username }}</strong>
-                            <span>View profile</span>
-                        </div>
-                    </a>
+                        <a href="{% url 'account_profile:user_profile' user.username %}" class="profile-dropdown-heading">
+                            <img
+                                src="{% if user.account_profile.photo %}{{ user.account_profile.photo.url }}{% else %}{% static 'img/Default_PP.png' %}{% endif %}"
+                                alt=""
+                            >
+
+                            <div>
+                                <strong>{{ user.username }}</strong>
+                                <span>View profile</span>
+                            </div>
+                        </a>
+
                         <div class="profile-dropdown-links">
                             <a href="{% url 'transactions:transaction_history' %}">Orders</a>
-                            <a href="{% url 'items:item_create' %}"><span><strong>Sell</strong><small>Give your items another love</small></span></a>
+
+                            <a href="{% url 'items:item_create' %}">
+                                <span>
+                                    <strong>Sell</strong>
+                                    <small>Give your items another love</small>
+                                </span>
+                            </a>
+
                             <a href="{% url 'account_profile:profile' %}">Settings</a>
                         </div>
+
                         <form action="{% url 'logout' %}" method="post" class="profile-dropdown-logout">
                             {% csrf_token %}
-                            <button type="submit">{% include "account_profile/_logout_icon.html" %}Log out</button>
+                            <button type="submit">
+                                {% include "account_profile/_logout_icon.html" %}
+                                Log out
+                            </button>
                         </form>
                     </section>
                 </div>
+
             {% else %}
                 <a href="{% url 'login' %}" class="nav-button">Login</a>
             {% endif %}
         </div>
-        </div>
-    </header>
-
-    <div class="site-toast-region" id="site-toast-region" aria-live="polite" aria-atomic="true">
-        {% if request.resolver_match.app_name == "wanted_board" or request.resolver_match.app_name == "account_profile" or request.resolver_match.url_name == "show_main" or request.resolver_match.url_name == "login" %}
-            {% for message in messages %}
-                <article class="site-toast" data-global-toast data-toast-duration="3000" data-toast-type="{{ message.tags|default:'info' }}" hidden>
-                    <span class="site-toast-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M20 6 9 17l-5-5"></path>
-                        </svg>
-                    </span>
-                    <span class="site-toast-copy">
-                        <strong>{% if "error" in message.tags %}Something went wrong{% else %}Success{% endif %}</strong>
-                        <small>{{ message }}</small>
-                    </span>
-                </article>
-            {% endfor %}
-        {% endif %}
     </div>
-    {% block content %} {% endblock content %}
+</header>
 
-    <footer class="site-footer">
-        <div class="container site-footer-container">
-            <div class="site-footer-main">
-                <div class="site-footer-brand-block">
-                    <a class="site-footer-brand" href="{% url 'show_main' %}">
-                        <img src="{% static 'img/Yelloved.png' %}" alt="">
-                        <span>Yelloved</span>
-                    </a>
-                    <p>A community marketplace for discovering items and sharing what you are looking for.</p>
-                </div>
+<!-- Toast global yang sudah digunakan fitur lain -->
+<div class="site-toast-region" id="site-toast-region" aria-live="polite" aria-atomic="true">
+    {% if request.resolver_match.app_name == "wanted_board" or request.resolver_match.app_name == "account_profile" or request.resolver_match.url_name == "show_main" or request.resolver_match.url_name == "login" %}
+        {% for message in messages %}
+            <article
+                class="site-toast"
+                data-global-toast
+                data-toast-duration="3000"
+                data-toast-type="{{ message.tags|default:'info' }}"
+                hidden
+            >
+                <span class="site-toast-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M20 6 9 17l-5-5"></path>
+                    </svg>
+                </span>
 
-                <nav class="site-footer-nav" aria-label="Footer navigation">
-                    <h2>Navigation</h2>
-                    <a href="{% url 'items:explore_items' %}">Catalogue</a>
-                    <a href="{% url 'wanted_board:show_wanted' %}">Wanted Board</a>
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'transactions:transaction_history' %}">Transaction</a>
-                    {% endif %}
-                </nav>
-            </div>
-
-            <div class="site-footer-bottom">
-                <p>&copy; 2026 {{ name|default:"Yelloved" }}</p>
-                <p>Fakultas Ilmu Komputer, Universitas Indonesia</p>
-            </div>
-        </div>
-    </footer>
-    <script src="{% static 'js/toast.js' %}?v=navigation-2" defer></script>
-    {% if user.is_authenticated %}<script src="{% static 'js/chat_notifications.js' %}" defer></script>{% endif %}
-    <script src="{% static 'js/media_fallback.js' %}" data-avatar-fallback="{% static 'img/Default_PP.png' %}" defer></script>
-    {% if request.resolver_match.namespace == 'account_profile' or request.resolver_match.url_name == 'login' %}
-    <script src="{% static 'js/account.js' %}?v=account-refresh-4" defer></script>
+                <span class="site-toast-copy">
+                    <strong>
+                        {% if "error" in message.tags %}
+                            Something went wrong
+                        {% else %}
+                            Success
+                        {% endif %}
+                    </strong>
+                    <small>{{ message }}</small>
+                </span>
+            </article>
+        {% endfor %}
     {% endif %}
-    <script src="{% static 'js/wanted_item_offer.js' %}?v=drafts-3" defer></script>
-    <script src="{% static 'js/wanted_image_validation.js' %}" defer></script>
-    <script src="{% static 'js/wanted_budget_validation.js' %}" defer></script>
-    <script src="{% static 'js/wanted_upload_forms.js' %}" defer></script>
-    <script src="{% static 'js/wanted_unsaved_forms.js' %}" defer></script>
-    <script>
-        const popoverWrappers = [...document.querySelectorAll(".nav-notification")]
-            .filter((wrapper) => wrapper.querySelector("button.nav-notification-trigger"));
-        const profileMenu = document.querySelector(".nav-profile-menu");
-        const profileTrigger = profileMenu?.querySelector(".nav-profile-trigger");
+</div>
+
+<!-- Toast khusus aplikasi transaksi -->
+<div
+    id="transaction-toast-region"
+    class="transaction-toast-region"
+    aria-live="polite"
+    aria-atomic="false"
+>
+    {% if request.resolver_match.namespace == "transactions" %}
+        {% for message in messages %}
+            <article
+                class="transaction-toast"
+                data-transaction-toast
+                data-toast-type="{{ message.tags|default:'info' }}"
+                role="status"
+                hidden
+            >
+                <span class="transaction-toast-icon" aria-hidden="true">
+                    {% if "success" in message.tags %}
+                        ✓
+                    {% elif "error" in message.tags %}
+                        !
+                    {% elif "warning" in message.tags %}
+                        !
+                    {% else %}
+                        i
+                    {% endif %}
+                </span>
+
+                <span class="transaction-toast-copy">
+                    <strong>
+                        {% if "success" in message.tags %}
+                            Berhasil
+                        {% elif "error" in message.tags %}
+                            Gagal
+                        {% elif "warning" in message.tags %}
+                            Perhatian
+                        {% else %}
+                            Informasi
+                        {% endif %}
+                    </strong>
+
+                    <small>{{ message }}</small>
+                </span>
+
+                <button
+                    type="button"
+                    class="transaction-toast-close"
+                    aria-label="Tutup notifikasi"
+                >&times;</button>
+            </article>
+        {% endfor %}
+    {% endif %}
+</div>
+
+{% block content %}
+{% endblock content %}
+
+<footer class="site-footer">
+    <div class="container site-footer-container">
+        <div class="site-footer-main">
+            <div class="site-footer-brand-block">
+                <a class="site-footer-brand" href="{% url 'show_main' %}">
+                    <img src="{% static 'img/Yelloved.png' %}" alt="">
+                    <span>Yelloved</span>
+                </a>
+
+                <p>A community marketplace for discovering items and sharing what you are looking for.</p>
+            </div>
+
+            <nav class="site-footer-nav" aria-label="Footer navigation">
+                <h2>Navigation</h2>
+                <a href="{% url 'items:explore_items' %}">Catalogue</a>
+                <a href="{% url 'wanted_board:show_wanted' %}">Wanted Board</a>
+
+                {% if user.is_authenticated %}
+                    <a href="{% url 'transactions:transaction_history' %}">Transaction</a>
+                {% endif %}
+            </nav>
+        </div>
+
+        <div class="site-footer-bottom">
+            <p>&copy; 2026 {{ name|default:"Yelloved" }}</p>
+            <p>Fakultas Ilmu Komputer, Universitas Indonesia</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Script toast global yang lama -->
+<script src="{% static 'js/toast.js' %}?v=navigation-2" defer></script>
+
+<!-- Script toast khusus transaksi -->
+{% if request.resolver_match.namespace == "transactions" %}
+    <script src="{% static 'js/transactions/transaction_toast.js' %}?v=2" defer></script>
+{% endif %}
+
+{% if user.is_authenticated %}
+    <script src="{% static 'js/chat_notifications.js' %}" defer></script>
+{% endif %}
+
+<script
+    src="{% static 'js/media_fallback.js' %}"
+    data-avatar-fallback="{% static 'img/Default_PP.png' %}"
+    defer
+></script>
+
+{% if request.resolver_match.namespace == 'account_profile' or request.resolver_match.url_name == 'login' %}
+    <script src="{% static 'js/account.js' %}?v=account-refresh-4" defer></script>
+{% endif %}
+
+<script src="{% static 'js/wanted_item_offer.js' %}?v=drafts-3" defer></script>
+<script src="{% static 'js/wanted_image_validation.js' %}" defer></script>
+<script src="{% static 'js/wanted_budget_validation.js' %}" defer></script>
+<script src="{% static 'js/wanted_upload_forms.js' %}" defer></script>
+<script src="{% static 'js/wanted_unsaved_forms.js' %}" defer></script>
+
+<script>
+    const popoverWrappers = [...document.querySelectorAll(".nav-notification")]
+        .filter((wrapper) => wrapper.querySelector("button.nav-notification-trigger"));
+
+    const profileMenu = document.querySelector(".nav-profile-menu");
+    const profileTrigger = profileMenu?.querySelector(".nav-profile-trigger");
+
+    popoverWrappers.forEach((wrapper) => {
+        const trigger = wrapper.querySelector("button.nav-notification-trigger");
+
+        trigger.addEventListener("click", () => {
+            const shouldOpen = !wrapper.classList.contains("is-open");
+            wrapper.classList.toggle("is-open", shouldOpen);
+            wrapper.classList.toggle("is-dismissed", !shouldOpen);
+            trigger.setAttribute("aria-expanded", String(shouldOpen));
+        });
+    });
+
+    profileTrigger?.addEventListener("click", () => {
+        const shouldOpen = !profileMenu.classList.contains("is-open");
+        profileMenu.classList.toggle("is-open", shouldOpen);
+        profileMenu.classList.toggle("is-dismissed", !shouldOpen);
+        profileTrigger.setAttribute("aria-expanded", String(shouldOpen));
+    });
+
+    profileMenu?.addEventListener("mouseleave", () => {
+        profileMenu.classList.remove("is-dismissed");
+    });
+
+    document.addEventListener("click", (event) => {
+        popoverWrappers.forEach((wrapper) => {
+            if (wrapper.contains(event.target)) return;
+
+            wrapper.classList.remove("is-open", "is-dismissed");
+            wrapper.querySelector("button.nav-notification-trigger")
+                ?.setAttribute("aria-expanded", "false");
+        });
+
+        if (profileMenu && !profileMenu.contains(event.target)) {
+            profileMenu.classList.remove("is-open");
+            profileTrigger?.setAttribute("aria-expanded", "false");
+        }
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape") return;
 
         popoverWrappers.forEach((wrapper) => {
+            if (!wrapper.classList.contains("is-open")) return;
+
             const trigger = wrapper.querySelector("button.nav-notification-trigger");
 
-            trigger.addEventListener("click", () => {
-                const shouldOpen = !wrapper.classList.contains("is-open");
-                wrapper.classList.toggle("is-open", shouldOpen);
-                wrapper.classList.toggle("is-dismissed", !shouldOpen);
-                trigger.setAttribute("aria-expanded", String(shouldOpen));
-            });
+            wrapper.classList.remove("is-open");
+            wrapper.classList.add("is-dismissed");
+            trigger.setAttribute("aria-expanded", "false");
+            trigger.focus();
         });
 
-        profileTrigger?.addEventListener("click", () => {
-            const shouldOpen = !profileMenu.classList.contains("is-open");
-            profileMenu.classList.toggle("is-open", shouldOpen);
-            profileMenu.classList.toggle("is-dismissed", !shouldOpen);
-            profileTrigger.setAttribute("aria-expanded", String(shouldOpen));
-        });
+        if (profileMenu?.classList.contains("is-open")) {
+            profileMenu.classList.remove("is-open");
+            profileMenu.classList.add("is-dismissed");
+            profileTrigger.setAttribute("aria-expanded", "false");
+            profileTrigger.focus();
+        }
+    });
+</script>
 
-        profileMenu?.addEventListener("mouseleave", () => {
-            profileMenu.classList.remove("is-dismissed");
-        });
+<script src="{% static 'js/catalogue-search.js' %}?v=recent-searches-5" defer></script>
 
-        document.addEventListener("click", (event) => {
-            popoverWrappers.forEach((wrapper) => {
-                if (wrapper.contains(event.target)) return;
-                wrapper.classList.remove("is-open", "is-dismissed");
-                wrapper.querySelector("button.nav-notification-trigger")?.setAttribute("aria-expanded", "false");
-            });
-            if (profileMenu && !profileMenu.contains(event.target)) {
-                profileMenu.classList.remove("is-open");
-                profileTrigger?.setAttribute("aria-expanded", "false");
-            }
-        });
-
-        document.addEventListener("keydown", (event) => {
-            if (event.key !== "Escape") return;
-            popoverWrappers.forEach((wrapper) => {
-                if (!wrapper.classList.contains("is-open")) return;
-                const trigger = wrapper.querySelector("button.nav-notification-trigger");
-                wrapper.classList.remove("is-open");
-                wrapper.classList.add("is-dismissed");
-                trigger.setAttribute("aria-expanded", "false");
-                trigger.focus();
-            });
-            if (profileMenu?.classList.contains("is-open")) {
-                profileMenu.classList.remove("is-open");
-                profileMenu.classList.add("is-dismissed");
-                profileTrigger.setAttribute("aria-expanded", "false");
-                profileTrigger.focus();
-            }
-        });
-    </script>
-    <script src="{% static 'js/catalogue-search.js' %}?v=recent-searches-5" defer></script>
-    </body>
-
+</body>
 </html>

@@ -76,4 +76,10 @@ urlpatterns = [
         views.payment_preview,
         name="payment_preview",
     ),
+
+    path(
+        "midtrans/notification/",
+        views.midtrans_notification,
+        name="midtrans_notification",
+    ),
 ]
