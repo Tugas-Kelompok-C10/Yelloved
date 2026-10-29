@@ -104,7 +104,7 @@ def _wanted_page(wanted_posts, sample_posts, number, per_page=12, user_id=None):
 
 
 def _board_context(request, creation_form=None, open_create_modal=False):
-    query = request.GET.get("q", "").strip()
+    query = request.GET.get("q", "").strip()[:70]
     category = request.GET.get("category", "").strip()
 
     wanted_posts = WantedPost.objects.filter(status=WantedPost.Status.OPEN).select_related("requester").order_by("-created_at", "-pk")

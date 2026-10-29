@@ -26,7 +26,8 @@
 
     const buildUrl = (page) => {
         const url = new URL(form.action, window.location.origin);
-        const query = queryInput.value.trim();
+        const query = queryInput.value.trim().slice(0, 70);
+        queryInput.value = query;
 
         if (query) url.searchParams.set("q", query);
         if (selectedCategory) url.searchParams.set("category", selectedCategory);

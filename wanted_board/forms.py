@@ -34,6 +34,7 @@ class WantedPostForm(forms.ModelForm):
                 attrs={
                     "placeholder": "Describe the item, specifications, or details you need.",
                     "rows": 5,
+                    "maxlength": 500,
                 }
             ),
             "budget": forms.NumberInput(
