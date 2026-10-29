@@ -271,7 +271,8 @@ class WantedBoardViewTests(TestCase):
         self.assertContains(response, "Send offer")
         self.assertContains(response, 'data-send-item-offer disabled')
         self.assertNotContains(response, 'data-open-item-offer-modal')
-        self.assertNotContains(response, "item-matching/wanted/")
+        self.assertContains(response, 'data-offer-url-template=')
+        self.assertContains(response, 'name="submission_id"')
 
     def test_board_offer_buttons_are_separate_from_detail_links(self):
         response = self.client.get(reverse("wanted_board:show_wanted"))

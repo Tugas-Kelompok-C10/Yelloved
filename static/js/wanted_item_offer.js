@@ -52,7 +52,7 @@
         };
     });
     const discardDraft = async (key, revision) => {
-        try {await storage('delete', key, null, revision); clearDiscard(key); return {removed: true};}
+        try {const saved = await storage('delete', key, null, revision); clearDiscard(key); return {removed: true, revision: saved.revision};}
         catch (error) {
             if (error.message?.startsWith('This draft changed')) return {removed: false, newer: true};
             discarded.add(key);
@@ -71,7 +71,7 @@
     const update = form => {
         const message = form.elements.description;
         message.setCustomValidity(message.value.trim() ? '' : 'Describe your item and pickup location.');
-        form.querySelector('[data-send-item-offer]').disabled = form.querySelector('fieldset').disabled || !form.checkValidity();
+        form.querySelector('[data-send-item-offer]').disabled = Boolean(states.get(form)?.sending) || form.querySelector('fieldset').disabled || !form.checkValidity();
     };
     const restore = async form => {
         const state = {dirty: false, revision: null};
@@ -107,7 +107,7 @@
         dialog.showModal();
     });
     const exit = async (form, done, navigating = false) => {
-        if (asking) return;
+        if (asking || states.get(form)?.sending) return;
         if (!isDirty(form)) { done(); return; }
         asking = true;
         try {
@@ -140,6 +140,7 @@
         if (trigger && modal) {
             const form = modal.querySelector('[data-item-offer-form]');
             form.reset();
+            form.elements.submission_id.value = crypto.randomUUID();
             form.elements.wanted_post.value = trigger.dataset.offerPost;
             form.querySelector('[data-offer-chat]').href = trigger.dataset.offerChat;
             modal.querySelector('[data-offer-target]').textContent = `${trigger.dataset.offerTitle} · Max budget ${trigger.dataset.offerBudget}`;
@@ -166,19 +167,50 @@
         if (bound.has(form)) return;
         bound.add(form);
         states.set(form, {dirty: false, revision: null});
+        form.elements.submission_id.value = crypto.randomUUID();
         const changed = () => { states.get(form).dirty = true; activeForm = form; update(form); if (hasContent(form)) protectBack(); };
         form.addEventListener('input', changed);
         form.addEventListener('change', changed);
         form.addEventListener('offer-image-validated', () => update(form));
         form.addEventListener('reset', () => {
             form.querySelector('[data-offer-feedback]').textContent = '';
-            queueMicrotask(() => update(form));
+            queueMicrotask(() => {form.elements.submission_id.value ||= crypto.randomUUID(); update(form);});
         });
-        form.addEventListener('submit', event => {
+        form.addEventListener('submit', async event => {
             event.preventDefault();
             update(form);
             if (!form.reportValidity() || form.querySelector('[data-send-item-offer]').disabled) return;
-            form.querySelector('[data-offer-feedback]').textContent = 'Your offer is ready. Sending offers is not connected yet.';
+            const post = form.elements.wanted_post.value.split('/').filter(Boolean).at(-1);
+            const feedback = form.querySelector('[data-offer-feedback]');
+            if (!/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(post)) {
+                feedback.textContent = 'This is a sample post. Send an offer to a community member’s wanted post instead.'; return;
+            }
+            const state = states.get(form); state.sending = true; update(form);
+            const body = new FormData(form), fieldset = form.querySelector('fieldset');
+            fieldset.disabled = true;
+            feedback.textContent = 'Sending your offer…';
+            const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 15000);
+            try {
+                const response = await fetch(form.dataset.offerUrlTemplate.replace('00000000-0000-0000-0000-000000000000', post), {
+                    method: 'POST', body, signal: controller.signal, credentials: 'same-origin',
+                    headers: {'X-CSRFToken': form.elements.csrfmiddlewaretoken.value, 'X-Offer-User': form.dataset.draftUser, Accept: 'application/json'},
+                });
+                if (!(response.headers.get('Content-Type') || '').includes('application/json')) throw new Error('Unable to send your offer. Please sign in again or retry.');
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.message || 'Unable to send this offer.');
+                await state.ready;
+                const discardedDraft = await discardDraft(postKey(form), state.revision);
+                state.revision = discardedDraft.revision || null;
+                state.dirty = false;
+                form.reset();
+                if (form.closest('dialog')?.open) form.closest('dialog').close();
+                feedback.textContent = result.message;
+                window.YellovedToast?.show({title: 'Offer sent', message: result.message, type: 'success'});
+                window.dispatchEvent(new Event('activity:changed'));
+            } catch (error) {
+                feedback.textContent = error.name === 'AbortError' ? 'The request timed out. Retry with this form to confirm your offer without creating a duplicate.' : error.message;
+                window.YellovedToast?.show({title: 'Unable to send offer', message: feedback.textContent, type: 'error'});
+            } finally {clearTimeout(timeout); state.sending = false; fieldset.disabled = false; update(form);}
         });
         update(form);
         if (!form.closest('dialog')) {

@@ -44,4 +44,10 @@ class Message(models.Model):
     class Meta:
         ordering = ["created_at", "id"]
         indexes = [models.Index(fields=["conversation", "created_at"], name="chat_message_timeline"),
-                   models.Index(fields=["conversation", "sync_version"], name="chat_message_changes")]
+                   models.Index(fields=["conversation", "sync_version"], name="chat_message_changes"),
+                   models.Index(fields=["sender", "created_at"], name="chat_sender_window")]
+
+
+class MessageSendQuota(models.Model):
+    """A shared per-account lock, so simultaneous tabs cannot bypass the limit."""
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

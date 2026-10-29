@@ -58,18 +58,72 @@ Yelloved merupakan platform jual beli dan pertukaran barang preloved yang dituju
 | Payment & Transaction |  Mengelola proses checkout, pembayaran, dan transaksi barang. Pengguna dapat membuat transaksi, melihat detail dan riwayat transaksi, memperbarui status pembayaran, serta membatalkan transaksi yang masih berjalan. | Dzaky |
 | Items Management | Memungkinkan pengguna menawarkan barang yang sudah tidak digunakan tetapi masih layak pakai. Pengguna dapat membuat, mengubah, dan menghapus posting dengan memasukkan informasi barang, foto, kondisi, dan sebagainya. Pemilik juga dapat memperbarui status barang ketika sudah tidak tersedia. | Adyra |
 | Wanted Board | Menyediakan ruang bagi pengguna yang sedang mencari barang tertentu untuk membuat wanted post. Pengguna dapat menjelaskan barang yang dibutuhkan dan informasi tambahan lainnya. Pengguna lain yang memiliki barang yang sesuai dapat memberikan penawaran terhadap wanted post tersebut. | Cindy |
+| Chat | Percakapan pribadi antar pengguna untuk membahas barang, harga, dan lokasi pertemuan. Pengguna dapat mengirim, mengedit, menghapus pesan, melampirkan file, dan melihat preview percakapan serta badge pesan belum dibaca di navbar. | Cindy |
 | Item Matching & Exchange | Menghubungkan pengguna yang memiliki barang dengan pengguna yang sedang membutuhkannya. Pengguna dapat mengajukan request terhadap suatu barang atau menawarkan barang sebagai respons terhadap wanted post. | Baron |
 
-Setiap modul Django memiliki app sendiri: `account_profile`, `transactions`, `items`, `wanted_board`, dan `item_matching`. App `home` menangani halaman utama proyek. Semua app terdaftar di `INSTALLED_APPS` pada `home/settings.py`.
+Setiap modul Django memiliki app sendiri: `account_profile`, `transactions`, `items`, `wanted_board`, `item_matching`, dan `chat`. App `home` menangani halaman utama proyek. Semua app terdaftar di `INSTALLED_APPS` pada `home/settings.py`.
 
-## Menjalankan Proyek Secara Lokal
+## Setup dan Menjalankan Proyek
 
-1. Pasang dependency dari `requirements.txt`.
-2. Isi `SECRET_KEY` dan konfigurasi database pada environment atau file `.env` lokal. File `.env` tidak ikut dipush.
-3. Jalankan migrasi dengan `python manage.py migrate`.
-4. Jalankan server dengan `python manage.py runserver`.
+Instruksi PowerShell berikut dijalankan dari folder repository yang berisi `manage.py`.
+Python 3.13 dipakai pada development saat ini. Versi library mengikuti `requirements.txt`,
+bukan komentar versi Django lama di bagian awal `home/settings.py`.
 
-Konfigurasi development memakai SQLite secara default. Set `PRODUCTION=True` untuk memakai konfigurasi PostgreSQL dari environment.
+### 1. Buat virtual environment dan install dependency
+
+```powershell
+py -3.13 -m venv env
+.\env\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+Command memakai interpreter virtual environment secara langsung sehingga tidak perlu
+mengubah execution policy PowerShell atau mengaktifkan environment terlebih dahulu.
+Pada macOS/Linux, gunakan `python3 -m venv env` dan ganti interpreter berikut menjadi
+`./env/bin/python`. Gunicorn dipakai pada server Linux, bukan untuk menjalankan development Windows.
+
+### 2. Konfigurasi `.env` lokal
+
+Buat file `.env` di folder yang sama dengan `manage.py`:
+
+```dotenv
+PRODUCTION=False
+SECRET_KEY=replace-with-a-generated-development-key
+```
+
+Generate key dengan command berikut, lalu salin hasilnya ke `SECRET_KEY`:
+
+```powershell
+.\env\Scripts\python.exe -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
+Jangan commit `.env` atau membagikan secret key. Development memakai SQLite sehingga
+konfigurasi PostgreSQL tidak diperlukan untuk membuka Wanted dan Chat.
+`MIDTRANS_CLIENT_KEY` dan `MIDTRANS_SERVER_KEY` hanya diperlukan untuk mencoba integrasi
+pembayaran sandbox; minta konfigurasi pengujian dari pengelola modul transaksi.
+
+### 3. Migrasi, akun, dan server
+
+```powershell
+.\env\Scripts\python.exe manage.py migrate
+.\env\Scripts\python.exe manage.py createsuperuser
+.\env\Scripts\python.exe manage.py runserver
+```
+
+Buka `http://127.0.0.1:8000/`. Superuser bersifat opsional; akun biasa dapat dibuat lewat
+halaman registrasi. Untuk mencoba Chat antar pengguna, gunakan dua akun berbeda dan
+dua browser/profile browser berbeda agar session tidak saling menggantikan.
+
+| Halaman | URL lokal |
+|---|---|
+| Landing | `http://127.0.0.1:8000/` |
+| Wanted Board | `http://127.0.0.1:8000/wanted-post/` |
+| Chat | `http://127.0.0.1:8000/chat/` |
+| Activity | `http://127.0.0.1:8000/item-matching/` |
+| Admin | `http://127.0.0.1:8000/admin/` |
+
+Chat membutuhkan login. Tombol Chat pada detail Wanted membuka percakapan dengan
+pemilik post; pengguna tidak dapat membuka percakapan dengan dirinya sendiri.
+Halaman inbox baru dapat kosong sampai ada pesan yang dikirim.
 
 ## Sumber Dataset / Public API
 
@@ -87,3 +141,35 @@ Konfigurasi development memakai SQLite secara default. Set `PRODUCTION=True` unt
 
 - Deployment PWS: https://muhammad-adib51-yelloved.pws.cs.ui.ac.id
 - Figma: https://www.figma.com/design/vX59epB4suKi9Hn0AvAlCm/Desktop?m=auto&t=lBfJytlKiMLzHr9P-6
+
+## AI Disclosure
+
+Disclosure ini menjelaskan bantuan AI pada pekerjaan.
+
+### Tools dan tujuan penggunaan
+
+| Tool | Penggunaan dalam pekerjaan ini |
+|---|---|
+| OpenAI Codex / asisten AI | Membantu membaca repository, menjelaskan alur Django/JavaScript, menyusun dan mengubah kode, meninjau edge case, menulis tes, dan membantu commit terarah |
+| Claude Design | Membantu membuat design hi-fi berdasarkan referensi design dan konteks yang diberikan |
+
+### Strategi prompt
+
+Pekerjaan dipecah menjadi perubahan kecil dengan batas modul yang eksplisit.
+
+1. **Tetapkan konteks:** inspect struktur Models → Forms → Views → Templates → JavaScript sebelum menyimpulkan penyebab masalah.
+2. **Tetapkan batas:** hanya sentuh modul yang diizinkan; gunakan `base.html`, CSS global, token `:root`, lebar konten 1280 px, dan copywriting Inggris pada UI.
+3. **Minta alur konkret:** misalnya search debounce 300 ms, filter dapat digabung dengan sorting/pagination, atau tombol Chat mengarah ke pemilik Wanted.
+4. **Minta kasus negatif:** duplicate submit, dua tab mengedit bersamaan, status post berubah saat offer diproses, session berganti akun, timeout, file tidak valid, serta request bersamaan di batas kuota.
+5. **Verifikasi dan koreksi:** jalankan tes, baca error aktual, bandingkan hasil dengan screenshot, lalu lakukan perbaikan terarah dan commit sesuai konteks perubahan.
+
+### Keterbatasan AI, koreksi terarah, dan bukti verifikasi
+
+Bantuan AI digunakan secara substansial untuk kode dan tes; kode tidak diklaim seluruhnya
+ditulis manual. Penggunaan untuk mengarahkan kebutuhan, mengulas hasil UI, melaporkan masalah,
+dan menentukan cakupan/keputusan fitur. Perubahan kode berikut dikerjakan dengan bantuan
+asisten berdasarkan inspeksi repository, laporan pengguna, dan hasil tes:
+
+| Keterbatasan / masalah | Koreksi dan cara memeriksa |
+|---|---|
+| Styling dapat menyimpang dari desain yang diberikan: warna, ukuran icon, chip, dan spacing tidak selalu tepat pada percobaan pertama. | Pengguna memberi screenshot dan koreksi; styling direvisi memakai token root dan shared CSS, bukan menerima hasil pertama tanpa review. |

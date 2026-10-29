@@ -14,6 +14,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from .forms import MessageEditForm, MessageForm
 from .models import Conversation, Message
 from .session import session_guard
+from .rate_limits import MessageRateLimited, check_message_limit, locked_send_quota
 
 
 def _pair(user, peer):
@@ -176,7 +177,16 @@ def messages_api(request, user_id):
         return JsonResponse({"message": detail, "errors": errors}, status=422)
     written = None
     try:
-        with transaction.atomic():
+        with locked_send_quota(request.user):
+            # Confirm successful retries before applying the quota. Never resend.
+            previous = Message.objects.select_related('conversation').filter(pk=form.cleaned_data['client_id']).first()
+            if previous:
+                if (previous.sender_id != request.user.pk or
+                        previous.conversation.first_user_id != pair['first_user_id'] or
+                        previous.conversation.second_user_id != pair['second_user_id']):
+                    return _error('This send token belongs to a different message. Please compose a new message.', 409)
+                return JsonResponse({'entry': _entry(previous, request.user)})
+            check_message_limit(request.user)
             conversation, _ = Conversation.objects.get_or_create(**pair)
             # Serialize writers before allocating a change version. A cursor can
             # only advance past writes that have committed for this conversation.
@@ -195,6 +205,11 @@ def messages_api(request, user_id):
                 message.attachment_name = upload.chat_display_name
                 message.attachment_type = upload.chat_content_type
                 message.save(update_fields=["attachment", "attachment_name", "attachment_type"])
+    except MessageRateLimited as error:
+        response = JsonResponse({'code': 'rate_limited', 'message': error.message,
+                                 'retry_after': error.retry_after}, status=429)
+        response['Retry-After'] = str(error.retry_after)
+        return response
     except Exception as error:
         if written:
             try: Message._meta.get_field("attachment").storage.delete(written)

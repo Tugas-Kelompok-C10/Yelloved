@@ -32,3 +32,4 @@ db.sqlite3-journal
 .DS_Store
 Thumbs.db
 private_chat_files/
+/.cache/

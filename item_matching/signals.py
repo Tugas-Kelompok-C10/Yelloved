@@ -1,11 +1,13 @@
 """Keep requests/offers consistent when other apps change items or wanted posts."""
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
+from django.db import transaction
 from django.dispatch import receiver
 
 from items.models import Item
 from wanted_board.models import WantedPost
 
 from . import services
+from .models import ItemOffer
 
 
 @receiver(post_save, sender=Item, dispatch_uid='item_matching_item_saved')
@@ -20,3 +22,9 @@ def wanted_post_saved(sender, instance, created, **kwargs):
     # e.g. the requester marks the post fulfilled/closed from the wanted board.
     if not created and instance.status != WantedPost.Status.OPEN:
         services.close_offers_for(instance)
+
+
+@receiver(post_delete, sender=ItemOffer)
+def remove_offer_photo(sender, instance, **kwargs):
+    if instance.photo:
+        transaction.on_commit(lambda: instance.photo.storage.delete(instance.photo.name))

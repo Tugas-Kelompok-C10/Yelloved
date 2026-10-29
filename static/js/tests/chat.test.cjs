@@ -62,6 +62,30 @@ function harness(initial = [], getResult) {
         openAction: (action, id = original.id) => app.handlers.click({target: {closest: selector => selector === '[data-chat-action]' ? {dataset: {messageId: id, chatAction: action}} : null}})};
 }
 
+test('message HTML payloads are displayed as text, not inserted as HTML', async () => {
+    const payload = '<img src=x onerror=alert(1)>';
+    const ui = harness([{...original, body: payload}]);
+    await flush();
+    const nodes = [];
+    const visit = element => {nodes.push(element); element.children.forEach(visit);};
+    visit(ui.list);
+    assert.ok(nodes.some(element => element.text === payload));
+    assert.ok(nodes.every(element => !Object.hasOwn(element, 'innerHTML')));
+});
+
+test('rate limit shows the server message and keeps the outgoing message retryable', async () => {
+    const ui = harness(); await flush();
+    ui.send('Keep this message'); await flush();
+    const token = ui.calls[0].data.get('client_id');
+    ui.calls[0].resolve(response(429, {message: 'You have reached the limit of 30 messages in 1 minute. Please retry in 25 seconds.'}));
+    await flush();
+    assert.match(ui.list.textContent, /Keep this message/);
+    assert.match(ui.list.textContent, /Retry/);
+    assert.match(ui.notifications[0].message, /retry in 25 seconds/);
+    ui.openAction('retry', token); await flush();
+    assert.equal(ui.calls[1].data.get('client_id'), token);
+});
+
 test('sending is optimistic; failed requests retain a retryable message and reuse its token', async () => {
     const ui = harness(); await flush();
     ui.send('Hello');

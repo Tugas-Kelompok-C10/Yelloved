@@ -6,6 +6,8 @@ app_name = 'item_matching'
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
+    path('preview/', views.activity_preview, name='activity_preview'),
+    path('wanted/<uuid:wanted_id>/send-offer/', views.photo_offer_create, name='photo_offer_create'),
     path('item/<int:item_id>/request/', views.request_create, name='request_create'),
     path('item/<int:item_id>/matches/', views.item_suggestions, name='item_suggestions'),
     path('wanted/<uuid:wanted_id>/offer-item/', views.offer_create, name='offer_create'),

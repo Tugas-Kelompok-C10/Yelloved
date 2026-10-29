@@ -27,9 +27,8 @@
 
         <link
             rel="stylesheet"
-            href="{% static 'css/style.css' %}?v=chat-composer-50"
+            href="{% static 'css/style.css' %}?v=activity-responsive-51"
         >
-        <link rel="stylesheet" href="{% static 'css/item_matching.css' %}">
 
         <link rel="stylesheet" href="{% static 'css/cart-badge.css' %}?v=1">
         <script src="{% static 'js/chat_session.js' %}" defer></script>
@@ -87,68 +86,12 @@
                         </svg>{% if nav_cart_count %}<span class="nav-cart-count" aria-hidden="true">{{ nav_cart_count }}</span>{% endif %}
                     </a>
                 <div class="nav-icon-group">
-                    <div class="nav-notification nav-matching">
-                        <a href="{% url 'item_matching:dashboard' %}"
-                           class="nav-icon-link nav-matching-trigger"
-                           title="Item Matching &amp; Exchange"
-                           aria-label="Item Matching &amp; Exchange{% if matching_pending_count %}, {{ matching_pending_count }} need your action{% endif %}"
-                           aria-haspopup="true"
-                           aria-controls="matching-popover">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
-                                 aria-hidden="true">
-                                <circle cx="12" cy="12" r="9"/>
-                                <path d="M12 7v5l3 2"/>
-                            </svg>
-                            {% if matching_pending_count %}<span class="nav-matching-badge" aria-hidden="true">{% if matching_pending_count > 9 %}9+{% else %}{{ matching_pending_count }}{% endif %}</span>{% endif %}
-                        </a>
-                        <section class="notification-popover matching-popover" id="matching-popover" aria-label="Item Matching &amp; Exchange summary">
-                            <header class="notification-popover-header">
-                                <h2>Activity</h2>
-                                <a href="{% url 'item_matching:dashboard' %}" aria-label="Open Item Matching &amp; Exchange" title="Open Item Matching &amp; Exchange">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                        <path d="M5 12h14"/>
-                                        <path d="m13 6 6 6-6 6"/>
-                                    </svg>
-                                </a>
-                            </header>
-                            {% if matching_summary.total %}
-                            <div class="matching-summary">
-                                <p class="matching-summary-lead">
-                                    {% if matching_summary.action_needed %}<strong>{{ matching_summary.action_needed }}</strong> need your action{% else %}Nothing needs your action{% endif %}{% if matching_summary.waiting %} · {{ matching_summary.waiting }} awaiting a response{% endif %}
-                                </p>
-                                <ul class="matching-summary-list">
-                                    {% for tab in matching_summary.tabs %}
-                                    <li>
-                                        <a href="{{ tab.url }}">
-                                            <span class="matching-summary-text"><strong>{{ tab.label }}</strong><small>{{ tab.short }}</small></span>
-                                            <span class="matching-summary-numbers">
-                                                {% if tab.pending %}<b class="matching-pill{% if tab.actionable %} is-action{% endif %}">{{ tab.pending }} {% if tab.actionable %}action needed{% else %}pending{% endif %}</b>{% endif %}
-                                                <em>{{ tab.total }} total</em>
-                                            </span>
-                                        </a>
-                                    </li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                            {% else %}
-                            <div class="notification-empty-state">
-                                <span aria-hidden="true">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="m17 2 4 4-4 4"/>
-                                        <path d="M3 11v-1a4 4 0 0 1 4-4h14"/>
-                                        <path d="m7 22-4-4 4-4"/>
-                                        <path d="M21 13v1a4 4 0 0 1-4 4H3"/>
-                                    </svg>
-                                </span>
-                                <h3>No activity yet</h3>
-                                <p>Request an item or offer yours to a wanted post to get started.</p>
-                            </div>
-                            {% endif %}
-                            <footer class="notification-popover-footer">
-                                <a href="{% url 'item_matching:dashboard' %}">Open Item Matching &amp; Exchange</a>
-                            </footer>
-                        </section>
+                    <div class="nav-notification nav-matching" data-activity-preview="{% url 'item_matching:activity_preview' %}">
+                        <button type="button" class="nav-icon-link nav-notification-trigger" title="Activity" aria-label="Activity" aria-expanded="false" aria-controls="matching-popover">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                            <span class="nav-matching-badge" data-activity-count{% if not matching_pending_count %} hidden{% endif %}>{{ matching_pending_count }}</span>
+                        </button>
+                        <section class="notification-popover matching-popover" id="matching-popover" aria-label="Activity summary" data-activity-content>{% include "item_matching/_preview.html" %}</section>
                     </div>
                     <div class="nav-notification">
                         <button type="button"
@@ -290,7 +233,7 @@
     {% if request.resolver_match.namespace == 'account_profile' or request.resolver_match.url_name == 'login' %}
     <script src="{% static 'js/account.js' %}?v=account-refresh-4" defer></script>
     {% endif %}
-    <script src="{% static 'js/wanted_item_offer.js' %}?v=drafts-3" defer></script>
+    <script src="{% static 'js/wanted_item_offer.js' %}?v=activity-offers-4" defer></script>
     <script src="{% static 'js/wanted_image_validation.js' %}" defer></script>
     <script src="{% static 'js/wanted_budget_validation.js' %}" defer></script>
     <script src="{% static 'js/wanted_upload_forms.js' %}" defer></script>
@@ -354,6 +297,7 @@
         });
     </script>
     <script src="{% static 'js/catalogue-search.js' %}?v=recent-searches-5" defer></script>
+    <script src="{% static 'js/activity.js' %}" defer></script>
     </body>
 
 </html>

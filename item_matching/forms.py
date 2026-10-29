@@ -3,10 +3,20 @@ from django import forms
 from items.models import Item
 
 from .models import ItemOffer, ItemRequest
+from wanted_board.validators import validate_reference_image
+from django.core.validators import FileExtensionValidator
 
 
 def _own_available_items(user):
     return Item.objects.filter(owner=user, source='user', status=Item.Status.AVAILABLE).order_by('title')
+
+
+class PhotoOfferForm(forms.Form):
+    submission_id = forms.UUIDField()
+    image = forms.ImageField(validators=[FileExtensionValidator(allowed_extensions=('jpg', 'jpeg', 'png', 'webp')),
+                                        validate_reference_image])
+    price = forms.DecimalField(min_value=0, max_digits=12, decimal_places=0)
+    description = forms.CharField(max_length=240, strip=True)
 
 
 class ItemRequestForm(forms.ModelForm):

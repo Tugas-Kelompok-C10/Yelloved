@@ -1,0 +1,10 @@
+<div data-wanted-state data-category="{{ selected_category }}" data-sort="{{ selected_sort }}" data-page="{{ page_obj.number }}" data-url="{{ results_url }}">
+    <div class="wanted-pinboard">
+        <div class="wanted-grid" aria-live="polite" aria-busy="false">
+            {% include "wanted_board/_card_grid.html" %}
+        </div>
+    </div>
+    <div data-wanted-pagination>
+        {% include "wanted_board/_pagination.html" %}
+    </div>
+</div>
