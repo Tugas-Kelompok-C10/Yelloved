@@ -10,7 +10,9 @@
                 <a href="{% url 'account_profile:privacy_security' %}">Privacy &amp; Security</a>
             </nav>
             {% if user.is_authenticated %}
-            <form method="post" enctype="multipart/form-data" class="profile-biodata profile-edit-form" id="biodata">
+            <form method="post" enctype="multipart/form-data" class="profile-biodata profile-edit-form" id="biodata"
+                  data-api-url="{% url 'account_profile:api_profile' %}" data-api-method="POST"
+                  data-success-url="{% url 'account_profile:profile' %}">
                         {% csrf_token %}
                         <article class="biodata-card" aria-label="Profile photo">
                             <div class="biodata-photo-placeholder" aria-hidden="true">

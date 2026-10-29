@@ -54,7 +54,10 @@
                 </div>
                 <section class="address-form-card address-add-form" id="address-form" {% if not editing and not form.errors %}hidden{% endif %}>
                             <h2>{% if editing %}Edit address{% else %}Add address{% endif %}</h2>
-                            <form method="post" action="{% if editing %}{% url 'account_profile:edit_address' editing_address.id %}{% else %}{% url 'account_profile:address_list' %}{% endif %}" class="address-form">
+                            <form method="post" action="{% if editing %}{% url 'account_profile:edit_address' editing_address.id %}{% else %}{% url 'account_profile:address_list' %}{% endif %}" class="address-form"
+                                  data-api-url="{% if editing %}{% url 'account_profile:api_address_detail' editing_address.id %}{% else %}{% url 'account_profile:api_addresses' %}{% endif %}"
+                                  data-api-method="{% if editing %}PATCH{% else %}POST{% endif %}"
+                                  data-success-url="{% url 'account_profile:address_list' %}">
                                 {% csrf_token %}
                                 {% for field in form %}
                                 <div class="address-form-field{% if field.name == 'is_default' %} address-default-field{% endif %}">
@@ -91,12 +94,16 @@
                             <div class="saved-address-actions">
                                 <a href="{% url 'account_profile:edit_address' address.id %}">Edit address</a>
                                 {% if not address.is_default %}
-                                <form method="post" action="{% url 'account_profile:set_default_address' address.id %}">
+                                <form method="post" action="{% url 'account_profile:set_default_address' address.id %}"
+                                      data-api-url="{% url 'account_profile:api_address_default' address.id %}" data-api-method="POST"
+                                      data-success-url="{% url 'account_profile:address_list' %}">
                                     {% csrf_token %}
                                     <button type="submit">Set as default</button>
                                 </form>
                                 {% endif %}
-                                <form method="post" action="{% url 'account_profile:delete_address' address.id %}">
+                                <form method="post" action="{% url 'account_profile:delete_address' address.id %}"
+                                      data-api-url="{% url 'account_profile:api_address_detail' address.id %}" data-api-method="DELETE"
+                                      data-success-url="{% url 'account_profile:address_list' %}">
                                     {% csrf_token %}
                                     <button type="submit">Delete</button>
                                 </form>
