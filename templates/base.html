@@ -73,7 +73,7 @@
                         <a href="{% url 'item_matching:dashboard' %}"
                            class="nav-icon-link nav-matching-trigger"
                            title="Item Matching &amp; Exchange"
-                           aria-label="Item Matching &amp; Exchange{% if matching_pending_count %}, {{ matching_pending_count }} menunggu tindakanmu{% endif %}"
+                           aria-label="Item Matching &amp; Exchange{% if matching_pending_count %}, {{ matching_pending_count }} need your action{% endif %}"
                            aria-haspopup="true"
                            aria-controls="matching-popover">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -84,10 +84,10 @@
                             </svg>
                             {% if matching_pending_count %}<span class="nav-matching-badge" aria-hidden="true">{% if matching_pending_count > 9 %}9+{% else %}{{ matching_pending_count }}{% endif %}</span>{% endif %}
                         </a>
-                        <section class="notification-popover matching-popover" id="matching-popover" aria-label="Ringkasan Item Matching &amp; Exchange">
+                        <section class="notification-popover matching-popover" id="matching-popover" aria-label="Item Matching &amp; Exchange summary">
                             <header class="notification-popover-header">
                                 <h2>Activity</h2>
-                                <a href="{% url 'item_matching:dashboard' %}" aria-label="Buka Item Matching &amp; Exchange" title="Buka Item Matching &amp; Exchange">
+                                <a href="{% url 'item_matching:dashboard' %}" aria-label="Open Item Matching &amp; Exchange" title="Open Item Matching &amp; Exchange">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                         <path d="M5 12h14"/>
                                         <path d="m13 6 6 6-6 6"/>
@@ -97,7 +97,7 @@
                             {% if matching_summary.total %}
                             <div class="matching-summary">
                                 <p class="matching-summary-lead">
-                                    {% if matching_summary.action_needed %}<strong>{{ matching_summary.action_needed }}</strong> menunggu tindakanmu{% else %}Tidak ada yang menunggu tindakanmu{% endif %}{% if matching_summary.waiting %} · {{ matching_summary.waiting }} menunggu respons{% endif %}
+                                    {% if matching_summary.action_needed %}<strong>{{ matching_summary.action_needed }}</strong> need your action{% else %}Nothing needs your action{% endif %}{% if matching_summary.waiting %} · {{ matching_summary.waiting }} awaiting a response{% endif %}
                                 </p>
                                 <ul class="matching-summary-list">
                                     {% for tab in matching_summary.tabs %}
@@ -105,7 +105,7 @@
                                         <a href="{{ tab.url }}">
                                             <span class="matching-summary-text"><strong>{{ tab.label }}</strong><small>{{ tab.short }}</small></span>
                                             <span class="matching-summary-numbers">
-                                                {% if tab.pending %}<b class="matching-pill{% if tab.actionable %} is-action{% endif %}">{{ tab.pending }} {% if tab.actionable %}perlu tindakan{% else %}menunggu{% endif %}</b>{% endif %}
+                                                {% if tab.pending %}<b class="matching-pill{% if tab.actionable %} is-action{% endif %}">{{ tab.pending }} {% if tab.actionable %}action needed{% else %}pending{% endif %}</b>{% endif %}
                                                 <em>{{ tab.total }} total</em>
                                             </span>
                                         </a>
@@ -123,12 +123,12 @@
                                         <path d="M21 13v1a4 4 0 0 1-4 4H3"/>
                                     </svg>
                                 </span>
-                                <h3>Belum ada aktivitas</h3>
-                                <p>Minta barang atau tawarkan barangmu ke wanted post untuk memulai.</p>
+                                <h3>No activity yet</h3>
+                                <p>Request an item or offer yours to a wanted post to get started.</p>
                             </div>
                             {% endif %}
                             <footer class="notification-popover-footer">
-                                <a href="{% url 'item_matching:dashboard' %}">Buka Item Matching &amp; Exchange</a>
+                                <a href="{% url 'item_matching:dashboard' %}">Open Item Matching &amp; Exchange</a>
                             </footer>
                         </section>
                     </div>

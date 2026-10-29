@@ -12,21 +12,21 @@ class ItemRequest(models.Model):
     """A user's request for somebody else's item (optionally offering a swap item)."""
 
     class Status(models.TextChoices):
-        PENDING = 'pending', 'Menunggu'
-        ACCEPTED = 'accepted', 'Diterima'
-        REJECTED = 'rejected', 'Ditolak'
-        CANCELLED = 'cancelled', 'Dibatalkan'
+        PENDING = 'pending', 'Pending'
+        ACCEPTED = 'accepted', 'Accepted'
+        REJECTED = 'rejected', 'Rejected'
+        CANCELLED = 'cancelled', 'Cancelled'
 
     item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='requests')
     requester = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                                   related_name='item_requests')
     offered_item = models.ForeignKey(Item, null=True, blank=True, on_delete=models.SET_NULL,
-                                     related_name='swap_offers', verbose_name='Barang yang ditukarkan')
-    # Nominal yang ditawarkan peminta (Rupiah). Hanya dipakai untuk listing bertipe Jual,
-    # jadi boleh kosong (request lama, barang gratis, barang tukar).
-    offer_price = models.DecimalField('Nominal penawaran', max_digits=14, decimal_places=2,
+                                     related_name='swap_offers', verbose_name='Item to swap')
+    # Amount the requester offers (Rupiah). Only used for Sale listings,
+    # so it may be empty (old requests, free items, swap items).
+    offer_price = models.DecimalField('Offer amount', max_digits=14, decimal_places=2,
                                       null=True, blank=True, validators=[MinValueValidator(1)])
-    message = models.TextField('Pesan', max_length=1000, blank=True)
+    message = models.TextField('Message', max_length=1000, blank=True)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -44,24 +44,24 @@ class ItemRequest(models.Model):
             return
         item, errors = self.item, {}
         if item.owner_id is None or item.source != 'user':
-            raise ValidationError('Barang katalog inspirasi tidak dapat direquest.')
+            raise ValidationError('Inspiration catalog items cannot be requested.')
         if item.owner_id == self.requester_id:
-            raise ValidationError('Kamu tidak bisa merequest barangmu sendiri.')
+            raise ValidationError('You cannot request your own item.')
         if item.status != Item.Status.AVAILABLE:
-            raise ValidationError('Barang ini sudah tidak tersedia.')
+            raise ValidationError('This item is no longer available.')
         if self._state.adding and ItemRequest.objects.filter(
                 item=item, requester_id=self.requester_id, status=self.Status.PENDING).exists():
-            raise ValidationError('Kamu sudah mengajukan request untuk barang ini.')
+            raise ValidationError('You already have a pending request for this item.')
         if item.listing_type == Item.ListingType.SWAP:
             if self.offered_item_id is None:
-                errors['offered_item'] = 'Pilih barang yang ingin kamu tukarkan.'
+                errors['offered_item'] = 'Choose the item you want to swap.'
             elif self.offered_item.owner_id != self.requester_id or \
                     self.offered_item.status != Item.Status.AVAILABLE or self.offered_item.source != 'user':
-                errors['offered_item'] = 'Barang tukar harus milikmu dan masih tersedia.'
+                errors['offered_item'] = 'The swap item must be yours and still available.'
         elif self.offered_item_id is not None:
-            errors['offered_item'] = 'Barang tukar hanya untuk listing bertipe Tukar.'
+            errors['offered_item'] = 'A swap item is only for Swap listings.'
         if self.offer_price is not None and item.listing_type != Item.ListingType.SALE:
-            errors['offer_price'] = 'Nominal penawaran hanya untuk listing bertipe Jual.'
+            errors['offer_price'] = 'An offer amount is only for Sale listings.'
         if errors:
             raise ValidationError(errors)
 
@@ -71,29 +71,29 @@ class ItemRequest(models.Model):
 
     @property
     def offer_price_display(self):
-        """Contoh: Rp45.000. Kosong jika peminta tidak menawar."""
+        """Example: Rp45.000. Empty when the requester did not make an offer."""
         if self.offer_price is None:
             return ''
         return 'Rp' + f'{self.offer_price:,.0f}'.replace(',', '.')
 
     def __str__(self):
-        return f'Request {self.requester} untuk {self.item}'
+        return f'Request by {self.requester} for {self.item}'
 
 
 class ItemOffer(models.Model):
     """An item offered by its owner in response to somebody's wanted post."""
 
     class Status(models.TextChoices):
-        PENDING = 'pending', 'Menunggu'
-        ACCEPTED = 'accepted', 'Diterima'
-        REJECTED = 'rejected', 'Ditolak'
-        WITHDRAWN = 'withdrawn', 'Ditarik'
+        PENDING = 'pending', 'Pending'
+        ACCEPTED = 'accepted', 'Accepted'
+        REJECTED = 'rejected', 'Rejected'
+        WITHDRAWN = 'withdrawn', 'Withdrawn'
 
     wanted_post = models.ForeignKey(WantedPost, on_delete=models.CASCADE, related_name='item_offers')
     item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='wanted_offers')
     offerer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                                 related_name='item_offers')
-    message = models.TextField('Pesan', max_length=1000, blank=True)
+    message = models.TextField('Message', max_length=1000, blank=True)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -109,16 +109,16 @@ class ItemOffer(models.Model):
         if self.wanted_post_id is None or self.item_id is None or self.offerer_id is None:
             return
         if self.wanted_post.requester_id == self.offerer_id:
-            raise ValidationError('Kamu tidak bisa menawarkan barang ke wanted post milikmu sendiri.')
+            raise ValidationError('You cannot offer an item on your own wanted post.')
         if self.wanted_post.status != WantedPost.Status.OPEN:
-            raise ValidationError('Wanted post ini tidak lagi menerima penawaran.')
+            raise ValidationError('This wanted post is no longer accepting offers.')
         if self.item.owner_id != self.offerer_id or self.item.source != 'user':
-            raise ValidationError({'item': 'Kamu hanya bisa menawarkan barang milikmu sendiri.'})
+            raise ValidationError({'item': 'You can only offer your own items.'})
         if self.item.status != Item.Status.AVAILABLE:
-            raise ValidationError({'item': 'Barang ini sudah tidak tersedia.'})
+            raise ValidationError({'item': 'This item is no longer available.'})
         if self._state.adding and ItemOffer.objects.filter(
                 wanted_post=self.wanted_post, item=self.item).exists():
-            raise ValidationError({'item': 'Barang ini sudah kamu tawarkan untuk wanted post tersebut.'})
+            raise ValidationError({'item': 'You already offered this item on this wanted post.'})
 
     def __str__(self):
-        return f'{self.item} untuk {self.wanted_post}'
+        return f'{self.item} offered for {self.wanted_post}'

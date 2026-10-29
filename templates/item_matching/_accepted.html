@@ -1,11 +1,11 @@
 {% if row.status == 'accepted' and row.counterpart %}
     <div class="matching-contact">
-        <span>Kontak <strong>{{ row.counterpart.username }}</strong>:
+        <span>Contact <strong>{{ row.counterpart.username }}</strong>:
         {% if row.contact %}{{ row.contact.phone }}{% if row.contact.wa_url %} · <a href="{{ row.contact.wa_url }}" target="_blank" rel="noopener noreferrer">WhatsApp</a>{% endif %}
-        {% else %}belum mencantumkan nomor HP, hubungi lewat Chat.{% endif %}</span>
+        {% else %}reach out through Chat.{% endif %}</span>
         <span class="matching-next">
-            {% if row.checkout %}<a href="{% url 'transactions:checkout' %}">Lanjut ke checkout →</a>{% endif %}
-            <a href="{% url 'transactions:pesan' %}">Buka chat →</a>
+            {% if row.checkout %}<a href="{% url 'transactions:checkout' %}">Continue to checkout →</a>{% endif %}
+            <a href="{% url 'transactions:pesan' %}">Open chat →</a>
         </span>
     </div>
 {% endif %}

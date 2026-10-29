@@ -1,4 +1,21 @@
-/* maaf bikin halaman baru. karena style.css-nya udah 3000 line lebih :') */
+:root {
+  /* yang ga ada di style.css */
+  --matching-page-width: 1280px;
+  --matching-form-width: 640px;
+  --matching-message-width: 62ch;
+  --matching-footer-basis: 260px;
+  --matching-count-min-width: 20px;
+  --matching-notification-max-height: 280px;
+  --matching-popover-width: 340px;
+  --matching-popover-offset: -44px;
+  --matching-badge-size: 17px;
+  --matching-badge-top: -4px;
+  --matching-badge-right: -8px;
+  --matching-button-min-height: 38px;
+}
+
+
+/* Page Header, Tabs, dan Cards */
 .matching-page .matching-header {
   margin-bottom: 20px;
 }
@@ -6,12 +23,14 @@
 .matching-page .matching-header h1 {
   font-size: clamp(24px, 3.5vw, 36px);
   letter-spacing: -1px;
+  color: var(--violet);
 }
 
 .matching-page .matching-header p,
 .matching-page .matching-meta {
   font-size: 13px;
-  opacity: .8;
+  color: var(--gray);
+  opacity: .9;
 }
 
 .matching-tabs {
@@ -24,11 +43,13 @@
 .matching-tab {
   padding: 8px 16px;
   border: 1px solid var(--violet);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: var(--violet);
   font-size: 12px;
   font-weight: 600;
   text-decoration: none;
+  background: var(--paper);
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .matching-tab.is-active {
@@ -40,7 +61,7 @@
   display: inline-block;
   min-width: 20px;
   padding: 0 7px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--text);
   color: var(--violet);
   font-size: 11px;
@@ -50,6 +71,7 @@
 
 .matching-tab.is-active .matching-badge {
   background: var(--text);
+  color: var(--violet);
 }
 
 .matching-list {
@@ -75,6 +97,7 @@
 .matching-card h2 {
   font-size: 16px;
   margin-bottom: 4px;
+  color: var(--violet);
 }
 
 .matching-card a {
@@ -83,11 +106,12 @@
 
 .matching-for {
   font-weight: 400;
-  opacity: .7;
+  color: var(--gray);
 }
 
 .matching-swap {
   font-size: 13px;
+  color: var(--gray);
 }
 
 .matching-card-side {
@@ -104,7 +128,7 @@
 
 .matching-status {
   padding: 4px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-size: 11px;
   font-weight: 700;
   background: var(--blue);
@@ -112,23 +136,26 @@
 }
 
 .matching-status-accepted {
-  background: #cfe8c8;
+  background: var(--success);
+  color: var(--paper);
 }
 
 .matching-status-rejected,
 .matching-status-cancelled,
 .matching-status-withdrawn {
   background: var(--violet-light-hover);
+  color: var(--error);
 }
 
 .matching-empty {
   padding: 40px 0;
   text-align: center;
-  opacity: .7;
+  color: var(--gray);
 }
 
+/* Formulir (Request & Offer) */
 .matching-form-card {
-  max-width: 640px;
+  max-width: var(--matching-form-width);
   margin: 24px auto;
   padding: 28px;
   border: 1px solid var(--border);
@@ -150,6 +177,7 @@
 .matching-field label {
   font-size: 12px;
   font-weight: 600;
+  color: var(--violet);
 }
 
 .matching-field input,
@@ -158,7 +186,7 @@
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--paper);
   font: inherit;
   color: var(--violet);
@@ -171,12 +199,12 @@
   outline-offset: 1px;
 }
 
-/* Input nominal dengan awalan "Rp" di sebelah kiri. */
+/* Input nominal dengan awalan "Rp" */
 .matching-money {
   display: flex;
   align-items: center;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--paper);
   color: var(--violet);
 }
@@ -200,15 +228,16 @@
 
 .matching-field small {
   font-size: 12px;
-  opacity: .8;
+  color: var(--gray);
 }
 
 .matching-fits {
   margin-top: 16px;
   padding: 12px 16px;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--blue);
   font-size: 13px;
+  color: var(--violet);
 }
 
 .matching-fits ul {
@@ -227,43 +256,40 @@
   }
 }
 
-/* integrasi: status request di halaman item/wanted, notifikasi, kontak */
-.matching-inline { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin-top: 12px; font-size: 13px; }
-.matching-inline form { display: inline; }
-.matching-inline .explore-reset { background: none; border: 0; cursor: pointer; font: inherit; font-weight: 600; text-decoration: underline; color: var(--violet); }
-.matching-notification-list { list-style: none; display: grid; gap: 2px; padding: 8px 12px; max-height: 280px; overflow: auto; }
-.matching-notification-list a { display: block; padding: 10px 12px; border-radius: 10px; color: var(--violet); font-size: 13px; text-decoration: none; }
-.matching-notification-list a:hover { background: var(--violet-light-hover); }
-.matching-contact { margin-top: 8px; padding: 10px 14px; border-radius: 12px; background: var(--blue); font-size: 13px; }
-.matching-contact a { color: var(--violet); font-weight: 600; }
-.matching-next { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.matching-next a { font-size: 12px; font-weight: 600; color: var(--violet); }
 
-/* ==========================================================================
-   Dashboard — mengikuti layout halaman transaction (.container.orders-page)
-   ========================================================================== */
+/* Integrasi Dashboard & Layout Utama */
 
-/* Badge jumlah "menunggu" di dalam rail tab */
+.container.orders-page.matching-page {
+  width: min(var(--matching-page-width), 100%);
+  max-width: var(--matching-page-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 1050px) {
+  .container.orders-page.matching-page {
+    width: calc(100% - 32px);
+  }
+}
+
 .container.orders-page .orders-tabs a .matching-badge {
   margin-left: 4px;
-  background: var(--orders-plum);
-  color: #FFFFFF;
+  background: var(--violet);
+  color: var(--text);
 }
 
 .container.orders-page .orders-tabs a.active .matching-badge {
-  background: #FFFFFF;
-  color: var(--orders-plum);
+  background: var(--paper);
+  color: var(--violet);
 }
 
-/* Keterangan tab yang sedang aktif */
 .matching-page .matching-tab-intro {
   margin: 0 0 22px;
   padding: 18px 22px;
-  border: 1px solid var(--orders-border);
-  border-left: 4px solid var(--orders-plum);
-  border-radius: 14px;
-  background: #FFFFFF;
-  box-shadow: 0 5px 18px rgba(50, 12, 53, 0.045);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--violet);
+  border-radius: var(--radius);
+  background: var(--paper);
 }
 
 .matching-page .matching-tab-intro-top {
@@ -277,7 +303,7 @@
 
 .matching-page .matching-tab-intro h2 {
   margin: 0;
-  color: var(--orders-plum-dark);
+  color: var(--violet);
   font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.4px;
@@ -285,28 +311,27 @@
 
 .matching-page .matching-tab-count {
   padding: 4px 10px;
-  border-radius: 999px;
-  background: #F3EDF5;
-  color: var(--orders-plum);
+  border-radius: var(--radius-pill);
+  background: var(--violet-light-hover);
+  color: var(--violet);
   font-size: 11px;
   font-weight: 700;
 }
 
 .matching-page .matching-tab-intro p {
   margin: 0;
-  color: var(--orders-muted);
+  color: var(--gray);
   font-size: 13px;
   line-height: 1.75;
 }
 
-/* Kartu: isi lama (judul, peminta, pesan, status, aksi) kini di dalam box order-card */
 .matching-page .order-product-placeholder {
   overflow: hidden;
 }
 
 .matching-page .order-product-placeholder.has-image {
   padding: 0;
-  background: #FFFFFF;
+  background: var(--paper);
 }
 
 .matching-page .order-product-placeholder img {
@@ -321,52 +346,28 @@
 }
 
 .matching-page .order-product-info h2 a {
-  color: inherit;
+  color: var(--violet);
   text-decoration: none;
 }
 
 .matching-page .order-product-info h2 a:hover {
-  color: var(--orders-plum);
   text-decoration: underline;
 }
 
 .matching-page .order-product-info p {
   margin-bottom: 8px;
-}
-
-.matching-page .order-product-info .matching-note a,
-.matching-page .order-product-info .matching-meta strong {
-  color: var(--orders-plum-dark);
+  color: var(--gray);
 }
 
 .matching-page .order-product-info .matching-message {
-  max-width: 62ch;
+  max-width: var(--matching-message-width);
   padding: 8px 12px;
-  border-radius: 10px;
-  background: #F8F5F9;
-  color: var(--orders-text);
+  border-radius: var(--radius);
+  background: var(--light-paper);
+  color: var(--violet);
   line-height: 1.6;
 }
 
-.matching-page .order-statuses {
-  margin-top: 4px;
-}
-
-/* Status khusus matching (melengkapi status-pending/cancelled milik transaction) */
-.container.orders-page .order-status.status-accepted {
-  border-color: #D4C1DF;
-  background: #EDE2F2;
-  color: #4F1353;
-}
-
-.container.orders-page .order-status.status-rejected,
-.container.orders-page .order-status.status-withdrawn {
-  border-color: #E8CCD5;
-  background: #F9EDF1;
-  color: #913D59;
-}
-
-/* Footer: keterangan di kiri, tombol aksi di kanan */
 .matching-page .matching-footer {
   display: flex;
   flex-wrap: wrap;
@@ -376,8 +377,9 @@
 }
 
 .matching-page .matching-footer-main {
-  flex: 1 1 260px;
+  flex: 1 1 var(--matching-footer-basis);
   min-width: 0;
+  color: var(--gray);
 }
 
 .matching-page .matching-actions {
@@ -385,16 +387,12 @@
   gap: 8px;
 }
 
-.matching-page .matching-actions form {
-  margin: 0;
-}
-
 .matching-page .matching-action {
   padding: 9px 18px;
-  border: 1px solid var(--orders-plum);
-  border-radius: 10px;
-  background: var(--orders-gradient);
-  color: #FFFFFF;
+  border: 1px solid var(--violet);
+  border-radius: var(--radius);
+  background: var(--gradient);
+  color: var(--paper);
   font-family: inherit;
   font-size: 12px;
   font-weight: 700;
@@ -403,100 +401,49 @@
 }
 
 .matching-page .matching-action:hover {
-  box-shadow: 0 6px 18px rgba(50, 12, 53, 0.18);
   transform: translateY(-1px);
 }
 
 .matching-page .matching-action-secondary {
-  background: #FFFFFF;
-  color: var(--orders-plum);
+  background: var(--paper);
+  color: var(--violet);
 }
 
 .matching-page .matching-action-secondary:hover {
-  background: #F3EDF5;
+  background: var(--violet-light-hover);
 }
 
-.matching-page .matching-action:focus-visible {
-  outline: 3px solid #A98AAF;
-  outline-offset: 2px;
-}
 
-/* Kontak setelah diterima (di dalam footer) */
-.matching-page .matching-footer .matching-contact {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px 16px;
-  margin: 0;
-  padding: 0;
-  background: transparent;
-  color: var(--orders-text);
-  font-size: 12px;
-}
+/* Navbar Popover & Indikator Matching */
 
-.matching-page .matching-footer .matching-contact a {
-  color: var(--orders-plum);
-  font-weight: 700;
-}
-
-.matching-page .matching-footer .matching-next {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
-  margin: 0;
-}
-
-@media (max-width: 700px) {
-  .matching-page .matching-tab-intro {
-    padding: 16px;
-  }
-
-  .matching-page .matching-actions {
-    width: 100%;
-  }
-
-  .matching-page .matching-action {
-    flex: 1 1 0;
-  }
-}
-
-/* ==========================================================================
-   Navbar — ikon Item Matching + popover ringkasan (meniru ikon notifikasi)
-   ========================================================================== */
-
-/* Ikon berada di kiri lonceng (jarak 28px ikon + 16px gap = 44px); geser popover
-   supaya tepi kanannya sejajar dengan popover notifikasi. Sedikit lebih lebar
-   dari popover notifikasi (300px) agar ringkasan tidak terlalu sering membungkus. */
 .nav-matching::after {
-  right: -44px;
-  width: min(340px, calc(100vw - 24px));
+  right: var(--matching-popover-offset);
+  width: min(var(--matching-popover-width), calc(100vw - 24px));
 }
 
 .nav-matching .notification-popover {
-  right: -44px;
-  width: min(340px, calc(100vw - 24px));
-}
-
-.nav-matching-trigger {
-  position: relative;
+  right: var(--matching-popover-offset);
+  width: min(var(--matching-popover-width), calc(100vw - 24px));
+  border: 1px solid var(--border);
+  background: var(--paper);
+  color: var(--violet);
 }
 
 .nav-matching-badge {
   position: absolute;
-  top: -4px;
-  right: -8px;
-  min-width: 17px;
-  height: 17px;
+  top: var(--matching-badge-top);
+  right: var(--matching-badge-right);
+  min-width: var(--matching-badge-size);
+  height: var(--matching-badge-size);
   padding: 0 4px;
-  border-radius: 999px;
-  background: #F5D76E;
-  color: #320C35;
+  border-radius: var(--radius-pill);
+  background: var(--blue);
+  color: var(--violet);
   font-size: 10px;
   font-weight: 800;
-  line-height: 17px;
+  line-height: var(--matching-badge-size);
   text-align: center;
-  box-shadow: 0 0 0 2px #3C1040;
+  box-shadow: 0 0 0 2px var(--violet);
 }
 
 .matching-summary {
@@ -506,12 +453,12 @@
 
 .matching-summary-lead {
   margin: 0 0 12px;
-  color: #716b75;
+  color: var(--gray);
   font-size: 13px;
 }
 
 .matching-summary-lead strong {
-  color: #320C35;
+  color: var(--violet);
 }
 
 .matching-summary-list {
@@ -528,18 +475,15 @@
   justify-content: space-between;
   gap: 14px;
   padding: 12px 14px;
-  border: 1px solid #eeeaf1;
-  border-radius: 12px;
-  background: #fdfbfe;
-  color: #29232b;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--light-paper);
+  color: var(--violet);
   text-decoration: none;
-  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
-.matching-summary-list a:hover,
-.matching-summary-list a:focus-visible {
-  border-color: #d8c9e5;
-  background: #f5eff8;
+.matching-summary-list a:hover {
+  background: var(--violet-light-hover);
 }
 
 .matching-summary-text {
@@ -553,41 +497,28 @@
 }
 
 .matching-summary-text small {
-  color: #716b75;
+  color: var(--gray);
   font-size: 12px;
-}
-
-.matching-summary-numbers {
-  display: grid;
-  flex: 0 0 auto;
-  justify-items: end;
-  gap: 4px;
-}
-
-.matching-summary-numbers em {
-  color: #716b75;
-  font-size: 11px;
-  font-style: normal;
 }
 
 .matching-pill {
   padding: 3px 9px;
-  border-radius: 999px;
-  background: #f3edf5;
-  color: #4f1353;
+  border-radius: var(--radius-pill);
+  background: var(--violet-light-hover);
+  color: var(--violet);
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
 }
 
 .matching-pill.is-action {
-  background: #4f1353;
-  color: #fff;
+  background: var(--violet);
+  color: var(--paper);
 }
 
 @media (max-width: 700px) {
   .nav-matching .notification-popover {
     right: 12px;
-    width: min(340px, calc(100vw - 24px));
+    width: min(var(--matching-popover-width), calc(100vw - 24px));
   }
 }

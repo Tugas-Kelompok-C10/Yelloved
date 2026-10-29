@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% load static %}
-{% block meta %}<title>Tawarkan barang | {{ name }}</title><link rel="stylesheet" href="{% static 'css/explore.css' %}"><link rel="stylesheet" href="{% static 'css/item_matching.css' %}">{% endblock %}
+{% block meta %}<title>Offer an item | {{ name }}</title><link rel="stylesheet" href="{% static 'css/explore.css' %}"><link rel="stylesheet" href="{% static 'css/item_matching.css' %}">{% endblock %}
 {% block content %}
-<main class="explore-page matching-page" lang="id">
+<main class="explore-page matching-page" lang="en">
     <a class="explore-back" href="{% url 'wanted_board:wanted_detail' wanted_post.pk %}">‹ <span>Back</span></a>
     <section class="matching-form-card">
-        <h1>Tawarkan barang</h1>
-        <p class="matching-meta">Untuk: <strong>{{ wanted_post.title }}</strong> · oleh {{ wanted_post.requester.username }}</p>
+        <h1>Offer an item</h1>
+        <p class="matching-meta">For: <strong>{{ wanted_post.title }}</strong> · by {{ wanted_post.requester.username }}</p>
         {% if fits %}
             <div class="matching-fits">
-                <h2>Barangmu yang cocok</h2>
+                <h2>Your matching items</h2>
                 <ul>{% for m in fits %}<li><strong>{{ m.item.title }}</strong> <span class="matching-meta">— {{ m.reasons|join:', ' }}</span></li>{% endfor %}</ul>
             </div>
         {% endif %}
@@ -23,9 +23,9 @@
                 </div>
             {% endfor %}
             {% if not form.fields.item.queryset.exists %}
-                <p class="form-error">Kamu belum punya barang yang tersedia. <a href="{% url 'items:item_create' %}">Tambah barang dulu</a>.</p>
+                <p class="form-error">You don’t have any available items yet. <a href="{% url 'items:item_create' %}">Add an item first</a>.</p>
             {% endif %}
-            <button class="explore-button" type="submit">Kirim penawaran</button>
+            <button class="explore-button" type="submit">Send offer</button>
         </form>
     </section>
 </main>

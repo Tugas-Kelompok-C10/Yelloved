@@ -58,18 +58,18 @@ def dashboard(request):
 def request_create(request, item_id):
     item = get_object_or_404(Item.objects.select_related('owner'), pk=item_id)
     if item.owner_id is None or item.source != 'user':
-        messages.error(request, 'Barang katalog inspirasi tidak dapat direquest.')
+        messages.error(request, 'Inspiration catalog items cannot be requested.')
         return redirect(item)
     if item.owner_id == request.user.pk:
-        messages.error(request, 'Kamu tidak bisa merequest barangmu sendiri.')
+        messages.error(request, 'You cannot request your own item.')
         return redirect(item)
     if item.status != Item.Status.AVAILABLE:
-        messages.error(request, 'Barang ini sudah tidak tersedia.')
+        messages.error(request, 'This item is no longer available.')
         return redirect(item)
     form = ItemRequestForm(request.POST if request.method == 'POST' else None, item=item, user=request.user)
     if request.method == 'POST' and form.is_valid():
         form.save()
-        messages.success(request, 'Request berhasil dikirim ke pemilik barang.')
+        messages.success(request, 'Your request was sent to the item owner.')
         return _dashboard_redirect('sent')
     return render(request, 'item_matching/request_form.html', {'name': 'Yelloved', 'form': form, 'item': item})
 
@@ -79,15 +79,15 @@ def request_create(request, item_id):
 def offer_create(request, wanted_id):
     post = get_object_or_404(WantedPost.objects.select_related('requester'), pk=wanted_id)
     if post.requester_id == request.user.pk:
-        messages.error(request, 'Kamu tidak bisa menawarkan barang ke wanted post milikmu sendiri.')
+        messages.error(request, 'Cannot offer on your own post.')
         return redirect('wanted_board:wanted_detail', pk=post.pk)
     if post.status != WantedPost.Status.OPEN:
-        messages.error(request, 'Wanted post ini tidak lagi menerima penawaran.')
+        messages.error(request, 'This wanted post is no longer accepting offers.')
         return redirect('wanted_board:wanted_detail', pk=post.pk)
     form = ItemOfferForm(request.POST if request.method == 'POST' else None, wanted_post=post, user=request.user)
     if request.method == 'POST' and form.is_valid():
         form.save()
-        messages.success(request, 'Penawaran barang berhasil dikirim.')
+        messages.success(request, 'Your item offer was sent.')
         return _dashboard_redirect('offers_sent')
     fits = {}
     for candidate in form.fields['item'].queryset:
@@ -122,21 +122,21 @@ def _act(request, func, object_id, tab, success):
 @require_POST
 def request_accept(request, pk):
     get_object_or_404(ItemRequest, pk=pk)
-    return _act(request, services.accept_request, pk, 'incoming', 'Request diterima. Barang ditandai tidak tersedia.')
+    return _act(request, services.accept_request, pk, 'incoming', 'Request accepted. The item is now marked unavailable.')
 
 
 @login_required(login_url='login')
 @require_POST
 def request_reject(request, pk):
     get_object_or_404(ItemRequest, pk=pk)
-    return _act(request, services.reject_request, pk, 'incoming', 'Request ditolak.')
+    return _act(request, services.reject_request, pk, 'incoming', 'Request rejected.')
 
 
 @login_required(login_url='login')
 @require_POST
 def request_cancel(request, pk):
     get_object_or_404(ItemRequest, pk=pk)
-    return _act(request, services.cancel_request, pk, 'sent', 'Request dibatalkan.')
+    return _act(request, services.cancel_request, pk, 'sent', 'Request cancelled.')
 
 
 @login_required(login_url='login')
@@ -144,21 +144,21 @@ def request_cancel(request, pk):
 def offer_accept(request, pk):
     get_object_or_404(ItemOffer, pk=pk)
     return _act(request, services.accept_offer, pk, 'offers_received',
-                'Penawaran diterima. Wanted post ditandai terpenuhi.')
+                'Offer accepted. The wanted post is now marked as fulfilled.')
 
 
 @login_required(login_url='login')
 @require_POST
 def offer_reject(request, pk):
     get_object_or_404(ItemOffer, pk=pk)
-    return _act(request, services.reject_offer, pk, 'offers_received', 'Penawaran ditolak.')
+    return _act(request, services.reject_offer, pk, 'offers_received', 'Offer rejected.')
 
 
 @login_required(login_url='login')
 @require_POST
 def offer_withdraw(request, pk):
     get_object_or_404(ItemOffer, pk=pk)
-    return _act(request, services.withdraw_offer, pk, 'offers_sent', 'Penawaran ditarik.')
+    return _act(request, services.withdraw_offer, pk, 'offers_sent', 'Offer withdrawn.')
 
 
 @login_required(login_url='login')
@@ -166,7 +166,7 @@ def offer_withdraw(request, pk):
 def wanted_suggestions(request, pk):
     post = get_object_or_404(WantedPost.objects.select_related('requester'), pk=pk)
     if post.requester_id != request.user.pk:
-        raise PermissionDenied('Hanya pembuat wanted post yang dapat melihat rekomendasi ini.')
+        raise PermissionDenied('Only the wanted post owner can view these suggestions.')
     return render(request, 'item_matching/suggestions.html', {
         'name': 'Yelloved', 'mode': 'wanted', 'wanted_post': post,
         'matches': suggest_items_for_wanted(post)})
@@ -177,7 +177,7 @@ def wanted_suggestions(request, pk):
 def item_suggestions(request, item_id):
     item = get_object_or_404(Item, pk=item_id)
     if item.owner_id != request.user.pk:
-        raise PermissionDenied('Hanya pemilik barang yang dapat melihat rekomendasi ini.')
+        raise PermissionDenied('Only the item owner can view these suggestions.')
     return render(request, 'item_matching/suggestions.html', {
         'name': 'Yelloved', 'mode': 'item', 'item': item,
         'matches': suggest_wanted_for_item(item)})

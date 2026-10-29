@@ -2,19 +2,18 @@
 {% load static %}
 {% block meta %}<title>Item Matching | {{ name }}</title><link rel="stylesheet" href="{% static 'css/item_matching.css' %}">{% endblock %}
 {% block content %}
-<main class="container orders-page matching-page" lang="id">
+<main class="container orders-page matching-page" lang="en">
     <section class="orders-heading">
         <div>
-            <span class="orders-eyebrow">YOUR ITEM EXCHANGE</span>
             <h1>Activity</h1>
-            <p>Kelola request barang dan penawaran barang untuk wanted post di satu tempat.</p>
+            <p>Manage item requests and offers for wanted posts in one place.</p>
         </div>
         <a href="{% url 'items:explore_items' %}" class="orders-explore">
-            <span aria-hidden="true">＋</span> Jelajahi Barang
+            <span aria-hidden="true">＋</span> Explore Items
         </a>
     </section>
 
-    <nav class="orders-tabs" aria-label="Bagian matching">
+    <nav class="orders-tabs" aria-label="Matching sections">
         {% for t in tabs %}
             <a href="?tab={{ t.key }}" class="{% if t.key == tab %}active{% endif %}"{% if t.key == tab %} aria-current="page"{% endif %}>
                 {{ t.label }}{% if t.pending %} <span class="matching-badge">{{ t.pending }}</span>{% endif %}
@@ -25,7 +24,7 @@
     <section class="matching-tab-intro" aria-labelledby="matching-tab-title">
         <div class="matching-tab-intro-top">
             <h2 id="matching-tab-title">{{ active.label }}</h2>
-            <span class="matching-tab-count">{{ active.total }} data{% if active.pending %} · {{ active.pending }} menunggu{% endif %}</span>
+            <span class="matching-tab-count">{{ active.total }} total{% if active.pending %} · {{ active.pending }} pending{% endif %}</span>
         </div>
         <p>{{ active.description }}</p>
     </section>
@@ -38,7 +37,7 @@
                         <div class="order-reference">
                             <span class="order-icon" aria-hidden="true">{% if is_request_tab %}♡{% else %}⇄{% endif %}</span>
                             <div>
-                                <span class="order-label">{% if is_request_tab %}ID Request{% else %}ID Penawaran{% endif %}</span>
+                                <span class="order-label">{% if is_request_tab %}Request ID{% else %}Offer ID{% endif %}</span>
                                 <strong>{% if is_request_tab %}RQ{% else %}OF{% endif %}-{{ row.pk|stringformat:"04d" }}</strong>
                             </div>
                         </div>
@@ -57,14 +56,14 @@
                         <div class="order-product-info">
                             <h2><a href="{{ row.item.get_absolute_url }}">{{ row.item.title }}</a></h2>
                             <p class="matching-meta">
-                                {% if tab == 'incoming' %}Diminta oleh <strong>{{ row.requester.username }}</strong>
-                                {% elif tab == 'sent' %}Pemilik: <strong>{{ row.item.owner.username }}</strong>
-                                {% elif tab == 'offers_received' %}Ditawarkan oleh <strong>{{ row.offerer.username }}</strong>
-                                {% else %}Untuk <strong>{{ row.wanted_post.requester.username }}</strong>{% endif %}
+                                {% if tab == 'incoming' %}Requested by <strong>{{ row.requester.username }}</strong>
+                                {% elif tab == 'sent' %}Owner: <strong>{{ row.item.owner.username }}</strong>
+                                {% elif tab == 'offers_received' %}Offered by <strong>{{ row.offerer.username }}</strong>
+                                {% else %}For <strong>{{ row.wanted_post.requester.username }}</strong>{% endif %}
                                 · {{ row.item.get_listing_type_display }}
                             </p>
-                            {% if row.offered_item %}<p class="matching-note">Ditukar dengan: <a href="{{ row.offered_item.get_absolute_url }}">{{ row.offered_item.title }}</a></p>{% endif %}
-                            {% if not is_request_tab %}<p class="matching-note">Untuk wanted post: <a href="{% url 'wanted_board:wanted_detail' row.wanted_post.pk %}">{{ row.wanted_post.title }}</a></p>{% endif %}
+                            {% if row.offered_item %}<p class="matching-note">Swapped for: <a href="{{ row.offered_item.get_absolute_url }}">{{ row.offered_item.title }}</a></p>{% endif %}
+                            {% if not is_request_tab %}<p class="matching-note">For wanted post: <a href="{% url 'wanted_board:wanted_detail' row.wanted_post.pk %}">{{ row.wanted_post.title }}</a></p>{% endif %}
                             {% if row.message %}<p class="matching-message">{{ row.message|linebreaksbr }}</p>{% endif %}
                             <div class="order-statuses">
                                 <span class="order-status status-{{ row.status }}">Status: {{ row.get_status_display }}</span>
@@ -72,10 +71,10 @@
                         </div>
 
                         <div class="order-total">
-                            <span>Harga</span>
+                            <span>Price</span>
                             <strong>{{ row.item.price_display }}</strong>
                             {% if is_request_tab and row.offer_price_display %}
-                                <span>Penawaran</span>
+                                <span>Offer</span>
                                 <strong>{{ row.offer_price_display }}</strong>
                             {% endif %}
                         </div>
@@ -84,29 +83,29 @@
                     <div class="order-card-footer matching-footer">
                         <div class="matching-footer-main">
                             {% if row.status == 'pending' %}
-                                {% if tab == 'incoming' %}Menunggu keputusanmu.
-                                {% elif tab == 'sent' %}Menunggu keputusan pemilik barang.
-                                {% elif tab == 'offers_received' %}Menunggu keputusanmu.
-                                {% else %}Menunggu keputusan pembuat wanted post.{% endif %}
+                                {% if tab == 'incoming' %}Waiting for your decision.
+                                {% elif tab == 'sent' %}Waiting for the item owner’s decision.
+                                {% elif tab == 'offers_received' %}Waiting for your decision.
+                                {% else %}Waiting for the wanted post owner’s decision.{% endif %}
                             {% elif row.status == 'accepted' %}
                                 {% include 'item_matching/_accepted.html' %}
                             {% elif row.status == 'rejected' %}
-                                {% if is_request_tab %}Request ini ditolak.{% else %}Penawaran ini ditolak.{% endif %}
-                            {% elif row.status == 'cancelled' %}Request ini dibatalkan.
-                            {% else %}Penawaran ini ditarik.{% endif %}
+                                {% if is_request_tab %}This request was rejected.{% else %}This offer was rejected.{% endif %}
+                            {% elif row.status == 'cancelled' %}This request was cancelled.
+                            {% else %}This offer was withdrawn.{% endif %}
                         </div>
                         {% if row.status == 'pending' %}
                             <div class="matching-actions">
                                 {% if tab == 'incoming' %}
-                                    <form method="post" action="{% url 'item_matching:request_accept' row.pk %}">{% csrf_token %}<button class="matching-action" type="submit">Terima</button></form>
-                                    <form method="post" action="{% url 'item_matching:request_reject' row.pk %}">{% csrf_token %}<button class="matching-action matching-action-secondary" type="submit">Tolak</button></form>
+                                    <form method="post" action="{% url 'item_matching:request_accept' row.pk %}">{% csrf_token %}<button class="matching-action" type="submit">Accept</button></form>
+                                    <form method="post" action="{% url 'item_matching:request_reject' row.pk %}">{% csrf_token %}<button class="matching-action matching-action-secondary" type="submit">Reject</button></form>
                                 {% elif tab == 'sent' %}
-                                    <form method="post" action="{% url 'item_matching:request_cancel' row.pk %}">{% csrf_token %}<button class="matching-action matching-action-secondary" type="submit">Batalkan</button></form>
+                                    <form method="post" action="{% url 'item_matching:request_cancel' row.pk %}">{% csrf_token %}<button class="matching-action matching-action-secondary" type="submit">Cancel</button></form>
                                 {% elif tab == 'offers_received' %}
-                                    <form method="post" action="{% url 'item_matching:offer_accept' row.pk %}">{% csrf_token %}<button class="matching-action" type="submit">Terima</button></form>
-                                    <form method="post" action="{% url 'item_matching:offer_reject' row.pk %}">{% csrf_token %}<button class="matching-action matching-action-secondary" type="submit">Tolak</button></form>
+                                    <form method="post" action="{% url 'item_matching:offer_accept' row.pk %}">{% csrf_token %}<button class="matching-action" type="submit">Accept</button></form>
+                                    <form method="post" action="{% url 'item_matching:offer_reject' row.pk %}">{% csrf_token %}<button class="matching-action matching-action-secondary" type="submit">Reject</button></form>
                                 {% else %}
-                                    <form method="post" action="{% url 'item_matching:offer_withdraw' row.pk %}">{% csrf_token %}<button class="matching-action matching-action-secondary" type="submit">Tarik</button></form>
+                                    <form method="post" action="{% url 'item_matching:offer_withdraw' row.pk %}">{% csrf_token %}<button class="matching-action matching-action-secondary" type="submit">Withdraw</button></form>
                                 {% endif %}
                             </div>
                         {% endif %}
@@ -117,9 +116,9 @@
     {% else %}
         <section class="orders-empty">
             <div class="empty-illustration" aria-hidden="true">🤝</div>
-            <h2>Belum Ada Pesanan.</h2>
+            <h2>Nothing here yet.</h2>
             <p>{{ active.empty }}</p>
-            <a href="{% url 'items:explore_items' %}" class="orders-explore">Jelajahi Barang</a>
+            <a href="{% url 'items:explore_items' %}" class="orders-explore">Explore Items</a>
         </section>
     {% endif %}
 </main>
