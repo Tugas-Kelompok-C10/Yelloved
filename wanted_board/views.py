@@ -12,6 +12,7 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
+from django.views.decorators.vary import vary_on_headers
 
 from .creation import creation_uid, issue_creation_token
 from .forms import OfferForm, WantedCreateForm, WantedEditForm
@@ -174,6 +175,7 @@ def _board_context(request, creation_form=None, open_create_modal=False):
         ],
         "previous_page_url": page_url(page.previous_page_number()) if page.has_previous() else None,
         "next_page_url": page_url(page.next_page_number()) if page.has_next() else None,
+        "results_url": page_url(page.number),
         "creation_form": (
             creation_form if creation_form is not None else WantedCreateForm(
                 initial={"creation_token": issue_creation_token(request.user),
@@ -184,11 +186,14 @@ def _board_context(request, creation_form=None, open_create_modal=False):
     }
 
 
+@vary_on_headers('HX-Request', 'X-Requested-With')
 def show_wanted(request):
     context = _board_context(
         request,
         open_create_modal=request.GET.get("create") == "1",
     )
+    if request.headers.get("HX-Request") == "true":
+        return render(request, "wanted_board/_results.html", context)
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         total_count = context["total_count"]
         return JsonResponse(

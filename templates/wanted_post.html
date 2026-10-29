@@ -4,6 +4,7 @@
 {% block meta %}
 <title>Wanted Board | {{ name }}</title>
 <meta name="description" content="Find and share preloved item requests around UI.">
+{% include "wanted_board/_htmx_assets.html" %}
 {% endblock meta %}
 
 {% block content %}
@@ -22,7 +23,13 @@
 
     <section class="wanted-board" aria-label="Wanted Board filters and requests">
         <div class="wanted-toolbar">
-            <form class="wanted-filter" method="get" action="{% url 'wanted_board:show_wanted' %}" role="search" data-ajax-search>
+            <form id="wanted-filter" class="wanted-filter" method="get" action="{% url 'wanted_board:show_wanted' %}" role="search" data-ajax-search
+                  hx-get="{% url 'wanted_board:show_wanted' %}" hx-target="#wanted-results"
+                  hx-trigger="submit, input changed delay:300ms from:#wanted-query"
+                  hx-sync="this:replace" hx-request='{"timeout":10000}' hx-swap="innerHTML swap:0 settle:0">
+                <input type="hidden" name="category" value="{{ selected_category }}">
+                <input type="hidden" name="sort" value="{{ selected_sort }}">
+                <input type="hidden" name="page" value="{{ page_obj.number }}">
                 <div class="wanted-filter-field wanted-filter-query">
                     <label class="sr-only" for="wanted-query">Search wanted posts</label>
                     <svg class="wanted-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg>
@@ -41,13 +48,8 @@
             </form>
         </div>
 
-        <div class="wanted-pinboard">
-            <div class="wanted-grid" aria-live="polite" aria-busy="false">
-                {% include "wanted_board/_card_grid.html" %}
-            </div>
-        </div>
-        <div data-wanted-pagination>
-            {% include "wanted_board/_pagination.html" %}
+        <div id="wanted-results">
+            {% include "wanted_board/_results.html" %}
         </div>
     </section>
 </main>
@@ -81,5 +83,4 @@
 
 {% endif %}
 {% include "wanted_board/_item_offer_modal.html" %}
-<script src="{% static 'js/wanted_board.js' %}" defer></script>
 {% endblock content %}
