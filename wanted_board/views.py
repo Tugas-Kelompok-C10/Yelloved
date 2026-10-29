@@ -302,6 +302,8 @@ def create_wanted(request):
             except CreationRateLimited as error:
                 rate_error = error
                 form.add_error(None, error.message)
+            except ValidationError as error:
+                form.add_error(None, error)
             else:
                 return _saved_response(request, wanted_post, "Your wanted post has been created.")
 

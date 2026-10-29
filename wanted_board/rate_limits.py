@@ -3,10 +3,11 @@ from datetime import timedelta
 from math import ceil
 
 from django.db import transaction
+from django.core.exceptions import ValidationError
 from django.db.models import F
 from django.utils import timezone
 
-from .models import WantedCreationEvent, WantedCreationQuota, WantedPost
+from .models import WantedCreationEvent, WantedCreationQuota, WantedCreationReceipt, WantedPost
 
 POST_LIMIT = 5
 POST_WINDOW = timedelta(minutes=10)
@@ -35,6 +36,8 @@ def create_with_quota(user, uid, defaults):
         existing = WantedPost.objects.filter(pk=uid, requester=user).first()
         if existing:
             return existing
+        if WantedCreationReceipt.objects.filter(pk=uid).exists():
+            raise ValidationError("This form was already used for a deleted post. Reopen the create form to make a new request. Your deleted post will not be recreated.")
 
         now = timezone.now()
         quota.events.filter(created_at__lte=now - POST_WINDOW).delete()

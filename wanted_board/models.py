@@ -92,6 +92,13 @@ class WantedPost(models.Model):
         return result
 
 
+class WantedCreationReceipt(models.Model):
+    """Durable token/deletion receipt, deliberately independent of the post row."""
+    id = models.UUIDField(primary_key=True, editable=False)
+    requester = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+
 class WantedCreationQuota(models.Model):
     """One lockable row per user, shared by every application worker."""
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
