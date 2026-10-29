@@ -5,7 +5,7 @@
     let activeForm, guard = false, leaving = false, asking = false;
     const notify = (message, type = 'success') => window.YellovedToast?.show({title: type === 'error' ? 'Unable to save draft' : 'Offer draft', message, type});
     // IndexedDB preserves photos together with text, separately for each account/post.
-    const storage = (mode, key, value) => new Promise((resolve, reject) => {
+    const storage = (mode, key, value, revision = null) => new Promise((resolve, reject) => {
         const request = indexedDB.open('yelloved-offer-drafts', 1);
         request.onupgradeneeded = () => request.result.createObjectStore('drafts');
         request.onerror = () => reject(request.error);
@@ -13,11 +13,26 @@
             const db = request.result;
             const tx = db.transaction('drafts', mode === 'get' ? 'readonly' : 'readwrite');
             const store = tx.objectStore('drafts');
-            const operation = mode === 'get' ? store.get(key) : mode === 'put' ? store.put(value, key) : store.delete(key);
-            tx.oncomplete = () => { db.close(); resolve(operation.result); };
-            tx.onabort = tx.onerror = () => { db.close(); reject(tx.error); };
+            let result, conflict;
+            const operation = store.get(key);
+            operation.onsuccess = () => {
+                const current = operation.result;
+                if (mode === 'get') { result = current; return; }
+                // The compare and write share an IndexedDB readwrite transaction,
+                // so two tabs cannot both overwrite the same draft revision.
+                if ((current?.revision || null) !== revision) {
+                    conflict = new Error('This draft changed in another tab. Your edits are still here. Reopen this offer to load the latest draft before saving or discarding.');
+                    tx.abort();
+                    return;
+                }
+                result = {revision: crypto.randomUUID(), deleted: mode === 'delete', data: mode === 'put' ? value : null};
+                store.put(result, key);
+            };
+            tx.oncomplete = () => { db.close(); resolve(result); };
+            tx.onabort = tx.onerror = () => { db.close(); reject(conflict || tx.error); };
         };
     });
+    window.YellovedWantedDraftStore = {storage};
     const postKey = form => `${form.dataset.draftUser}:${form.elements.wanted_post.value.split('/').filter(Boolean).at(-1)}`;
     const snapshot = form => ({price: form.elements.price.value, description: form.elements.description.value, image: form.elements.image.files[0] || null});
     const hasContent = form => { const d = snapshot(form); return Boolean(d.price || d.description.trim() || d.image); };
@@ -31,11 +46,14 @@
         form.querySelector('[data-send-item-offer]').disabled = form.querySelector('fieldset').disabled || !form.checkValidity();
     };
     const restore = async form => {
-        const state = {dirty: false};
+        const state = {dirty: false, revision: null};
         states.set(form, state);
         try {
-            const draft = await storage('get', postKey(form));
-            if (!draft || states.get(form) !== state || state.dirty) return;
+            const entry = await storage('get', postKey(form));
+            if (states.get(form) !== state) return;
+            state.revision = entry?.revision || null;
+            const draft = entry?.deleted ? null : (entry?.data || entry);
+            if (!draft || state.dirty) return;
             form.elements.price.value = draft.price;
             form.elements.description.value = draft.description;
             if (draft.image) {
@@ -67,15 +85,19 @@
         try {
             const choice = await ask();
             if (choice === 'stay') return;
-            await storage(choice === 'save' ? 'put' : 'delete', postKey(form), snapshot(form));
-            states.get(form).dirty = false;
+            const state = states.get(form);
+            await state.ready;
+            const saved = await storage(choice === 'save' ? 'put' : 'delete', postKey(form), snapshot(form), state.revision);
+            state.revision = saved.revision;
+            state.dirty = false;
             if (choice === 'discard') form.reset();
             const message = choice === 'save' ? 'Draft saved on this browser.' : 'Draft discarded.';
             if (navigating) window.YellovedToast?.queue({title: 'Offer draft', message, type: 'success'});
             done();
             if (!navigating) notify(message);
-        } catch (_) {
-            notify('Browser storage is unavailable. Your draft is still here; please retry.', 'error');
+        } catch (error) {
+            notify(error.message?.startsWith('This draft changed') ? error.message
+                : 'Browser storage is unavailable. Your draft is still here; please retry.', 'error');
         } finally { asking = false; }
     };
     const closeModal = () => exit(modal.querySelector('[data-item-offer-form]'), () => modal.close());
@@ -87,7 +109,8 @@
             form.elements.wanted_post.value = trigger.dataset.offerPost;
             modal.querySelector('[data-offer-target]').textContent = `${trigger.dataset.offerTitle} · Max budget ${trigger.dataset.offerBudget}`;
             activeForm = form;
-            restore(form);
+            const ready = restore(form);
+            states.get(form).ready = ready;
             modal.showModal();
         }
         if (event.target.closest('[data-close-item-offer-modal]')) closeModal();
@@ -107,7 +130,7 @@
     document.querySelectorAll('[data-item-offer-form]').forEach(form => {
         if (bound.has(form)) return;
         bound.add(form);
-        states.set(form, {dirty: false});
+        states.set(form, {dirty: false, revision: null});
         const changed = () => { states.get(form).dirty = true; activeForm = form; update(form); if (hasContent(form)) protectBack(); };
         form.addEventListener('input', changed);
         form.addEventListener('change', changed);
@@ -123,7 +146,10 @@
             form.querySelector('[data-offer-feedback]').textContent = 'Your offer is ready. Sending offers is not connected yet.';
         });
         update(form);
-        if (!form.closest('dialog')) restore(form);
+        if (!form.closest('dialog')) {
+            const ready = restore(form);
+            states.get(form).ready = ready;
+        }
     });
     };
     window.addEventListener('wanted:mounted', init);
