@@ -12,7 +12,7 @@ from items.models import Item
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.contrib import messages
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_POST
 from account_profile.models import Profile, Address
 
@@ -741,17 +741,25 @@ def remove_from_cart(request, entry_id):
 
 @login_required
 def add_to_cart(request, item_id):
+    wants_json = 'application/json' in request.headers.get('Accept', '')
     if request.method != "POST":
+        if wants_json:
+            return JsonResponse({'error': 'Use POST to add an item to your cart.'}, status=405)
         return redirect("items:explore_items")
 
-    item = get_object_or_404(
-        Item,
-        pk=item_id,
-        status=Item.Status.AVAILABLE,
-        listing_type=Item.ListingType.SALE,
-    )
+    try:
+        item = get_object_or_404(
+            Item, pk=item_id, status=Item.Status.AVAILABLE,
+            listing_type=Item.ListingType.SALE,
+        )
+    except Http404:
+        if wants_json:
+            return JsonResponse({'error': 'This item is no longer available to add to your cart.'}, status=404)
+        raise
 
     if item.owner_id == request.user.id:
+        if wants_json:
+            return JsonResponse({'error': 'You cannot add your own item to the cart.'}, status=403)
         messages.error(request, "Kamu tidak bisa membeli barang milik sendiri.")
         return redirect("items:explore_items")
 
@@ -765,9 +773,16 @@ def add_to_cart(request, item_id):
         if cart_item.quantity != 1:
             cart_item.quantity = 1
             cart_item.save(update_fields=["quantity"])
-        messages.info(request, "This item is already in your cart.")
-    else:
+        if not wants_json:
+            messages.info(request, "This item is already in your cart.")
+    elif not wants_json:
         messages.success(request, "Item added to your cart.")
+    if wants_json:
+        return JsonResponse({
+            'created': created,
+            'message': 'Added to your cart' if created else 'This item is already in your cart',
+            'cart_count': CartItem.objects.filter(user=request.user).count(),
+        })
     return redirect("transactions:cart")
 
 def checkout_success_preview(request):
