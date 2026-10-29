@@ -13,6 +13,10 @@ DECIDED = ('accepted', 'rejected')
 SKIPPED_PREFIXES = ('/admin/', '/static/', '/media/')
 
 
+def _plural(count, word):
+    return f'{count} {word}' if count == 1 else f'{count} {word}s'
+
+
 def matching_notifications(request):
     """Navbar data: the Item Matching summary popover and the bell's notification list.
 
@@ -44,19 +48,19 @@ def matching_notifications(request):
     notes = []
     if order_updates:
         if pending_requests:
-            notes.append({'text': f'{pending_requests} request barang menunggu keputusanmu',
+            notes.append({'text': f'{_plural(pending_requests, "item request")} waiting for your decision',
                           'url': by_key['incoming']['url']})
         for r in ItemRequest.objects.filter(requester=user, status__in=DECIDED, updated_at__gte=since
                                             ).select_related('item')[:3]:
-            notes.append({'text': f'Request untuk “{r.item.title}” {r.get_status_display().lower()}',
+            notes.append({'text': f'Request for “{r.item.title}” was {r.get_status_display().lower()}',
                           'url': by_key['sent']['url']})
     if wanted_updates:
         if pending_offers:
-            notes.append({'text': f'{pending_offers} penawaran barang untuk wanted post-mu',
+            notes.append({'text': f'{_plural(pending_offers, "item offer")} for your wanted posts',
                           'url': by_key['offers_received']['url']})
         for o in ItemOffer.objects.filter(offerer=user, status__in=DECIDED, updated_at__gte=since
                                           ).select_related('item')[:3]:
-            notes.append({'text': f'Penawaran “{o.item.title}” {o.get_status_display().lower()}',
+            notes.append({'text': f'Offer “{o.item.title}” was {o.get_status_display().lower()}',
                           'url': by_key['offers_sent']['url']})
     return {
         'matching_notifications': notes[:6],

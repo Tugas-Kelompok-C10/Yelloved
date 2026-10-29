@@ -46,16 +46,16 @@ def accept_request(request_id, user):
     req = _lock(ItemRequest, request_id)
     item = _lock(Item, req.item_id)
     if item.owner_id != user.pk:
-        raise MatchingError('Hanya pemilik barang yang dapat menerima request.')
+        raise MatchingError('Only the item owner can accept this request.')
     if req.status != ItemRequest.Status.PENDING:
-        raise MatchingError('Request ini sudah diproses.')
+        raise MatchingError('This request has already been processed.')
     if item.status != Item.Status.AVAILABLE:
-        raise MatchingError('Barang ini sudah tidak tersedia.')
+        raise MatchingError('This item is no longer available.')
     swap_item = req.offered_item
     if item.listing_type == Item.ListingType.SWAP and swap_item is None:
-        raise MatchingError('Barang tukar dari peminta sudah tidak ada.')
+        raise MatchingError('The requester\'s swap item no longer exists.')
     if swap_item is not None and swap_item.status != Item.Status.AVAILABLE:
-        raise MatchingError('Barang tukar dari peminta sudah tidak tersedia.')
+        raise MatchingError('The requester\'s swap item is no longer available.')
     req.status = ItemRequest.Status.ACCEPTED
     req.save(update_fields=['status', 'updated_at'])
     _reserve(item, swap_item)
@@ -66,9 +66,9 @@ def accept_request(request_id, user):
 def reject_request(request_id, user):
     req = _lock(ItemRequest, request_id)
     if req.item.owner_id != user.pk:
-        raise MatchingError('Hanya pemilik barang yang dapat menolak request.')
+        raise MatchingError('Only the item owner can reject this request.')
     if req.status != ItemRequest.Status.PENDING:
-        raise MatchingError('Request ini sudah diproses.')
+        raise MatchingError('This request has already been processed.')
     req.status = ItemRequest.Status.REJECTED
     req.save(update_fields=['status', 'updated_at'])
     return req
@@ -78,9 +78,9 @@ def reject_request(request_id, user):
 def cancel_request(request_id, user):
     req = _lock(ItemRequest, request_id)
     if req.requester_id != user.pk:
-        raise MatchingError('Hanya peminta yang dapat membatalkan request.')
+        raise MatchingError('Only the requester can cancel this request.')
     if req.status != ItemRequest.Status.PENDING:
-        raise MatchingError('Hanya request yang masih menunggu yang dapat dibatalkan.')
+        raise MatchingError('Only pending requests can be cancelled.')
     req.status = ItemRequest.Status.CANCELLED
     req.save(update_fields=['status', 'updated_at'])
     return req
@@ -92,13 +92,13 @@ def accept_offer(offer_id, user):
     post = _lock(WantedPost, offer.wanted_post_id)
     item = _lock(Item, offer.item_id)
     if post.requester_id != user.pk:
-        raise MatchingError('Hanya pembuat wanted post yang dapat menerima penawaran.')
+        raise MatchingError('Only the wanted post owner can accept this offer.')
     if offer.status != ItemOffer.Status.PENDING:
-        raise MatchingError('Penawaran ini sudah diproses.')
+        raise MatchingError('This offer has already been processed.')
     if post.status != WantedPost.Status.OPEN:
-        raise MatchingError('Wanted post ini sudah tidak terbuka.')
+        raise MatchingError('This wanted post is no longer open.')
     if item.status != Item.Status.AVAILABLE:
-        raise MatchingError('Barang yang ditawarkan sudah tidak tersedia.')
+        raise MatchingError('The offered item is no longer available.')
     offer.status = ItemOffer.Status.ACCEPTED
     offer.save(update_fields=['status', 'updated_at'])
     ItemOffer.objects.filter(wanted_post=post, status=ItemOffer.Status.PENDING).exclude(
@@ -113,9 +113,9 @@ def accept_offer(offer_id, user):
 def reject_offer(offer_id, user):
     offer = _lock(ItemOffer, offer_id)
     if offer.wanted_post.requester_id != user.pk:
-        raise MatchingError('Hanya pembuat wanted post yang dapat menolak penawaran.')
+        raise MatchingError('Only the wanted post owner can reject this offer.')
     if offer.status != ItemOffer.Status.PENDING:
-        raise MatchingError('Penawaran ini sudah diproses.')
+        raise MatchingError('This offer has already been processed.')
     offer.status = ItemOffer.Status.REJECTED
     offer.save(update_fields=['status', 'updated_at'])
     return offer
@@ -125,9 +125,9 @@ def reject_offer(offer_id, user):
 def withdraw_offer(offer_id, user):
     offer = _lock(ItemOffer, offer_id)
     if offer.offerer_id != user.pk:
-        raise MatchingError('Hanya pemilik penawaran yang dapat menariknya.')
+        raise MatchingError('Only the person who made the offer can withdraw it.')
     if offer.status != ItemOffer.Status.PENDING:
-        raise MatchingError('Hanya penawaran yang masih menunggu yang dapat ditarik.')
+        raise MatchingError('Only pending offers can be withdrawn.')
     offer.status = ItemOffer.Status.WITHDRAWN
     offer.save(update_fields=['status', 'updated_at'])
     return offer

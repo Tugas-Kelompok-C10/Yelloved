@@ -90,7 +90,7 @@ class ItemRequestRulesTests(Base):
 
 
 class OfferPriceTests(Base):
-    """Nominal penawaran (offer_price) pada request barang."""
+    """The offer amount (offer_price) on item requests."""
 
     def url(self, item):
         return reverse('item_matching:request_create', args=[item.pk])
@@ -255,7 +255,7 @@ class ItemOfferTests(Base):
 
 
 class WantedOfferModalTests(Base):
-    """Tombol "Offer an Item" di halaman wanted post: pilih barang sendiri, atau ajak jual barang."""
+    """The "Offer an Item" button on a wanted post: pick one of your own items, or go sell one."""
 
     def setUp(self):
         super().setUp()
@@ -299,7 +299,7 @@ class MatchingScoreTests(Base):
     def test_matching_item_scores_and_explains(self):
         m = evaluate(make_item(self.owner), make_post(self.buyer))
         self.assertIsNotNone(m)
-        self.assertIn('Kategori sama', m.reasons)
+        self.assertIn('Same category', m.reasons)
 
     def test_hard_filters(self):
         post = make_post(self.buyer)

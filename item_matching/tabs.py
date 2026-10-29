@@ -1,36 +1,36 @@
 """Definition of the four dashboard tabs, shared by the page and the navbar popover."""
 
-# request = ada yang minta barang. penawaran = ada yang menawarkan barang
+# request = someone asks for an item. offer = someone offers an item for a wanted post
 TABS = [
     {
-        'key': 'incoming', 'label': 'Request Masuk', 'actionable': True,
-        'short': 'Orang lain meminta barangmu',
-        'description': 'Daftar orang yang meminta barang milikmu. Terima request untuk menandai barang '
-                       'tidak tersedia dan membuka kontak peminta, atau tolak jika kurang cocok. '
-                       'Saat satu request diterima, request lain untuk barang yang sama otomatis ditolak.',
-        'empty': 'Request dari orang lain untuk barangmu akan muncul di sini.',
+        'key': 'incoming', 'label': 'Incoming Requests', 'actionable': True,
+        'short': 'People asking for your items',
+        'description': 'People who asked for your items. Accept a request to mark the item as unavailable '
+                       'and reveal the requester\'s contact, or reject it if it is not a good fit. '
+                       'Once a request is accepted, other requests for the same item are rejected automatically.',
+        'empty': 'Requests from other people for your items will appear here.',
     },
     {
-        'key': 'sent', 'label': 'Request Terkirim', 'actionable': False,
-        'short': 'Barang orang lain yang kamu minta',
-        'description': 'Barang milik orang lain yang kamu minta. Pantau statusnya di sini, batalkan '
-                       'selama masih menunggu, dan lihat kontak pemilik setelah request diterima.',
-        'empty': 'Request yang kamu kirim ke pemilik barang akan muncul di sini.',
+        'key': 'sent', 'label': 'Sent Requests', 'actionable': False,
+        'short': 'Items you asked for',
+        'description': 'Items owned by other people that you requested. Track their status here, cancel '
+                       'while a request is still pending, and see the owner\'s contact once it is accepted.',
+        'empty': 'Requests you send to item owners will appear here.',
     },
     {
-        'key': 'offers_received', 'label': 'Penawaran Masuk', 'actionable': True,
-        'short': 'Barang ditawarkan ke wanted post-mu',
-        'description': 'Barang yang ditawarkan orang lain untuk wanted post-mu. Terima penawaran yang '
-                       'paling cocok dan wanted post-mu otomatis ditandai terpenuhi, sedangkan '
-                       'penawaran lainnya ditolak.',
-        'empty': 'Penawaran barang untuk wanted post-mu akan muncul di sini.',
+        'key': 'offers_received', 'label': 'Incoming Offers', 'actionable': True,
+        'short': 'Items offered for your wanted posts',
+        'description': 'Items other people offered for your wanted posts. Accept the best match and your '
+                       'wanted post is marked as fulfilled automatically, while the '
+                       'other offers are rejected.',
+        'empty': 'Item offers for your wanted posts will appear here.',
     },
     {
-        'key': 'offers_sent', 'label': 'Penawaran Terkirim', 'actionable': False,
-        'short': 'Barangmu yang kamu tawarkan',
-        'description': 'Barang milikmu yang kamu tawarkan ke wanted post orang lain. Tarik penawaran '
-                       'selama masih menunggu, dan lihat kontak pembuat wanted post setelah diterima.',
-        'empty': 'Barang yang kamu tawarkan ke wanted post orang lain akan muncul di sini.',
+        'key': 'offers_sent', 'label': 'Sent Offers', 'actionable': False,
+        'short': 'Your items offered to wanted posts',
+        'description': 'Your items that you offered to other people\'s wanted posts. Withdraw an offer '
+                       'while it is still pending, and see the wanted post owner\'s contact once it is accepted.',
+        'empty': 'Items you offer to other people\'s wanted posts will appear here.',
     },
 ]
 TAB_KEYS = tuple(t['key'] for t in TABS)

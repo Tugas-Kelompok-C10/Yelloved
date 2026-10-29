@@ -1,4 +1,4 @@
-"""Cocokologi barang tersedia dengan postingan di wanted post."""
+"""Match available items with wanted posts."""
 import re
 from dataclasses import dataclass, field
 from decimal import Decimal
@@ -60,27 +60,27 @@ def evaluate(item, wanted_post):
     score, reasons = 0, []
     if CATEGORY_MAP.get(item.category) == wanted_post.category:
         score += 3
-        reasons.append('Kategori sama')
+        reasons.append('Same category')
     shared_title = _tokens(item.title) & _tokens(wanted_post.title)
     if shared_title:
         score += 2 * min(len(shared_title), 3)
-        reasons.append('Kata kunci cocok: ' + ', '.join(sorted(shared_title)))
+        reasons.append('Matching keywords: ' + ', '.join(sorted(shared_title)))
     shared_desc = (_tokens(item.title + ' ' + item.description)
                    & _tokens(wanted_post.description)) - shared_title
     if shared_desc:
         score += min(len(shared_desc), 2)
-        reasons.append('Deskripsi mirip')
+        reasons.append('Similar description')
     if not shared_title and not shared_desc and score == 0:
         return None
     if wanted_post.budget is not None and price is not None:
         score += 1
-        reasons.append('Sesuai budget')
+        reasons.append('Within budget')
     elif item.listing_type == Item.ListingType.FREE:
         score += 1
-        reasons.append('Gratis')
+        reasons.append('Free')
     if _tokens(item.location) & _tokens(wanted_post.location):
         score += 1
-        reasons.append('Lokasi berdekatan')
+        reasons.append('Nearby location')
     if score < MIN_SCORE:
         return None
     return Match(item=item, wanted_post=wanted_post, score=score, reasons=reasons)

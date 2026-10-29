@@ -3,18 +3,18 @@
     {% item_request_state item user as state %}
     {% if state.mine %}
         <div class="matching-inline">
-            <span>Requestmu: <span class="matching-status matching-status-{{ state.mine.status }}">{{ state.mine.get_status_display }}</span></span>
+            <span>Your request: <span class="matching-status matching-status-{{ state.mine.status }}">{{ state.mine.get_status_display }}</span></span>
             {% if state.mine.status == 'pending' %}
-                <form method="post" action="{% url 'item_matching:request_cancel' state.mine.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="explore-reset" type="submit">Batalkan</button></form>
+                <form method="post" action="{% url 'item_matching:request_cancel' state.mine.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="explore-reset" type="submit">Cancel</button></form>
             {% else %}
-                <a class="explore-reset" href="{% url 'item_matching:dashboard' %}?tab=sent">Lihat detail</a>
+                <a class="explore-reset" href="{% url 'item_matching:dashboard' %}?tab=sent">View details</a>
             {% endif %}
         </div>
     {% endif %}
     {% if state.incoming %}
         <div class="matching-inline">
-            <strong>{{ state.incoming|length }} request menunggu</strong>
-            <a class="explore-reset" href="{% url 'item_matching:dashboard' %}?tab=incoming">Kelola request</a>
+            <strong>{% with n=state.incoming|length %}{{ n }} pending request{{ n|pluralize }}{% endwith %}</strong>
+            <a class="explore-reset" href="{% url 'item_matching:dashboard' %}?tab=incoming">Manage requests</a>
         </div>
     {% endif %}
 {% endif %}

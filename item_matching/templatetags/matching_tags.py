@@ -20,7 +20,7 @@ def item_request_state(item, user):
 
 @register.simple_tag
 def own_available_items(user):
-    """Barang milik `user` yang masih tersedia (untuk dipilih saat menawarkan barang)."""
+    """Items owned by `user` that are still available (to pick from when offering an item)."""
     if not user.is_authenticated:
         return []
     return list(_own_available_items(user))
