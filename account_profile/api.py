@@ -89,7 +89,7 @@ def preference_data(preferences):
 
 
 @api_login_required
-@require_http_methods(["GET", "PATCH"])
+@require_http_methods(["GET", "POST", "PATCH"])
 def profile_api(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
     if request.method == "GET":

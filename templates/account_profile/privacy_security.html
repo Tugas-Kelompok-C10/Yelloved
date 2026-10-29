@@ -81,7 +81,9 @@
                             </svg>
                         </span>
                     </div>
-                    <form method="post" class="security-password-form">
+                    <form method="post" class="security-password-form"
+                          data-api-url="{% url 'account_profile:api_change_password' %}" data-api-method="POST"
+                          data-success-url="{% url 'account_profile:privacy_security' %}">
                         {% csrf_token %}
                         {% for field in form %}
                         <div class="security-field">

@@ -72,8 +72,8 @@
                                 <div class="saved-address-actions">
                                     <a href="{% url 'account_profile:edit_payment_method' method.id %}">Edit</a>
                                     <form method="post" action="{% url 'account_profile:delete_payment_method' method.id %}"
-                                          data-api-delete
-                                          data-api-url="{% url 'account_profile:api_payment_method_detail' method.id %}">
+                                          data-api-url="{% url 'account_profile:api_payment_method_detail' method.id %}"
+                                          data-api-method="DELETE" data-success-url="{% url 'account_profile:payment_methods' %}">
                                         {% csrf_token %}
                                         <button type="submit">Delete</button>
                                     </form>
@@ -96,7 +96,7 @@
                               data-payment-api-form
                               data-api-url="{% if editing %}{% url 'account_profile:api_payment_method_detail' editing_method.id %}{% else %}{% url 'account_profile:api_payment_methods' %}{% endif %}"
                               data-api-method="{% if editing %}PATCH{% else %}POST{% endif %}"
-                              data-list-url="{% url 'account_profile:payment_methods' %}">
+                              data-success-url="{% url 'account_profile:payment_methods' %}">
                             {% csrf_token %}
                             {% for field in form %}
                             <div class="address-form-field{% if field.name == 'is_default' %} address-default-field{% endif %}">
