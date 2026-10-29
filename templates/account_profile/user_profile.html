@@ -5,13 +5,12 @@
 
 {% block meta %}
 <title>Profile {{ profile_user.username }} | Yelloved</title>
-<link rel="stylesheet" href="{% static 'css/user-profile.css' %}?v=12">
+<link rel="stylesheet" href="{% static 'css/user-profile.css' %}?v=13">
 {% endblock %}
 
 {% block content %}
 <main class="public-profile-page" lang="en">
     <div class="public-profile-frame">
-        <div class="public-profile-banner"><div class="public-profile-banner-copy"><span>Yelloved community</span><p>A little care. A second life.</p></div><svg width="110" height="90" viewBox="0 0 110 90" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m14 44 30-30h37v37L51 81z"/><circle cx="67" cy="28" r="5"/><path d="M68 23C66 5 92 3 98 14"/></svg></div>
         <header class="public-profile-header">
             <div class="public-profile-identity">
                 {% if profile and profile.photo %}

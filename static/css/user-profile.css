@@ -8,6 +8,30 @@
 
 body:has(.public-profile-page) { background: var(--paper); }
 
+/* Favorites share the profile spacing, palette, and empty-state treatment. */
+.public-profile-favorites { padding: 24px; }
+.profile-favorites-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
+.profile-favorites-toolbar h2 { margin: 0; font-size: 18px; }
+.profile-favorites-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.profile-favorites-filters a { padding: 8px 14px; border: 1px solid var(--violet); border-radius: var(--radius-pill); color: var(--violet); font-size: 12px; text-decoration: none; }
+.profile-favorites-filters a.is-active { background: var(--violet); color: var(--paper); }
+.profile-favorites-filters a:hover { background: var(--violet-light-hover); color: var(--violet); }
+.profile-favorites-empty { display: grid; justify-items: center; gap: 16px; padding: 48px 16px; color: var(--gray); text-align: center; }
+.profile-favorites-empty[hidden], .profile-favorites-feedback[hidden] { display: none; }
+.profile-favorites-empty a { color: var(--violet); }
+.profile-favorites-browse { padding: 10px 20px; border: 1px solid var(--violet); border-radius: var(--radius-pill); text-decoration: none; }
+.profile-favorites-browse:hover { background: var(--violet); color: var(--paper); }
+.profile-favorites-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 20px; }
+.profile-favorite-card { min-width: 0; max-width: 360px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.profile-favorite-photo { position: relative; background: var(--light-paper); }
+.profile-favorite-photo img { display: block; width: 100%; height: 240px; object-fit: contain; }
+.profile-favorite-image-icon { display: none; }
+.profile-favorite-photo [data-item-favorite] { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--paper); color: var(--violet); }
+.profile-favorite-photo [data-item-favorite] svg { width: 100%; height: 100%; }
+.profile-favorite-info { display: grid; gap: 8px; padding: 16px; color: var(--violet); text-decoration: none; overflow-wrap: anywhere; }
+.profile-favorite-info h3 { font-size: 16px; }
+.profile-favorite-info p { font-size: 12px; color: var(--gray); }
+
 .public-profile-frame {
     min-height: 70vh;
     overflow: hidden;

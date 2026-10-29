@@ -94,5 +94,17 @@ class ProfileFavoritesTests(TestCase):
         posted = Item.objects.create(owner=self.user, title='My posted item', category='fashion',
                                      condition='good', listing_type='free')
         self.assertContains(self.client.get(self.url, {'tab': 'posted'}), posted.title)
-        self.assertContains(self.client.get(self.url, {'tab': 'wanted'}), 'No wanted posts yet.')
-        self.assertContains(self.client.get(self.url, {'tab': 'reviews'}), 'No reviews yet.')
+        self.assertContains(self.client.get(self.url, {'tab': 'wanted'}), 'No wanted posts yet')
+        self.assertContains(self.client.get(self.url, {'tab': 'reviews'}), 'No reviews yet')
+
+    def test_empty_favorites_remain_accessible_with_ajax_and_filters(self):
+        self.client.force_login(self.user)
+        for item in self.items:
+            item.liked_by.remove(self.user)
+        for fragment in ('', 'favorites'):
+            response = self.client.get(self.url, {'tab': 'favorites', 'listing_type': 'sale', 'fragment': fragment},
+                                       HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, 'You have no favorites yet.')
+            self.assertEqual(response.context['favorites_total'], 0)
+            self.assertFalse(response.context['favorites'].exists())
