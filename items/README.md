@@ -99,3 +99,21 @@ A conflicting real account or item aborts the migration instead of taking it ove
 Forward replay does not duplicate or reset listings. Reverse deletes only matching
 seed records, preserves repurposed/manual records, and keeps the demo account.
 The optional API `--refresh` command also preserves these 20 offline seeds.
+
+## Item photos and create status
+
+The Add/Edit form accepts optional `images` uploads: up to five total photos per
+item, JPEG/PNG/WebP only, maximum 5 MB each. Uploads are verified server-side as
+images, not just by filename. A small local preview allows removal before submit;
+Edit also allows selecting existing photos for removal. With no photo, the
+existing category fallback remains available.
+
+`0009_itemimage` creates the ordered `ItemImage` relation and links existing
+uploaded photo filenames without copying files. Catalogue URLs/photos remain
+unchanged. The first retained photo is the primary Catalogue image; newly uploaded
+photos are appended in selection order. The legacy primary image field is kept in
+sync for existing consumers. Detail thumbnails show only actual uploaded photos.
+
+Create ignores submitted status and always sets `available`; only the owner Edit
+form exposes status. Photo deletion IDs are restricted to that item's images and
+five-photo validation includes retained images. No other app needs model changes.

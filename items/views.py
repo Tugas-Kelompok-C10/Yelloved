@@ -15,7 +15,7 @@ from .models import Item
 
 def catalog(request):
     form = ItemFilterForm(request.GET)
-    queryset = with_favorites(Item.objects.all(), request.user)
+    queryset = with_favorites(Item.objects.prefetch_related('images'), request.user)
     if form.is_valid():
         data = form.cleaned_data
         if data['q']:
@@ -53,7 +53,7 @@ def items_json(request):
 
 @require_GET
 def item_detail(request, item_id):
-    item = get_object_or_404(with_favorites(Item.objects.select_related('owner'), request.user), pk=item_id)
+    item = get_object_or_404(with_favorites(Item.objects.select_related('owner').prefetch_related('images'), request.user), pk=item_id)
     can_manage = request.user.is_authenticated and item.owner_id == request.user.pk and item.source == 'user' and not item.is_catalog
     can_request_item = (request.user.is_authenticated and item.owner_id != request.user.pk and item.owner_id is not None
                         and item.source == 'user' and item.status == Item.Status.AVAILABLE)
@@ -79,9 +79,12 @@ def item_create(request):
     form = ItemForm(request.POST if request.method == 'POST' else None,
                     request.FILES if request.method == 'POST' else None)
     if request.method == 'POST' and form.is_valid():
-        item = form.save(commit=False)
-        item.owner = request.user
-        item.save()
+        with transaction.atomic():
+            item = form.save(commit=False)
+            item.owner = request.user
+            item.status = Item.Status.AVAILABLE
+            item.save()
+            form.save_images(item)
         messages.success(request, 'Item berhasil ditambahkan.')
         return redirect(item)
     return render(request, 'items/item_form.html', {'name': 'Yelloved', 'form': form, 'editing': False})
@@ -96,8 +99,10 @@ def owned_item(request, item_id):
 
 @login_required(login_url='login')
 @require_http_methods(['GET', 'POST'])
+@transaction.atomic
 def item_update(request, item_id):
     item = owned_item(request, item_id)
+    item = Item.objects.select_for_update().get(pk=item.pk)
     form = ItemForm(request.POST if request.method == 'POST' else None,
                     request.FILES if request.method == 'POST' else None, instance=item)
     if request.method == 'POST' and form.is_valid():
