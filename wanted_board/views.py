@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import F, Q
 from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -92,13 +92,25 @@ def _page_numbers(current, total):
     return result
 
 
-def _wanted_page(wanted_posts, sample_posts, number, per_page=12, user_id=None):
+def _wanted_page(wanted_posts, sample_posts, number, per_page=12, user_id=None, sort=""):
     """Slice database matches before building cards, then fill with demo posts."""
     post_count = wanted_posts.count()
     paginator = Paginator(range(post_count + len(sample_posts)), per_page)
     page = paginator.get_page(number)
     start = (page.number - 1) * per_page
     end = start + per_page
+    if sort in ("budget_asc", "budget_desc"):
+        ascending = sort == "budget_asc"
+        order = F("budget").asc(nulls_last=True) if ascending else F("budget").desc(nulls_last=True)
+        wanted_posts = wanted_posts.order_by(order, "-created_at", "-pk")
+        # At most len(sample_posts) demo cards can shift a database row onto
+        # this page. Fetch only that overlap plus the page, not every DB row.
+        offset = max(0, start - len(sample_posts))
+        cards = _wanted_cards(wanted_posts[offset:min(end, post_count)], sample_posts, user_id=user_id)
+        cards.sort(key=lambda card: (card["budget"] is None,
+                                    (card["budget"] or 0) * (1 if ascending else -1)))
+        page.object_list = cards[start - offset:end - offset]
+        return page
     page.object_list = _wanted_cards(
         wanted_posts[min(start, post_count):min(end, post_count)],
         sample_posts[max(0, start - post_count):max(0, end - post_count)],
@@ -110,6 +122,9 @@ def _wanted_page(wanted_posts, sample_posts, number, per_page=12, user_id=None):
 def _board_context(request, creation_form=None, open_create_modal=False):
     query = request.GET.get("q", "").strip()[:70]
     category = request.GET.get("category", "").strip()
+    sort = request.GET.get("sort", "")
+    if sort not in ("budget_asc", "budget_desc"):
+        sort = ""
 
     wanted_posts = WantedPost.objects.filter(status=WantedPost.Status.OPEN).select_related("requester").order_by("-created_at", "-pk")
     if query:
@@ -127,6 +142,7 @@ def _board_context(request, creation_form=None, open_create_modal=False):
     page = _wanted_page(
         wanted_posts, sample_posts, request.GET.get("page"),
         user_id=request.user.pk if request.user.is_authenticated else None,
+        sort=sort,
     )
     paginator = page.paginator
     wanted_cards = page.object_list
@@ -137,6 +153,8 @@ def _board_context(request, creation_form=None, open_create_modal=False):
             params["q"] = query
         if category:
             params["category"] = category
+        if sort:
+            params["sort"] = sort
         return f"{reverse('wanted_board:show_wanted')}?{urlencode(params)}"
 
     return {
@@ -144,6 +162,7 @@ def _board_context(request, creation_form=None, open_create_modal=False):
         "wanted_posts": wanted_posts,
         "query": query,
         "selected_category": category,
+        "selected_sort": sort,
         "categories": WantedPost.Category.choices,
         "sample_posts": sample_posts,
         "wanted_cards": wanted_cards,
@@ -184,6 +203,7 @@ def show_wanted(request):
                     f"{'s' if total_count != 1 else ''} found"
                 ),
                 "selected_category": context["selected_category"],
+                "selected_sort": context["selected_sort"],
                 "page_number": context["page_obj"].number,
                 "pagination_html": render_to_string(
                     "wanted_board/_pagination.html", context, request=request,

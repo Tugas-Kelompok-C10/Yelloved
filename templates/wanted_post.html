@@ -28,11 +28,15 @@
                     <svg class="wanted-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg>
                     <input id="wanted-query" type="search" name="q" value="{{ query }}" maxlength="70" placeholder="Find a wanted post..." autocomplete="off">
                 </div>
-                <div class="wanted-category-chips" aria-label="Filter by category">
+                <div class="wanted-category-chips wanted-filter-options" role="group" aria-label="Filter by category and sort budget">
                     <button class="wanted-category-chip{% if not selected_category %} is-active{% endif %}" type="button" data-category-chip="" aria-pressed="{% if not selected_category %}true{% else %}false{% endif %}">All items</button>
                     {% for value, label in categories %}
                         <button class="wanted-category-chip{% if selected_category == value %} is-active{% endif %}" type="button" data-category-chip="{{ value }}" aria-pressed="{% if selected_category == value %}true{% else %}false{% endif %}">{{ label }}</button>
                     {% endfor %}
+                <button class="wanted-sort-toggle" type="button" data-wanted-sort data-sort="{{ selected_sort }}" aria-pressed="{% if selected_sort %}true{% else %}false{% endif %}" aria-label="{% if selected_sort == 'budget_asc' %}Budget: lowest first. Click for highest first.{% elif selected_sort == 'budget_desc' %}Budget: highest first. Click for lowest first.{% else %}Sort budget from lowest to highest{% endif %}" title="{% if selected_sort == 'budget_asc' %}Lowest budget first{% elif selected_sort == 'budget_desc' %}Highest budget first{% else %}Sort by budget{% endif %}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="wanted-sort-up" d="M8 20V4m-4 4 4-4 4 4"/><path class="wanted-sort-down" d="M16 4v16m-4-4 4 4 4-4"/></svg>
+                </button>
+                <span class="sr-only" data-wanted-sort-status role="status">{% if selected_sort == 'budget_asc' %}Lowest budget first{% elif selected_sort == 'budget_desc' %}Highest budget first{% else %}Newest posts first{% endif %}</span>
                 </div>
             </form>
         </div>

@@ -1875,8 +1875,8 @@ body:has(.profile-page) .site-header {
 }
 
 .wanted-filter {
-    display: grid;
-    grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1.8fr);
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 12px;
     width: 100%;
@@ -1921,6 +1921,7 @@ body:has(.profile-page) .site-header {
 
 .wanted-filter-query {
     position: relative;
+    flex: 1 1 180px;
 }
 
 .wanted-search-icon { position: absolute; top: 50%; left: 16px; width: 16px; height: 16px; transform: translateY(-50%); pointer-events: none; }
@@ -1953,10 +1954,19 @@ body:has(.profile-page) .site-header {
 
 .wanted-category-chips {
     display: flex;
-    overflow-x: auto;
-    padding: 4px;
+    flex-wrap: wrap;
+    overflow: visible;
+    padding: 0;
     gap: 8px;
 }
+
+/* Search uses the space left by the chips; smaller screens wrap without scrolling. */
+.wanted-filter-options { align-items: center; gap: 8px; flex: 0 1 auto; min-width: 0; max-width: 100%; }
+.wanted-sort-toggle { display: inline-grid; place-items: center; flex: none; width: 46px; height: 46px; padding: 10px; border: 1px solid var(--violet); border-radius: var(--radius); background: transparent; color: var(--violet); cursor: pointer; }
+.wanted-sort-toggle svg { width: 22px; height: 22px; }
+.wanted-sort-toggle:hover { background: var(--violet-light-hover); }
+.wanted-sort-toggle[data-sort="budget_asc"], .wanted-sort-toggle[data-sort="budget_desc"] { background: var(--violet); color: var(--paper); }
+.wanted-sort-toggle[data-sort="budget_asc"] .wanted-sort-down, .wanted-sort-toggle[data-sort="budget_desc"] .wanted-sort-up { opacity: .35; }
 
 .wanted-category-chip {
     flex: none;

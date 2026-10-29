@@ -6,6 +6,8 @@
     const queryInput = document.getElementById("wanted-query");
     const categoryChips = [...document.querySelectorAll("[data-category-chip]")];
     const pagination = document.querySelector("[data-wanted-pagination]");
+    const sortButton = document.querySelector('[data-wanted-sort]');
+    const sortStatus = document.querySelector('[data-wanted-sort-status]');
 
     if (!form || !grid || !queryInput || !categoryChips.length || !pagination) return;
     if (form.dataset.searchBound) return;
@@ -23,6 +25,17 @@
     };
     let selectedCategory = categoryChips.find((chip) => chip.classList.contains("is-active"))?.dataset.categoryChip || "";
     let confirmedCategory = selectedCategory;
+    let selectedSort = sortButton?.dataset.sort || '', confirmedSort = selectedSort;
+    const updateSort = sort => {
+        selectedSort = sort;
+        if (!sortButton) return;
+        sortButton.dataset.sort = sort;
+        sortButton.setAttribute('aria-pressed', String(Boolean(sort)));
+        const text = sort === 'budget_asc' ? 'Lowest budget first' : sort === 'budget_desc' ? 'Highest budget first' : 'Newest posts first';
+        sortButton.title = text;
+        sortButton.setAttribute('aria-label', sort === 'budget_asc' ? 'Budget: lowest first. Click for highest first.' : sort === 'budget_desc' ? 'Budget: highest first. Click for lowest first.' : 'Sort budget from lowest to highest');
+        if (sortStatus) sortStatus.textContent = text;
+    };
 
     const updateCategoryChips = (category) => {
         selectedCategory = category;
@@ -40,6 +53,7 @@
 
         if (query) url.searchParams.set("q", query);
         if (selectedCategory) url.searchParams.set("category", selectedCategory);
+        if (selectedSort) url.searchParams.set('sort', selectedSort);
         if (page > 1) url.searchParams.set("page", page);
 
         return url;
@@ -72,6 +86,8 @@
             pagination.innerHTML = data.pagination_html;
             updateCategoryChips(data.selected_category);
             confirmedCategory = data.selected_category;
+            updateSort(data.selected_sort || '');
+            confirmedSort = selectedSort;
             if (data.page_number > 1) url.searchParams.set("page", data.page_number);
             else url.searchParams.delete("page");
             window.history.replaceState({}, "", url);
@@ -79,6 +95,7 @@
         } catch (error) {
             if (!disposed && activeRequest === request && error.name !== "AbortError") {
                 updateCategoryChips(confirmedCategory);
+                updateSort(confirmedSort);
                 window.YellovedToast?.show({type: 'error', title: 'Unable to search',
                     message: 'Your previous results are still shown. Check your connection, then press Enter in the search field to try again.'});
             }
@@ -101,6 +118,11 @@
             updateCategoryChips(chip.dataset.categoryChip);
             loadResults();
         });
+    });
+    sortButton?.addEventListener('click', () => {
+        window.clearTimeout(debounceTimer);
+        updateSort(selectedSort === 'budget_asc' ? 'budget_desc' : 'budget_asc');
+        loadResults();
     });
 
     form.addEventListener("submit", (event) => {
