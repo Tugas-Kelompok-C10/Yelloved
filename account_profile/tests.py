@@ -12,6 +12,12 @@ from .models import Profile
 
 
 class AccountFeedbackTests(TestCase):
+    def test_public_profile_has_no_promotional_banner(self):
+        response = self.client.get(reverse("account_profile:user_profile", args=[self.user.username]))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "public-profile-banner")
+        self.assertNotContains(response, "A little care. A second life.")
+
     def setUp(self):
         self.user = get_user_model().objects.create_user(username="profile-test", password="A-strong-test-password-16")
         self.profile = Profile.objects.create(user=self.user)
