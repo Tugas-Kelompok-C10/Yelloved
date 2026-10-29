@@ -12,11 +12,11 @@
             {% for field in form %}
                 {% if field.is_hidden %}{{ field|english_widget }}{% else %}
                     <div class="item-form-field">
-                        <label for="{{ field.id_for_label }}">{{ field.label|ui_text }}{% if field.field.required or field.name == 'image' and not editing %} *{% endif %}</label>
-                        {{ field|english_widget }}
-                        {% if editing and field.name == 'image' and item.display_image_url %}<img class="item-current-image" src="{{ item.display_image_url }}" alt="Current item photo">{% endif %}
-                        {% if field.help_text %}<p class="item-form-help">{{ field.help_text|ui_text }}</p>{% endif %}
-                        {% for error in field.errors %}<p class="form-error">{{ error|ui_text }}</p>{% endfor %}
+                        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required or field.name == 'image' and not editing %} *{% endif %}</label>
+                        {{ field }}
+                        {% if editing and field.name == 'image' and item.display_image_url %}<img class="item-current-image" src="{{ item.display_image_url }}" data-fallback="{{ item.fallback_image_url }}" alt="Foto item saat ini">{% endif %}
+                        {% if field.help_text %}<p class="item-form-help">{{ field.help_text }}</p>{% endif %}
+                        {{ field.errors }}
                     </div>
                 {% endif %}
             {% endfor %}

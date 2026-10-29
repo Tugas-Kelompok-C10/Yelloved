@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
+{% block meta %}<title>Create an account | Yelloved</title>{% endblock %}
 {% block content %}
 <main class="auth-page">
     <section class="auth-card">
-        <h1>Buat akun</h1>
-        <p class="auth-intro">Bergabung untuk menemukan dan berbagi barang.</p>
+        <h1>Create an account</h1>
+        <p class="auth-intro">Join the community to discover and share preloved finds.</p>
         <form method="post">
             {% csrf_token %}
             {% for field in form %}
@@ -15,9 +16,9 @@
                 </div>
             {% endfor %}
             {% for error in form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
-            <button type="submit">Daftar</button>
+            <button type="submit">Sign up</button>
         </form>
-        <p>Sudah punya akun? <a href="{% url 'login' %}">Masuk</a></p>
+        <p>Already have an account? <a href="{% url 'login' %}">Log in</a></p>
     </section>
 </main>
 {% endblock content %}

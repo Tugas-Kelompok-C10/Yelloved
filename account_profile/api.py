@@ -117,7 +117,7 @@ def profile_api(request):
 def profile_photo_api(request):
     profile, _ = Profile.objects.get_or_create(user=request.user)
     if "photo" not in request.FILES:
-        return JsonResponse({"errors": {"photo": ["Upload file pada field 'photo'."]}}, status=400)
+        return JsonResponse({"errors": {"photo": ["Please choose a profile photo to upload."]}}, status=400)
     data = {
         "first_name": request.user.first_name,
         "email": request.user.email,

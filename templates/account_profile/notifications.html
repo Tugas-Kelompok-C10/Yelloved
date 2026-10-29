@@ -1,52 +1,53 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block meta %}<title>Notifications | Yelloved</title>{% endblock %}
 {% block content %}
 <main class="profile-page notification-page">
-    <aside class="profile-sidebar" aria-label="Menu akun">
+    <aside class="profile-sidebar" aria-label="Account menu">
         <div class="profile-identity">
             <div class="profile-avatar" aria-hidden="true">
                 {% if profile.photo %}<img src="{{ profile.photo.url }}" alt="">{% else %}<img src="{% static 'img/Default_PP.png' %}" alt="">{% endif %}
             </div>
             <span>{{ user.get_full_name|default:user.username }}</span>
         </div>
-        <nav class="profile-menu" aria-label="Navigasi akun">
+        <nav class="profile-menu" aria-label="Account navigation">
             <section>
                 <h2>Inbox</h2>
-                <a href="{% url 'account_profile:reviews' %}">Ulasan</a>
-                <a href="{% url 'account_profile:help_messages' %}">Bantuan</a>
+                <a href="{% url 'account_profile:reviews' %}">Reviews</a>
+                <a href="{% url 'account_profile:help_messages' %}">Help</a>
             </section>
             <section>
                 <h2>Matching</h2>
-                <a href="{% url 'item_matching:dashboard' %}">Request &amp; Penawaran</a>
+                <a href="{% url 'item_matching:dashboard' %}">Requests &amp; Offers</a>
             </section>
             <section>
                 <h2>Purchase</h2>
                 <a href="{% url 'transactions:transaction_history' %}?status=pending">Awaiting payment</a>
-                <a href="{% url 'transactions:transaction_history' %}">Daftar Transaksi</a>
+                <a href="{% url 'transactions:transaction_history' %}">Transaction history</a>
             </section>
         </nav>
         <form action="{% url 'logout' %}" method="post" class="profile-logout">
             {% csrf_token %}
-            <button type="submit">Log out</button>
+            <button type="submit">{% include "account_profile/_logout_icon.html" %}Log out</button>
         </form>
     </aside>
 
     <section class="profile-content">
-        <h1 class="profile-heading"><span class="profile-heading-icon" aria-hidden="true">◎</span>{{ user.get_full_name|default:user.username }}</h1>
+        <h1 class="profile-heading"><span class="profile-heading-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span>{{ user.get_full_name|default:user.username }}</h1>
         <div class="profile-panel notification-panel">
-            <nav class="profile-tabs" aria-label="Pengaturan profil">
-                <a href="{% url 'account_profile:profile' %}">Biodata</a>
-                <a href="{% url 'account_profile:address_list' %}">Address List</a>
-                <a href="{% url 'account_profile:payment_methods' %}">Payment</a>
-                <a class="active" href="{% url 'account_profile:notifications' %}" aria-current="page">Notification</a>
+            <nav class="profile-tabs" aria-label="Profile settings">
+                <a href="{% url 'account_profile:profile' %}">Personal details</a>
+                <a href="{% url 'account_profile:address_list' %}">Addresses</a>
+                <a href="{% url 'account_profile:payment_methods' %}">Payment methods</a>
+                <a class="active" href="{% url 'account_profile:notifications' %}" aria-current="page">Notifications</a>
                 <a href="{% url 'account_profile:privacy_security' %}">Privacy &amp; Security</a>
             </nav>
 
             <div class="notification-page-content">
                 <div class="address-intro">
                     <div>
-                        <h2>Preferensi notifikasi</h2>
-                        <p>Pilih kabar yang ingin kamu terima dari Yelloved.</p>
+                        <h2>Notification preferences</h2>
+                        <p>Choose the updates you would like to receive from Yelloved.</p>
                     </div>
                     <span class="notification-mark" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -61,12 +62,12 @@
                     <div class="notification-option">
                         <div class="notification-option-copy">
                             <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                            <p>{% if field.name == "order_updates" %}Status transaksi, pembayaran, dan pengiriman.{% elif field.name == "wanted_updates" %}Respons dan kabar terkait Wanted Board.{% elif field.name == "account_updates" %}Perubahan profil dan pemberitahuan keamanan.{% else %}Info pilihan tentang promo dan barang yang mungkin kamu suka.{% endif %}</p>
+                            <p>{% if field.name == "order_updates" %}Updates about transactions, payments, and delivery.{% elif field.name == "wanted_updates" %}Offers and updates about your Wanted Board posts.{% elif field.name == "account_updates" %}Profile changes and account security updates.{% else %}Optional offers and recommendations you might like.{% endif %}</p>
                         </div>
                         {{ field }}
                     </div>
                     {% endfor %}
-                    <button class="profile-save-button" type="submit">Simpan Preferensi</button>
+                    <button class="profile-save-button" type="submit">Save preferences</button>
                 </form>
             </div>
         </div>

@@ -484,39 +484,99 @@
             </p>
         </div>
 
-        <!-- RINGKASAN PESANAN -->
-        <aside class="checkout-summary-card">
-            <h2 class="checkout-summary-heading">
-                Ringkasan Pesanan
-            </h2>
+        <p class="payment-description">
+            Pilih metode pembayaran yang paling nyaman untukmu.
+        </p>
 
-            {% if cart_items %}
-                {% for entry in cart_items %}
-                <article class="checkout-summary-item">
-                    {% if entry.item.display_image_url %}
-                    <img
-                        class="checkout-summary-image"
-                        src="{{ entry.item.display_image_url }}"
-                        alt="{{ entry.item.title }}"
-                        loading="lazy"
-                    >
-                    {% else %}
-                    <div class="checkout-summary-image"></div>
-                    {% endif %}
+        <form method="post" id="payment-method-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="select_payment">
 
-                    <div class="checkout-summary-info">
-                        <h3>{{ entry.item.title }}</h3>
+            <div class="payment-options">
+                <label class="payment-option">
+                    <input type="radio"
+                           name="payment_method"
+                           value="qris"
+                           {% if selected_payment_method == "qris" or not selected_payment_method %}checked{% endif %}>
 
-                        <p class="checkout-summary-price">
-                            {{ entry.item.price_display }}
-                        </p>
+                    <span class="payment-option-icon">QR</span>
 
-                        <p class="checkout-summary-quantity">
-                            Jumlah: {{ entry.quantity }}
-                        </p>
-                    </div>
-                </article>
-                {% endfor %}
+                    <span class="payment-option-content">
+                        <strong>QRIS</strong>
+                        <small>Bayar melalui aplikasi yang mendukung QRIS</small>
+                    </span>
+                </label>
+
+                <label class="payment-option">
+                    <input type="radio"
+                           name="payment_method"
+                           value="bank_transfer"
+                           {% if selected_payment_method == "bank_transfer" %}checked{% endif %}>
+
+                    <span class="payment-option-icon">VA</span>
+
+                    <span class="payment-option-content">
+                        <strong>Virtual Account</strong>
+                        <small>Transfer melalui rekening bank</small>
+                    </span>
+                </label>
+            </div>
+
+            <div class="payment-bank-selection"
+                 id="payment-bank-selection"
+                 {% if selected_payment_method != "bank_transfer" %}hidden{% endif %}>
+
+                <label for="payment-bank">Pilih Bank</label>
+                <select name="bank" id="payment-bank">
+                    <option value="">Pilih bank</option>
+                    <option value="bca" {% if selected_bank == "bca" %}selected{% endif %}>BCA</option>
+                    <option value="bni" {% if selected_bank == "bni" %}selected{% endif %}>BNI</option>
+                    <option value="bri" {% if selected_bank == "bri" %}selected{% endif %}>BRI</option>
+                    <option value="mandiri" {% if selected_bank == "mandiri" %}selected{% endif %}>Mandiri</option>
+                    <option value="permata" {% if selected_bank == "permata" %}selected{% endif %}>Permata</option>
+                </select>
+            </div>
+
+            <button type="submit" class="checkout-primary-button">
+                Simpan Metode Pembayaran
+            </button>
+        </form>
+    </section>
+
+    
+<p class="checkout-note">
+    Pastikan nama penerima, nomor HP, dan alamat sudah benar.
+</p>
+
+    </div>
+
+    <!-- RINGKASAN PESANAN -->
+    <aside class="checkout-summary-card">
+        <h2 class="checkout-summary-heading">
+            Ringkasan Pesanan
+        </h2>
+
+        {% if cart_items %}
+            {% for entry in cart_items %}
+            <article class="checkout-summary-item">
+                {% if entry.item.display_image_url %}
+                <img
+                    class="checkout-summary-image"
+                    src="{{ entry.item.display_image_url }}"
+                    data-fallback="{{ entry.item.fallback_image_url }}"
+                    alt="{{ entry.item.title }}"
+                    loading="lazy"
+                >
+                {% else %}
+                <div class="checkout-summary-image"></div>
+                {% endif %}
+
+                <div class="checkout-summary-info">
+                    <h3>{{ entry.item.title }}</h3>
+
+                    <p class="checkout-summary-price">
+                        {{ entry.item.price_display }}
+                    </p>
 
                 <div class="checkout-summary-total">
                     <span>Total belanja</span>

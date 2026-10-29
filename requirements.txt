@@ -5,6 +5,7 @@ Django==5.2.17
 Pillow==13.0.0
 gunicorn==26.2.0
 idna==3.19
+midtransclient==1.4.2
 psycopg2-binary==2.9.12
 python-dotenv==1.2.3
 requests==2.34.2

@@ -1,0 +1,187 @@
+/* Account shell: one centered content boundary, shared design tokens. */
+.profile-page, .public-profile-page {
+    width: min(1280px, calc(100% - 48px));
+    margin: 40px auto 64px;
+    color: var(--violet);
+    font-family: "Sora", sans-serif;
+    line-height: 1.6;
+}
+.profile-page { flex: 0 0 auto; min-height: 0; grid-template-columns: 250px minmax(0, 1fr); gap: 24px; align-items: start; }
+.profile-sidebar, .profile-panel, .help-messages-panel, .auth-card, .public-profile-frame {
+    background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: none;
+}
+.profile-sidebar { min-height: 620px; }
+.profile-identity { gap: 14px; padding: 24px 20px; min-height: 96px; font-size: 16px; font-weight: 600; overflow-wrap: anywhere; }
+.profile-avatar { width: 48px; height: 48px; border-radius: var(--radius-pill); background: var(--ligh-blue); }
+.profile-menu { padding: 24px 16px; }
+.profile-menu section + section { margin-top: 26px; }
+.profile-menu h2 { font-size: 15px; margin: 0 8px 8px; }
+.profile-menu a { padding: 9px 12px; font-size: 13px; border-radius: var(--radius); }
+.profile-menu a:hover, .profile-menu-active { background: var(--violet-light-hover); color: var(--violet); }
+.profile-logout { margin: auto 24px 24px; padding-top: 24px; }
+.profile-heading { height: auto; min-height: 44px; margin: 0 0 16px; padding: 0; gap: 12px; font-size: 25px; font-weight: 700; overflow-wrap: anywhere; }
+.profile-heading-icon { display: inline-flex; flex: none; }
+.profile-heading-icon svg { width: 25px; height: 25px; }
+.profile-panel { min-height: 550px; }
+.profile-tabs { padding: 0 16px; gap: 8px; align-items: stretch; background: transparent; }
+.profile-tabs a { min-height: 64px; padding: 16px 8px; font-size: 12px; line-height: 1.5; color: var(--violet); }
+.profile-tabs a.active::after { bottom: 0; height: 3px; }
+
+/* Forms: labels above fields, predictable padding, violet focus treatment. */
+.profile-page :is(input, select, textarea), .auth-page input { font-family: inherit; color: var(--violet); accent-color: var(--violet); }
+.profile-page :is(input, select, textarea):not([type="checkbox"]):not([type="file"]):not([type="hidden"]), .auth-card input:not([type="hidden"]) {
+    display: block; width: 100%; min-width: 0; min-height: 46px; margin: 0; padding: 11px 14px;
+    border: 1px solid var(--border); border-radius: var(--radius); background: var(--light-paper);
+    font: 400 13px/1.6 "Sora", sans-serif; box-shadow: none;
+}
+.profile-page textarea { resize: vertical; min-height: 104px; }
+.profile-page select { appearance: none; padding-right: 44px !important; background-image: none; }
+.profile-page :is(.biodata-field, .address-form-field, .reviews-period, .help-ticket-header label):has(select) { position: relative; }
+.profile-page :is(.biodata-field, .address-form-field, .reviews-period, .help-ticket-header label):has(select)::after {
+    content: ""; position: absolute; right: 19px; bottom: 20px; width: 8px; height: 8px;
+    border-right: 2px solid var(--violet); border-bottom: 2px solid var(--violet); transform: rotate(45deg); pointer-events: none;
+}
+.profile-page :is(input, textarea)::placeholder, .auth-page input::placeholder { color: var(--gray); opacity: 1; }
+.profile-page :is(input, select, textarea):focus-visible, .auth-page input:focus-visible,
+.profile-page :is(button, a, .profile-photo-button):focus-visible, .auth-page :is(button, a):focus-visible {
+    outline: 2px solid var(--violet); outline-offset: 3px; border-color: var(--violet); box-shadow: none;
+}
+.profile-page :is(.biodata-field, .address-form-field, .security-field) { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 0; border: 0; }
+.profile-page :is(.biodata-field, .address-form-field, .security-field) > label, .auth-page .form-field label { color: var(--violet); font-size: 13px; font-weight: 600; }
+.profile-page :is(.form-error, .photo-error), .auth-page .form-error { color: var(--error); font-size: 12px; line-height: 1.6; }
+.profile-page [aria-invalid="true"], .auth-page [aria-invalid="true"] { border-color: var(--error) !important; }
+.profile-page :is(.photo-hint, .security-help, .payment-note, .privacy-note), .auth-help-text { color: var(--gray); font-size: 12px; line-height: 1.7; }
+.profile-page [hidden] { display: none !important; }
+
+/* Primary/secondary controls match the Wanted Board palette. */
+.profile-page :is(.profile-save-button, .profile-photo-button, .address-add-button, .profile-logout button, .profile-logout span, .profile-login-prompt a),
+.auth-card button[type="submit"], .public-profile-actions a {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px;
+    width: auto; max-width: 100%; padding: 10px 22px; margin: 0; border: 1px solid var(--violet);
+    border-radius: var(--radius-pill); background: var(--violet); color: var(--paper);
+    font: 600 13px/1.5 "Sora", sans-serif; cursor: pointer; text-decoration: none; box-shadow: none;
+}
+.profile-page :is(.profile-save-button, .profile-photo-button, .address-add-button, .profile-logout button):hover,
+.auth-card button[type="submit"]:hover, .public-profile-actions a:hover { background: var(--violet-hover); color: var(--paper); transform: none; box-shadow: none; }
+.profile-page button:disabled { opacity: .6; cursor: not-allowed; }
+.profile-page .address-form-actions a { padding: 10px 18px; border: 1px solid var(--violet); border-radius: var(--radius-pill); font-size: 13px; }
+.profile-page .address-form-actions a:hover { background: var(--violet-light-hover); text-decoration: none; }
+
+/* Personal details and photo picker. */
+.profile-biodata { grid-template-columns: 180px minmax(0, 1fr); gap: 32px; padding: 28px; }
+.biodata-card { display: flex; flex-direction: column; align-items: center; gap: 12px; align-self: start; }
+.biodata-photo-placeholder { width: 180px; height: 180px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--ligh-blue); box-shadow: none; }
+.biodata-card .profile-photo-input { position: static; width: 100%; height: auto; opacity: 1; font-size: 12px; }
+.biodata-card .profile-photo-input::file-selector-button { display: none; }
+.biodata-card .photo-hint, .biodata-card .photo-error { width: 100%; margin: 0; text-align: center; }
+.biodata-details section { display: grid; gap: 18px; }
+.biodata-details h2 { margin: 0; font-size: 17px; color: var(--violet); }
+.biodata-details section + section { margin-top: 26px; padding-top: 24px; }
+.biodata-details .profile-save-button { margin-top: 24px; }
+
+/* Addresses, payments, notifications, and security. */
+.profile-page :is(.address-page-content, .payment-page-content, .notification-page-content, .privacy-page-content) { padding: 28px; }
+.profile-page :is(.address-intro h2, .address-form-card h2) { font-size: 19px; color: var(--violet); }
+.profile-page :is(.address-intro p, .notification-option-copy p, .security-section-heading p) { font-size: 13px; line-height: 1.7; color: var(--gray); margin-top: 5px; }
+.notification-form { display: grid; gap: 12px; margin-top: 24px; }
+.notification-option { padding: 18px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--light-paper); }
+.notification-option-copy { min-width: 0; }
+.notification-option-copy label { font-size: 13px; color: var(--violet); }
+.profile-page .notification-option input[type="checkbox"] { appearance: none; display: block; width: 42px; height: 24px; min-height: 0; padding: 0; margin: 0; border-radius: var(--radius-pill); background: var(--violet-light-hover); border: 1px solid var(--border); box-shadow: none; }
+.profile-page .notification-option input[type="checkbox"]::after { width: 18px; height: 18px; top: 2px; left: 2px; background: var(--paper); box-shadow: none; }
+.profile-page .notification-option input[type="checkbox"]:checked { background: var(--violet); border-color: var(--violet); }
+.profile-page .notification-option input[type="checkbox"]:checked::after { transform: translateX(18px); }
+.notification-form > .profile-save-button { justify-self: start; margin-top: 12px; }
+.profile-page :is(.notification-mark, .payment-method-icon, .security-card-icon, .security-lock-icon) { width: 40px; height: 40px; border-radius: var(--radius-pill); background: var(--violet-light-hover); }
+.profile-page :is(.notification-mark, .payment-method-icon, .security-lock-icon) svg { width: 21px; height: 21px; }
+.address-toolbar { grid-template-columns: minmax(0, 1fr) auto; margin-bottom: 20px; }
+.profile-page .address-search-box { min-height: 46px; border-radius: var(--radius); background: var(--light-paper); }
+.profile-page .address-search-box input { flex: 1; min-width: 0; padding: 8px 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; outline: none !important; box-shadow: none !important; }
+.profile-page .address-search-box:focus-within { outline: 2px solid var(--violet); outline-offset: 3px; border-color: var(--violet); }
+.address-search-box svg { width: 19px; height: 19px; flex: none; }
+.address-search-box input::-webkit-search-cancel-button { appearance: none; }
+body:has(.profile-page) .profile-page .address-search-clear { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 30px; height: 30px; padding: 4px; border: 0; background: transparent; color: var(--violet); cursor: pointer; }
+.address-search-clear svg { width: 16px; height: 16px; }
+.profile-page :is(.saved-address-card, .address-form-card, .security-account-card, .security-password-card, .payment-method-card) { padding: 20px; border-radius: var(--radius); background: var(--light-paper); border-color: var(--border); }
+.profile-page .saved-address-card.is-default { background: var(--light-paper); }
+.address-form, .security-password-form { gap: 18px; }
+.address-form-card h2 { margin-bottom: 20px; }
+.profile-page .address-default-field { display: flex; gap: 10px; }
+.profile-page .address-default-field input[type="checkbox"] { width: 18px; height: 18px; min-height: 0; margin: 0; padding: 0; flex: none; }
+.profile-page :is(.saved-address-topline h3, .security-account-card h3, .security-password-card h3, .address-empty-state h3) { font-size: 15px; color: var(--violet); }
+.profile-page :is(.saved-address-name, .saved-address-phone, .saved-address-text, .payment-kind, .payment-owner, .payment-number, .address-empty-state p, .security-account-card p) { font-size: 12px; line-height: 1.7; }
+.profile-page :is(.default-address-badge, .address-count) { font-size: 10px; border-radius: var(--radius-pill); }
+.saved-address-actions { flex-wrap: wrap; gap: 14px; }
+.profile-page .saved-address-actions :is(a, button) { min-height: 30px; font-size: 12px; }
+.payment-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+.payment-method-card { grid-template-columns: 40px minmax(0, 1fr); }
+.security-account-card { grid-template-columns: 40px minmax(0, 1fr); }
+.security-account-card p { justify-content: flex-start; flex-wrap: wrap; gap: 12px; }
+.security-account-card p strong { text-align: left; }
+.security-password-form { max-width: 540px; margin-top: 24px; }
+.reviews-tools { padding: 24px; flex-wrap: wrap; }
+.reviews-tabs a { font-size: 13px; min-height: 60px; }
+.reviews-period { font-size: 12px; }
+.reviews-search { flex: 1 1 260px; }
+.profile-page .reviews-search input { border: 0 !important; }
+.reviews-empty-state { margin: 0 24px 24px; min-height: 180px; font-size: 14px; }
+.help-ticket-header { padding: 20px; flex-wrap: wrap; }
+.help-ticket-header h1 { font-size: 16px; }
+.profile-page .help-ticket-header select { max-width: none; font-size: 12px; }
+.help-ticket-empty, .help-message-welcome p { font-size: 13px; }
+.help-message-welcome h2 { font-size: 21px; }
+
+/* Authentication pages use the same field and primary button treatment. */
+.auth-page { width: min(480px, calc(100% - 40px)); margin: 48px auto 64px; color: var(--violet); }
+.auth-card { padding: 32px; }
+.auth-card::before { display: none; }
+.auth-card h1 { font-size: 28px; }
+.auth-intro { color: var(--gray); font-size: 13px; line-height: 1.7; margin: 12px 0 24px; }
+.auth-card .form-field { gap: 8px; margin: 18px 0; }
+.auth-card button[type="submit"] { width: 100%; margin-top: 12px; }
+.auth-card :is(.auth-help-text, .auth-help-text ul) { font-size: 11px; line-height: 1.7; }
+.auth-card .form-error { padding: 10px 12px; background: var(--light-paper); border-color: var(--error); border-radius: var(--radius); }
+.auth-card > p:last-child { font-size: 12px; color: var(--gray); }
+.public-profile-actions a { color: var(--paper); }
+.public-profile-card-body :is(h3, p) { overflow-wrap: anywhere; }
+.public-profile-image-fallback svg { width: 40px; height: 40px; }
+
+/* Clear hierarchy and consistent action spacing. */
+.profile-page .profile-menu a { margin-left: 12px; padding-left: 18px; border-left: 2px solid var(--border); border-radius: 0 var(--radius) var(--radius) 0; }
+.profile-page .biodata-details .profile-save-button { margin-top: 28px; }
+.profile-page .address-form-actions { margin-top: 10px; gap: 14px; }
+body:has(.profile-page) .profile-page :is(.profile-save-button, .profile-photo-button, .address-add-button, .profile-logout button, .profile-login-prompt a) { color: var(--paper); }
+body:has(.profile-page) .profile-page :is(.profile-save-button, .profile-photo-button, .address-add-button, .profile-logout button, .profile-login-prompt a):hover { color: var(--paper); }
+.public-profile-tabs a, .public-profile-tabs a.is-active { color: var(--violet); }
+.public-profile-tabs a.is-active { border-bottom-color: var(--violet); }
+.profile-required { color: var(--error); margin-left: 3px; }
+.profile-logout button, .profile-dropdown-logout button { gap: 10px; }
+.profile-logout svg, .profile-dropdown-logout svg { width: 18px; height: 18px; flex: none; }
+.profile-page [data-account-errors] { color: var(--error); font-size: 12px; }
+
+@media (max-width: 1000px) {
+    .profile-page { grid-template-columns: 210px minmax(0, 1fr); gap: 20px; }
+    .profile-biodata { grid-template-columns: 1fr; }
+    .biodata-card { justify-self: start; width: 180px; }
+    .payment-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+    .profile-page, .public-profile-page { width: calc(100% - 32px); margin: 24px auto 40px; grid-template-columns: 1fr; }
+    .profile-sidebar { min-height: 0; }
+    .profile-menu { display: flex; flex-wrap: wrap; gap: 16px; padding: 16px; }
+    .profile-menu section + section { margin-top: 0; }
+    .profile-identity { padding: 18px; }
+    .profile-logout { margin: 0 18px 18px; padding-top: 0; }
+    .profile-heading { font-size: 22px; }
+    .profile-tabs { overflow-x: auto; gap: 8px; }
+    .profile-tabs a { flex: 0 0 auto; min-height: 56px; padding: 12px 10px; }
+    .profile-page :is(.profile-biodata, .address-page-content, .payment-page-content, .notification-page-content, .privacy-page-content) { padding: 20px; }
+    .address-toolbar { grid-template-columns: 1fr; }
+    .notification-option { gap: 12px; padding: 16px; }
+    .notification-option-copy p { font-size: 12px; }
+    .profile-page .help-messages-panel { grid-template-columns: 1fr; }
+    .help-ticket-list { border-right: 0; border-bottom: 1px solid var(--border); }
+    .help-ticket-empty { min-height: 80px; }
+    .help-message-welcome { padding: 28px; }
+    .auth-card { padding: 24px; }
+}

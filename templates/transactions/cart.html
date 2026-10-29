@@ -18,31 +18,28 @@
         {% endfor %}
     {% endif %}
     {% if cart_items %}
-    <form class="cart-layout" id="cart-selection-form" method="post" action="{% url 'transactions:cart' %}">
-        {% csrf_token %}
-        <section class="cart-list" aria-label="Cart items">
-            <div class="cart-list-heading"><label class="cart-select-label"><input type="checkbox" id="cart-select-all">Select all ({{ cart_items|length }})</label><button class="cart-remove-selected" type="submit" name="action" value="remove_selected"{% if not selected_count %} disabled{% endif %}>Remove selected</button></div>
-            {% for group in seller_groups %}
-            <section class="cart-seller-group" aria-label="{% if group.seller %}Items from {{ group.seller.username }}{% else %}Items with no seller{% endif %}">
-                <header class="cart-seller-header"><input type="checkbox" class="cart-select-seller" aria-label="Select items from {% if group.seller %}{{ group.seller.username }}{% else %}this seller{% endif %}">
-                    <span class="cart-seller-avatar" aria-hidden="true">{% if group.seller %}{{ group.seller.username|slice:':1'|upper }}{% else %}—{% endif %}</span>
-                    <h3>{% if group.seller.get_full_name == 'Yelloved Community' and group.seller.username == 'yelloved_community' %}Yelloved Community{% elif group.seller %}{{ group.seller.username }}{% else %}Seller unavailable{% endif %}</h3>
-                    <span class="cart-seller-caption">{% if group.seller %}UI community{% else %}Account no longer available{% endif %}</span>
-                </header>
-                {% for entry in group.entries %}
-                <article class="cart-item" data-cart-entry="{{ entry.pk }}" data-price="{{ entry.item.price|default_if_none:'0'|unlocalize }}" data-eligible="{{ entry.checkout_eligible|yesno:'true,false' }}">
-                    <input class="cart-item-checkbox" type="checkbox" name="selected_items" value="{{ entry.pk }}" aria-label="Select {{ entry.item.title }}"{% if entry.checkout_eligible %} checked{% endif %}>
-                    <a class="cart-photo-link" href="{{ entry.item.get_absolute_url }}"><img class="cart-item-image" src="{{ entry.item.display_image_url }}" alt="{{ entry.item.title }}" width="104" height="104" loading="lazy"></a>
-                    <div class="cart-item-info">
-                        <h4><a href="{{ entry.item.get_absolute_url }}">{{ entry.item.title }}</a></h4>
-                        <p>{{ entry.item.get_category_display|ui_text }} · {{ entry.item.get_condition_display|ui_text }}</p>
-                        <span class="cart-listing-badge{% if entry.item.listing_type == 'free' %} is-free{% endif %}">{{ entry.item.listing_type|listing_badge }}</span>
-                        <p class="cart-quantity">Quantity: 1 · {{ entry.item.location }}</p>
-                        {% if entry.item.status != 'available' %}<p class="cart-unavailable">This item is no longer available.</p>{% endif %}
-                    </div>
-                    <p class="cart-price">{{ entry.item.price_display|ui_text }}</p>
-                    <button class="cart-delete-button" type="submit" formaction="{% url 'transactions:remove_from_cart' entry.pk %}" aria-label="Remove {{ entry.item.title }} from cart" title="Remove item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/></svg></button>
-                </article>
+        <div class="cart-layout">
+            <section class="cart-list">
+                {% for entry in cart_items %}
+                    <article class="cart-item">
+                        <img
+                            class="cart-item-image"
+                            src="{{ entry.item.display_image_url }}"
+                            data-fallback="{{ entry.item.fallback_image_url }}"
+                            alt="{{ entry.item.title }}"
+                        >
+
+                        <div class="cart-item-info">
+                            <h2>{{ entry.item.title }}</h2>
+                            <p>{{ entry.item.get_category_display }}</p>
+                            <p class="cart-price">
+                                {{ entry.item.price_display }}
+                            </p>
+                            <p class="cart-quantity">
+                                Jumlah: {{ entry.quantity }}
+                            </p>
+                        </div>
+                    </article>
                 {% endfor %}
             </section>
             {% endfor %}

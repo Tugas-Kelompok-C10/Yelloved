@@ -2,31 +2,32 @@
 {% load static %}
 {% block profile_content %}
         <div class="profile-panel">
-            <nav class="profile-tabs" aria-label="Pengaturan profil">
-                <a class="active" href="#biodata" aria-current="page">Biodata</a>
-                <a href="{% url 'account_profile:address_list' %}">Address List</a>
-                <a href="{% url 'account_profile:payment_methods' %}">Payment</a>
-                <a href="{% url 'account_profile:notifications' %}">Notification</a>
+            <nav class="profile-tabs" aria-label="Profile settings">
+                <a class="active" href="#biodata" aria-current="page">Personal details</a>
+                <a href="{% url 'account_profile:address_list' %}">Addresses</a>
+                <a href="{% url 'account_profile:payment_methods' %}">Payment methods</a>
+                <a href="{% url 'account_profile:notifications' %}">Notifications</a>
                 <a href="{% url 'account_profile:privacy_security' %}">Privacy &amp; Security</a>
             </nav>
             {% if user.is_authenticated %}
             <form method="post" enctype="multipart/form-data" class="profile-biodata profile-edit-form" id="biodata">
                         {% csrf_token %}
-                        <article class="biodata-card" aria-label="Foto profil">
+                        <article class="biodata-card" aria-label="Profile photo">
                             <div class="biodata-photo-placeholder" aria-hidden="true">
                                 {% if profile.photo %}
-                                    <img src="{{ profile.photo.url }}" alt="Foto profil {{ user.username }}">
+                                    <img src="{{ profile.photo.url }}" alt="Profile photo {{ user.username }}">
                                 {% else %}
-                                    <img src="{% static 'img/Default_PP.png' %}" alt="Foto profil default">
+                                    <img src="{% static 'img/Default_PP.png' %}" alt="Default profile photo">
                                 {% endif %}
                             </div>
-                            <label class="profile-photo-button" for="{{ form.photo.id_for_label }}">Pilih Foto</label>
+                            <label class="profile-photo-button" for="{{ form.photo.id_for_label }}">Choose photo</label>
                             {{ form.photo }}
+                            <small class="photo-hint" data-profile-photo-feedback>JPG, PNG, GIF, or WEBP. Max 5 MB and 4096 × 4096 pixels.</small>
                             {% for error in form.photo.errors %}<small class="form-error photo-error">{{ error }}</small>{% endfor %}
                         </article>
                         <div class="biodata-details">
                         <section>
-                            <h2>Ubah biodata diri</h2>
+                            <h2>Personal information</h2>
                             {% with field=form.first_name %}
                                 <div class="biodata-field">
                                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
@@ -50,7 +51,7 @@
                             {% endwith %}
                         </section>
                         <section>
-                            <h2>Ubah Kontak</h2>
+                            <h2>Contact details</h2>
                             {% with field=form.email %}
                                 <div class="biodata-field">
                                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
@@ -66,19 +67,19 @@
                                 </div>
                             {% endwith %}
                         </section>
-                        <button class="profile-save-button" type="submit">Simpan Perubahan</button>
+                        <button class="profile-save-button" type="submit">Save changes</button>
                         </div>
             </form>
             {% else %}
             <div class="profile-biodata" id="biodata">
-                <article class="biodata-card" aria-label="Foto profil">
+                <article class="biodata-card" aria-label="Profile photo">
                     <div class="biodata-photo-placeholder" aria-hidden="true"></div>
-                    <a class="profile-photo-button" href="{% url 'login' %}?next={% url 'account_profile:profile' %}">Masuk untuk pilih foto</a>
+                    <a class="profile-photo-button" href="{% url 'login' %}?next={% url 'account_profile:profile' %}">Log in to choose a photo</a>
                 </article>
                 <div class="profile-login-prompt">
-                    <h2>Ubah biodata diri</h2>
-                    <p>Masuk untuk melengkapi biodata dan informasi kontak.</p>
-                    <a href="{% url 'login' %}?next={% url 'account_profile:profile' %}">Masuk ke akun</a>
+                    <h2>Personal information</h2>
+                    <p>Log in to update your personal information and contact details.</p>
+                    <a href="{% url 'login' %}?next={% url 'account_profile:profile' %}">Log in to your account</a>
                 </div>
             </div>
             {% endif %}

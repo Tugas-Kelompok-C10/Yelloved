@@ -30,7 +30,8 @@ PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-local-development-only')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = PRODUCTION
+# Development serves MEDIA_URL through home/urls.py; production needs its own media storage/server.
+DEBUG = not PRODUCTION
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "muhammad-adib51-yelloved.pws.cs.ui.ac.id", "cindy-olivia-yelloved.pws.cs.ui.ac.id"]
 CSRF_TRUSTED_ORIGINS = [
