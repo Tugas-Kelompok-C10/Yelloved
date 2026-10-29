@@ -19,7 +19,7 @@
         {% if card.is_owner %}
             <a class="wanted-card-cta" href="{{ card.detail_url }}">Manage post</a>
         {% else %}
-            <button class="wanted-card-cta" type="button" data-open-item-offer-modal data-offer-title="{{ card.title }}" data-offer-budget="{% if card.budget %}{{ card.budget|rupiah }}{% else %}Flexible{% endif %}" data-offer-post="{{ card.detail_url }}"{% if card.status != "open" %} disabled{% endif %}>I have it!</button>
+            <button class="wanted-card-cta" type="button" data-open-item-offer-modal data-offer-title="{{ card.title }}" data-offer-budget="{% if card.budget %}{{ card.budget|rupiah }}{% else %}Flexible{% endif %}" data-offer-post="{{ card.detail_url }}" data-offer-chat="{{ card.chat_url }}"{% if card.status != "open" %} disabled{% endif %}>I have it!</button>
         {% endif %}
     </article>
 {% empty %}

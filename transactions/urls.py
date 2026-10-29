@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.generic import RedirectView
 from . import views
 
 app_name = "transactions"
@@ -48,7 +49,7 @@ urlpatterns = [
 
     path(
         "pesan/",
-        views.pesan_page,
+        RedirectView.as_view(pattern_name="chat:inbox", permanent=False),
         name="pesan",
     ),
 

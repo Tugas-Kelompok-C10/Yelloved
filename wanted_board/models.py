@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.utils import timezone
 
 
 class WantedPostQuerySet(models.QuerySet):
@@ -43,7 +44,7 @@ class WantedPost(models.Model):
         related_name="wanted_posts",
     )
     title = models.CharField(max_length=50)
-    description = models.TextField()
+    description = models.TextField(max_length=500)
     category = models.CharField(
         max_length=20,
         choices=Category.choices,
@@ -89,6 +90,27 @@ class WantedPost(models.Model):
         result = super().save(*args, **kwargs)
         self._original_pk = self.pk
         return result
+
+
+class WantedCreationReceipt(models.Model):
+    """Durable token/deletion receipt, deliberately independent of the post row."""
+    id = models.UUIDField(primary_key=True, editable=False)
+    requester = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+
+class WantedCreationQuota(models.Model):
+    """One lockable row per user, shared by every application worker."""
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+
+class WantedCreationEvent(models.Model):
+    # Separate from WantedPost so deleting a post cannot reset the rate limit.
+    quota = models.ForeignKey(WantedCreationQuota, on_delete=models.CASCADE, related_name="events")
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        indexes = [models.Index(fields=["quota", "created_at"], name="wanted_creation_window")]
 
 
 class Offer(models.Model):

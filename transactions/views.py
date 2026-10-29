@@ -14,7 +14,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from django.http import Http404, JsonResponse
 from django.views.decorators.http import require_POST
-from account_profile.models import Profile, Address
+from account_profile.models import Address
 
 
 def transaction_home(request):
@@ -660,21 +660,6 @@ def app_page(request):
         "transactions/app.html",
         {"name": "Yelloved"},
     )
-
-
-def pesan_page(request):
-    profile = (
-        Profile.objects.get_or_create(user=request.user)[0]
-        if request.user.is_authenticated
-        else None
-    )
-
-    return render(
-        request,
-        "transactions/pesan.html",
-        {"name": "Yelloved", "profile": profile},
-    )
-
 
 
 def cart_entry_eligible(entry, user):

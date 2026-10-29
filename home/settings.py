@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "home.apps.HomeConfig",
     "account_profile.apps.AccountProfileConfig",
+    "chat.apps.ChatConfig",
     "items.apps.ItemsConfig",
     "transactions.apps.TransactionsConfig",
     "wanted_board.apps.WantedBoardConfig",

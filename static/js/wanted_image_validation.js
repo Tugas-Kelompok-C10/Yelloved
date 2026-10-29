@@ -1,6 +1,10 @@
 (() => {
+    const bound = new WeakSet();
+    const init = () => {
     // Only offered items have photos; wanted posts do not upload images.
     document.querySelectorAll("[data-offer-image]").forEach((input) => {
+        if (bound.has(input)) return;
+        bound.add(input);
         const feedback = document.createElement("small");
         feedback.className = "form-error";
         feedback.setAttribute("aria-live", "polite");
@@ -52,4 +56,7 @@
             setError("");
         });
     });
+    };
+    window.addEventListener('wanted:mounted', init);
+    init();
 })();

@@ -76,8 +76,16 @@ class WantedPostWorkflowTests(TestCase):
     def test_losing_create_race_does_not_overwrite_winner(self):
         post = self.create_post()
         # Simulate another request committing after the initial existence check.
-        with patch("wanted_board.views.WantedPost.objects.filter") as lookup:
-            lookup.return_value.first.return_value = None
+        original_filter = WantedPost.objects.filter
+        lookups = 0
+
+        def stale_first_lookup(*args, **kwargs):
+            nonlocal lookups
+            lookups += 1
+            queryset = original_filter(*args, **kwargs)
+            return queryset.none() if lookups == 1 else queryset
+
+        with patch("wanted_board.views.WantedPost.objects.filter", side_effect=stale_first_lookup):
             response = self.client.post(self.create_url, self.payload(title="Retry"), **AJAX)
         self.assertEqual(response.status_code, 200)
         post.refresh_from_db()

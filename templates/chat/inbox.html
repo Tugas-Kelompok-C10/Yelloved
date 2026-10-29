@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %}
+{% block meta %}<title>Chat | Yelloved</title><script src="{% static 'js/chat.js' %}" defer></script>{% endblock %}
+{% block content %}
+<main class="chat-app" lang="en" data-chat-app data-inbox-url="{% url 'chat:inbox_data' %}"{% if peer %} data-messages-url="{% url 'chat:messages' peer.pk %}" data-read-url="{% url 'chat:mark_read' peer.pk %}" data-peer-id="{{ peer.pk }}"{% endif %}>
+    <h1>Chat</h1>
+    <div class="chat-app-workspace">
+        <aside class="chat-app-sidebar" aria-label="Conversations">
+            <h2>Your conversations</h2>
+            <nav data-chat-threads aria-label="Choose a conversation">
+                {% for row in conversations %}<a class="chat-app-thread{% if row.peer == peer %} is-active{% endif %}" href="{% url 'chat:with_user' row.peer.pk %}"><strong>{{ row.peer.get_full_name|default:row.peer.username }}</strong><small>{{ row.preview|truncatechars:80 }}</small></a>{% empty %}<p class="chat-app-muted">No conversations yet.</p>{% endfor %}
+            </nav>
+        </aside>
+        <section class="chat-app-conversation" aria-label="Messages">
+            {% if peer %}
+            <header class="chat-app-header"><span class="chat-app-avatar" aria-hidden="true">{{ peer.username|first|upper }}</span><div><h2>{{ peer.get_full_name|default:peer.username }}</h2><p class="chat-app-muted">@{{ peer.username }}</p></div></header>
+            <p class="chat-app-status" data-chat-status role="status">Loading messages…</p>
+            <div class="chat-app-history-actions"><button class="chat-app-secondary" type="button" data-chat-older hidden>Load older messages</button></div>
+            <div class="chat-app-messages" data-chat-messages aria-label="Conversation messages" aria-live="polite"></div>
+            <form class="chat-app-compose" data-chat-compose>
+                {% csrf_token %}
+                <div class="chat-app-compose-row">
+                    <div class="chat-app-input-shell">
+                        <button class="chat-app-attach" type="button" data-chat-choose-file aria-label="Attach a file" title="Attach a file">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 11-8.5 8.5a6 6 0 0 1-8.5-8.5L13 2a4 4 0 0 1 5.7 5.7l-9 9a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg>
+                        </button>
+                        <textarea id="chat-body" name="body" maxlength="1000" rows="1" placeholder="Type a message…" aria-label="Message" aria-describedby="chat-attachment-help"></textarea>
+                        <input id="chat-attachment" type="file" name="attachment" accept=".jpg,.jpeg,.png,.webp,.pdf,.txt" data-chat-file hidden>
+                    </div>
+                    <button class="chat-app-primary" type="submit" disabled>Send</button>
+                </div>
+                <small id="chat-attachment-help" class="sr-only">Messages up to 1000 characters. Attach JPG, PNG, WEBP, PDF, or TXT files up to 5 MB.</small>
+                <div class="chat-app-file-preview" data-chat-file-preview hidden><span data-chat-file-name></span><button type="button" class="chat-app-secondary" data-chat-remove-file aria-label="Remove attachment">×</button></div>
+            </form>
+            {% else %}<div class="chat-app-empty"><h2>Hello, {{ user.first_name|default:user.username }}!</h2><p>Choose a conversation or chat with someone from the Wanted Board.</p></div>{% endif %}
+        </section>
+    </div>
+</main>
+<dialog class="chat-app-dialog" data-chat-dialog aria-labelledby="chat-dialog-title">
+    <form data-chat-action-form>
+        <h2 id="chat-dialog-title" data-chat-dialog-title>Edit message</h2>
+        <div data-chat-edit-fields><label for="chat-edit-body">Message <span class="chat-app-required">*</span></label><textarea id="chat-edit-body" name="body" maxlength="1000" rows="4" required></textarea></div>
+        <p data-chat-delete-text hidden>Delete this message? It will be removed for both participants.</p>
+        <div class="chat-app-dialog-actions"><button class="chat-app-secondary" type="button" data-chat-cancel>Cancel</button><button class="chat-app-primary" type="submit" data-chat-confirm>Save</button></div>
+    </form>
+</dialog>
+{% endblock %}
