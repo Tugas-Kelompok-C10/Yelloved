@@ -376,7 +376,7 @@
     </div>
 </header>
 
-<!-- Toast global yang sudah digunakan fitur lain -->
+<!-- Toast global yg sudah digunakan fitur lain -->
 <div class="site-toast-region" id="site-toast-region" aria-live="polite" aria-atomic="true">
     {% if request.resolver_match.app_name == "wanted_board" or request.resolver_match.app_name == "account_profile" or request.resolver_match.url_name == "show_main" or request.resolver_match.url_name == "login" %}
         {% for message in messages %}
