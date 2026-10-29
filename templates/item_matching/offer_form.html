@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load static %}
-{% block meta %}<title>Offer an item | {{ name }}</title><link rel="stylesheet" href="{% static 'css/explore.css' %}"><link rel="stylesheet" href="{% static 'css/item_matching.css' %}">{% endblock %}
+{% block meta %}<title>Offer an item | {{ name }}</title>{% endblock %}
 {% block content %}
-<main class="explore-page matching-page" lang="en">
-    <a class="explore-back" href="{% url 'wanted_board:wanted_detail' wanted_post.pk %}">‹ <span>Back</span></a>
+<main class="matching-page" lang="en">
+    <a class="wanted-back" href="{% url 'wanted_board:wanted_detail' wanted_post.pk %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span>Back</span></a>
     <section class="matching-form-card">
         <h1>Offer an item</h1>
         <p class="matching-meta">For: <strong>{{ wanted_post.title }}</strong> · by {{ wanted_post.requester.username }}</p>
@@ -18,14 +18,14 @@
             {% for error in form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
             {% for field in form %}
                 <div class="matching-field">
-                    {{ field.label_tag }}{{ field }}
+                    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="wanted-required" aria-hidden="true">*</span>{% endif %}</label>{{ field }}
                     {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
                 </div>
             {% endfor %}
             {% if not form.fields.item.queryset.exists %}
                 <p class="form-error">You don’t have any available items yet. <a href="{% url 'items:item_create' %}">Add an item first</a>.</p>
             {% endif %}
-            <button class="explore-button" type="submit">Send offer</button>
+            <button class="matching-action" type="submit">Send offer</button>
         </form>
     </section>
 </main>

@@ -27,9 +27,8 @@
 
         <link
             rel="stylesheet"
-            href="{% static 'css/style.css' %}?v=chat-composer-50"
+            href="{% static 'css/style.css' %}?v=activity-responsive-51"
         >
-        <link rel="stylesheet" href="{% static 'css/item_matching.css' %}">
 
         <link rel="stylesheet" href="{% static 'css/cart-badge.css' %}?v=1">
         <script src="{% static 'js/chat_session.js' %}" defer></script>
@@ -234,7 +233,7 @@
     {% if request.resolver_match.namespace == 'account_profile' or request.resolver_match.url_name == 'login' %}
     <script src="{% static 'js/account.js' %}?v=account-refresh-4" defer></script>
     {% endif %}
-    <script src="{% static 'js/wanted_item_offer.js' %}?v=drafts-3" defer></script>
+    <script src="{% static 'js/wanted_item_offer.js' %}?v=activity-offers-4" defer></script>
     <script src="{% static 'js/wanted_image_validation.js' %}" defer></script>
     <script src="{% static 'js/wanted_budget_validation.js' %}" defer></script>
     <script src="{% static 'js/wanted_upload_forms.js' %}" defer></script>

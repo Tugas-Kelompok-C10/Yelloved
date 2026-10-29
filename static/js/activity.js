@@ -2,14 +2,17 @@
 (() => {
     const root = document.querySelector('[data-activity-preview]');
     if (!root) return;
-    let busy = false, stopped = false, timer;
+    let busy = false, stopped = false, timer, snapshot;
     const refresh = async () => {
         if (busy || stopped || document.hidden) return;
         busy = true;
         try {
             const data = await window.YellovedChatHTTP.request(root.dataset.activityPreview);
             if (stopped) return;
-            root.querySelector('[data-activity-content]').innerHTML = data.html;
+            if (snapshot !== data.html) {
+                root.querySelector('[data-activity-content]').innerHTML = data.html;
+                snapshot = data.html;
+            }
             const badge = root.querySelector('[data-activity-count]');
             badge.hidden = !data.pending; badge.textContent = data.pending > 99 ? '99+' : data.pending;
             root.querySelector('button').setAttribute('aria-label', data.pending ? `Activity, ${data.pending} need your action` : 'Activity');

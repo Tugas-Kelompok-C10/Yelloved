@@ -4,7 +4,7 @@
         {% if row.contact %}{{ row.contact.phone }}{% if row.contact.wa_url %} · <a href="{{ row.contact.wa_url }}" target="_blank" rel="noopener noreferrer">WhatsApp</a>{% endif %}
         {% else %}reach out through Chat.{% endif %}</span>
         <span class="matching-next">
-            {% if row.checkout %}<a href="{% url 'transactions:checkout' %}">Continue to checkout →</a>{% endif %}
+            {% if row.checkout %}<a href="{% url 'transactions:checkout' %}">Continue to checkout</a>{% endif %}
             <a href="{% url 'chat:with_user' row.counterpart.pk %}">Chat</a>
         </span>
     </div>
