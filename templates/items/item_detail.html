@@ -26,7 +26,7 @@
                     <a class="explore-button item-action-buy" href="{{ login_url }}?next={{ buy_url|default:request.path|urlencode }}">Buy</a>
                 {% elif item.owner_id != user.pk %}
                     {% if buy_url and item.status == 'available' and item.listing_type == 'sale' %}
-                        <a class="explore-button item-action-buy" href="{{ buy_url }}">Buy</a>
+                        <a class="explore-button item-action-buy" href="{{ buy_url }}?item={{ item.pk }}">Buy</a>
                     {% else %}
                         <button class="explore-button item-action-buy" type="button" disabled title="Coming soon">Buy</button>
                     {% endif %}
