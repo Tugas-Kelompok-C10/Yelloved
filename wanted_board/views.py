@@ -1,4 +1,5 @@
 from urllib.parse import urlencode
+from functools import wraps
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -235,6 +236,22 @@ def _is_ajax(request):
     return request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
 
+def _clear_access_errors(view):
+    """Keep normal 404s, but let Wanted AJAX forms explain rejected access."""
+    @wraps(view)
+    def wrapped(request, *args, **kwargs):
+        try:
+            return view(request, *args, **kwargs)
+        except Http404:
+            if not _is_ajax(request):
+                raise
+            return JsonResponse({"message": (
+                "This wanted post is no longer available, or you do not have permission "
+                "to change it. Return to the board and refresh before trying again."
+            )}, status=404)
+    return wrapped
+
+
 def _saved_response(request, wanted_post, message):
     url = reverse("wanted_board:wanted_detail", args=[wanted_post.pk])
     if _is_ajax(request):
@@ -297,6 +314,7 @@ def create_wanted(request):
 
 
 @login_required
+@_clear_access_errors
 def edit_wanted(request, pk):
     wanted_post = get_object_or_404(WantedPost, pk=pk, requester=request.user)
     if request.method == "GET":
@@ -342,6 +360,7 @@ def edit_wanted(request, pk):
 
 
 @login_required
+@_clear_access_errors
 def delete_wanted(request, pk):
     wanted_post = get_object_or_404(WantedPost, pk=pk, requester=request.user)
     if request.method == "POST":
@@ -360,6 +379,7 @@ def delete_wanted(request, pk):
 
 @login_required
 @require_POST
+@_clear_access_errors
 def update_status(request, pk):
     wanted_post = get_object_or_404(WantedPost, pk=pk, requester=request.user)
     status = request.POST.get("status")
@@ -374,6 +394,7 @@ def update_status(request, pk):
 
 @login_required
 @require_POST
+@_clear_access_errors
 def create_offer(request, pk):
     wanted_post = get_object_or_404(WantedPost, pk=pk)
     if wanted_post.requester == request.user:

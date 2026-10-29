@@ -45,4 +45,17 @@ class WantedAjaxCrudTests(TestCase):
         self.client.force_login(get_user_model().objects.create_user(username="ajax-other"))
         response = self.client.post(reverse("wanted_board:delete_wanted", args=[self.post.pk]), **AJAX)
         self.assertEqual(response.status_code, 404)
+        self.assertIn("permission", response.json()["message"])
         self.assertTrue(WantedPost.objects.filter(pk=self.post.pk).exists())
+
+    def test_missing_ajax_edit_explains_unavailable_post(self):
+        pk = self.post.pk
+        self.post.delete()
+        response = self.client.post(reverse("wanted_board:edit_wanted", args=[pk]), **AJAX)
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("no longer available", response.json()["message"])
+
+    def test_regular_missing_edit_keeps_http_404(self):
+        pk = self.post.pk
+        self.post.delete()
+        self.assertEqual(self.client.get(reverse("wanted_board:edit_wanted", args=[pk])).status_code, 404)

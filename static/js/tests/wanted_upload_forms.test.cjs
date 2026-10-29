@@ -42,6 +42,18 @@ function harness(fetch, deletion = false) {
 }
 const response = (status, data) => ({status, ok: status < 400, headers: {get: () => 'application/json'}, json: async () => data});
 
+test('access errors show actionable feedback and keep entered values', async () => {
+    for (const result of [response(404, {message: 'Post unavailable or permission denied.'}),
+        {status: 403, ok: false, headers: {get: () => 'text/html'}}]) {
+        const ui = harness(async () => result);
+        await ui.submit();
+        assert.match(ui.errors[0].textContent, /permission|security token/);
+        assert.equal(ui.notifications[0].type, 'error');
+        assert.equal(ui.input.value, 'Study lamp');
+        assert.equal(ui.submitButton.disabled, false);
+    }
+});
+
 test('double submit sends one request; validation preserves input and permits retry', async () => {
     let finish;
     const requests = [];

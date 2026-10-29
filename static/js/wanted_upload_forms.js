@@ -38,6 +38,8 @@
             headers: {Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest'}});
         if (response.redirected) throw new Error('Your session may have expired. Sign in again in another tab, then retry. Your details are still here.');
         if (!(response.headers.get('Content-Type') || '').includes('application/json')) {
+            if (response.status === 403) throw new Error('Your security token has expired or access was denied. Refresh this page and sign in again before retrying.');
+            if (response.status === 404) throw new Error('This wanted post is no longer available. Return to the board and refresh.');
             throw new Error('Unable to confirm this action. Check your connection or sign in again, then retry.');
         }
         const data = await response.json();
@@ -99,7 +101,7 @@
                 window.dispatchEvent(new Event('wanted:mounted'));
                 modal.showModal();
                 showErrors(form, {__all__: [{message: error.message}]});
-                notify('Deletion could not be confirmed. The post has been restored on screen. Please retry.', 'error');
+                notify(error.message, 'error');
             } else {
                 // Never restore a post after the server confirmed its deletion.
                 if (cachedBoard) renderBoard(cachedBoard, form.dataset.boardUrl, form.dataset.detailUrl);
@@ -145,6 +147,7 @@
         } catch (error) {
             showErrors(form, error.fields || {__all__: [{message: savedCreates.has(form)
                 ? 'Your post was saved. Click Refresh board to refresh the list without creating another post.' : error.message}]});
+            if (!error.fields) notify(error.message, 'error');
         } finally {
             pending.delete(form); modal.dataset.submitting = 'false'; form.removeAttribute('aria-busy');
             buttons.forEach((button, index) => { button.disabled = states[index]; });
