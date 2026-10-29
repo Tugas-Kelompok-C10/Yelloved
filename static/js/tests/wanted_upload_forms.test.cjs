@@ -54,6 +54,16 @@ test('access errors show actionable feedback and keep entered values', async () 
     }
 });
 
+test('rate limit appears in the form and toast without clearing input', async () => {
+    const message = 'You have reached the limit of 5 wanted posts in 10 minutes.';
+    const ui = harness(async () => response(429, {message, errors: {__all__: [{message}]}}));
+    await ui.submit();
+    assert.equal(ui.errors[0].textContent, message);
+    assert.equal(ui.notifications[0].message, message);
+    assert.equal(ui.input.value, 'Study lamp');
+    assert.equal(ui.submitButton.disabled, false);
+});
+
 test('double submit sends one request; validation preserves input and permits retry', async () => {
     let finish;
     const requests = [];

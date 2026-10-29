@@ -17,6 +17,7 @@ from django.utils import timezone
 from .creation import creation_uid, issue_creation_token
 from .forms import OfferForm, WantedCreateForm, WantedEditForm
 from .models import Offer, WantedPost
+from .rate_limits import CreationRateLimited, create_with_quota
 from .sample_data import SAMPLE_WANTED_POSTS
 
 
@@ -279,6 +280,7 @@ def create_wanted(request):
         return HttpResponseNotAllowed(["GET", "POST"])
 
     form = WantedCreateForm(request.POST, user=request.user)
+    rate_error = None
     try:
         uid = creation_uid(request.POST.get("creation_token", ""), request.user)
     except ValidationError as error:
@@ -293,16 +295,21 @@ def create_wanted(request):
                 key: value for key, value in form.cleaned_data.items()
                 if key != "creation_token"
             }
-            # The signed UID makes concurrent retries return the same post.
-            with transaction.atomic():
-                wanted_post, _ = WantedPost.objects.get_or_create(
-                    pk=uid, defaults={**defaults, "requester": request.user}
-                )
-                if wanted_post.requester_id != request.user.pk:
-                    raise Http404("Wanted post not found")
-            return _saved_response(request, wanted_post, "Your wanted post has been created.")
+            try:
+                wanted_post = create_with_quota(request.user, uid, defaults)
+            except CreationRateLimited as error:
+                rate_error = error
+                form.add_error(None, error.message)
+            else:
+                return _saved_response(request, wanted_post, "Your wanted post has been created.")
 
     if _is_ajax(request):
+        if rate_error:
+            response = JsonResponse({"message": rate_error.message,
+                                     "errors": form.errors.get_json_data(),
+                                     "retry_after": rate_error.retry_after}, status=429)
+            response["Retry-After"] = str(rate_error.retry_after)
+            return response
         return _form_errors_response(form)
 
     context = _board_context(
@@ -310,7 +317,10 @@ def create_wanted(request):
         creation_form=form,
         open_create_modal=True,
     )
-    return render(request, "wanted_post.html", context)
+    response = render(request, "wanted_post.html", context, status=429 if rate_error else 200)
+    if rate_error:
+        response["Retry-After"] = str(rate_error.retry_after)
+    return response
 
 
 @login_required

@@ -46,6 +46,7 @@
         if (!response.ok) {
             const error = new Error(data.message || 'Unable to complete this action. Your details are kept; please retry.');
             error.fields = data.errors;
+            error.status = response.status;
             throw error;
         }
         return data;
@@ -147,7 +148,7 @@
         } catch (error) {
             showErrors(form, error.fields || {__all__: [{message: savedCreates.has(form)
                 ? 'Your post was saved. Click Refresh board to refresh the list without creating another post.' : error.message}]});
-            if (!error.fields) notify(error.message, 'error');
+            if (!error.fields || error.status === 429) notify(error.message, 'error');
         } finally {
             pending.delete(form); modal.dataset.submitting = 'false'; form.removeAttribute('aria-busy');
             buttons.forEach((button, index) => { button.disabled = states[index]; });
