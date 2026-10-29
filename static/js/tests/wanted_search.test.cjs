@@ -32,3 +32,21 @@ test('a response from a removed board cannot change cards or URL', async () => {
     assert.equal(ui.grid.innerHTML, 'Current cards');
     assert.equal(ui.urls.length, 0);
 });
+
+test('failed search retains results and URL, shows a toast, and permits retry', async () => {
+    let attempts = 0;
+    const ui = harness(async () => {
+        if (++attempts === 1) throw new Error('Offline');
+        return {ok: true, json: async () => ({html: 'New cards', pagination_html: '', selected_category: '', page_number: 1})};
+    });
+    ui.submit();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(ui.grid.innerHTML, 'Current cards');
+    assert.equal(ui.urls.length, 0);
+    assert.equal(ui.notifications[0].type, 'error');
+    assert.match(ui.notifications[0].message, /press Enter/);
+    ui.submit();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(ui.grid.innerHTML, 'New cards');
+    assert.equal(ui.urls.length, 1);
+});

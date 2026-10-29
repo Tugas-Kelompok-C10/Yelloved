@@ -22,6 +22,7 @@
         activeRequest?.abort();
     };
     let selectedCategory = categoryChips.find((chip) => chip.classList.contains("is-active"))?.dataset.categoryChip || "";
+    let confirmedCategory = selectedCategory;
 
     const updateCategoryChips = (category) => {
         selectedCategory = category;
@@ -70,12 +71,17 @@
             grid.innerHTML = data.html;
             pagination.innerHTML = data.pagination_html;
             updateCategoryChips(data.selected_category);
+            confirmedCategory = data.selected_category;
             if (data.page_number > 1) url.searchParams.set("page", data.page_number);
             else url.searchParams.delete("page");
             window.history.replaceState({}, "", url);
             if (scrollToTop) window.scrollTo({ top: 0, left: 0, behavior: "instant" });
         } catch (error) {
-            if (!disposed && error.name !== "AbortError") window.location.assign(url);
+            if (!disposed && activeRequest === request && error.name !== "AbortError") {
+                updateCategoryChips(confirmedCategory);
+                window.YellovedToast?.show({type: 'error', title: 'Unable to search',
+                    message: 'Your previous results are still shown. Check your connection, then press Enter in the search field to try again.'});
+            }
         } finally {
             if (activeRequest === request) {
                 grid.classList.remove("is-loading");
