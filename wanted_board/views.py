@@ -5,7 +5,6 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db import transaction
 from django.db.models import Q
 from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -16,6 +15,7 @@ from django.utils import timezone
 
 from .creation import creation_uid, issue_creation_token
 from .forms import OfferForm, WantedCreateForm, WantedEditForm
+from .locking import locked_wanted_post
 from .models import Offer, WantedPost
 from .rate_limits import CreationRateLimited, create_with_quota
 from .sample_data import SAMPLE_WANTED_POSTS
@@ -391,14 +391,14 @@ def delete_wanted(request, pk):
 @require_POST
 @_clear_access_errors
 def update_status(request, pk):
-    wanted_post = get_object_or_404(WantedPost, pk=pk, requester=request.user)
-    status = request.POST.get("status")
-    if status not in WantedPost.Status.values:
-        messages.error(request, "That wanted post status is not valid.")
-    else:
-        wanted_post.status = status
-        wanted_post.save(update_fields=["status", "updated_at"])
-        messages.success(request, "The wanted post status has been updated.")
+    with locked_wanted_post(pk, requester=request.user) as wanted_post:
+        status = request.POST.get("status")
+        if status not in WantedPost.Status.values:
+            messages.error(request, "That wanted post status is not valid.")
+        else:
+            wanted_post.status = status
+            wanted_post.save(update_fields=["status", "updated_at"])
+            messages.success(request, "The wanted post status has been updated.")
     return redirect("wanted_board:wanted_detail", pk=wanted_post.pk)
 
 
@@ -406,28 +406,29 @@ def update_status(request, pk):
 @require_POST
 @_clear_access_errors
 def create_offer(request, pk):
-    wanted_post = get_object_or_404(WantedPost, pk=pk)
-    if wanted_post.requester == request.user:
-        messages.error(request, "You cannot make an offer on your own post.")
-    elif wanted_post.status != WantedPost.Status.OPEN:
-        messages.error(request, "This wanted post is no longer accepting offers.")
-    else:
-        form = OfferForm(request.POST)
-        if form.is_valid():
-            # The database uniqueness constraint is the final authority. Django
-            # retries the lookup when a concurrent insert wins the same pair.
-            _, created = Offer.objects.get_or_create(
-                wanted_post=wanted_post,
-                offerer=request.user,
-                defaults={"offered_price": form.cleaned_data["offered_price"], "message": ""},
-            )
-            if created:
-                messages.success(request, "Your offer has been sent.")
-            else:
-                messages.error(request, "You have already made an offer on this post.")
+    # Status inspection and insertion share one lock/transaction. Closing a post
+    # must finish before this check, or wait until this offer has committed.
+    with locked_wanted_post(pk) as wanted_post:
+        if wanted_post.requester == request.user:
+            messages.error(request, "You cannot make an offer on your own post.")
+        elif wanted_post.status != WantedPost.Status.OPEN:
+            messages.error(request, "This wanted post is no longer accepting offers.")
         else:
-            for errors in form.errors.values():
-                for error in errors:
-                    messages.error(request, error)
+            form = OfferForm(request.POST)
+            if form.is_valid():
+                # Keep the database constraint as a second guard against duplicates.
+                _, created = Offer.objects.get_or_create(
+                    wanted_post=wanted_post,
+                    offerer=request.user,
+                    defaults={"offered_price": form.cleaned_data["offered_price"], "message": ""},
+                )
+                if created:
+                    messages.success(request, "Your offer has been sent.")
+                else:
+                    messages.error(request, "You have already made an offer on this post.")
+            else:
+                for errors in form.errors.values():
+                    for error in errors:
+                        messages.error(request, error)
 
     return redirect("wanted_board:wanted_detail", pk=wanted_post.pk)

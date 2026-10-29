@@ -67,3 +67,18 @@ class WantedOfferRaceTests(TestCase):
         client.force_login(self.offerer)
         self.assertEqual(client.post(self.url, {"offered_price": 10000}).status_code, 403)
         self.assertFalse(Offer.objects.exists())
+
+    def test_submitting_offer_does_not_change_posts_edit_revision(self):
+        revision = self.post.updated_at
+        self.client.post(self.url, {"offered_price": 10000})
+        self.post.refresh_from_db()
+        self.assertEqual(self.post.updated_at, revision)
+
+    def test_database_failure_rolls_back_offer_transaction(self):
+        with patch.object(Offer.objects, "get_or_create", side_effect=RuntimeError("Storage unavailable")):
+            with self.assertRaisesMessage(RuntimeError, "Storage unavailable"):
+                self.client.post(self.url, {"offered_price": 10000})
+        self.assertFalse(Offer.objects.exists())
+        # A failed transaction must release its lock and permit a later retry.
+        self.assertEqual(self.client.post(self.url, {"offered_price": 10000}).status_code, 302)
+        self.assertEqual(Offer.objects.count(), 1)
