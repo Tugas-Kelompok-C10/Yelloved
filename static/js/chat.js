@@ -18,8 +18,10 @@
     const older = app.querySelector('[data-chat-older]');
     const dialog = document.querySelector('[data-chat-dialog]');
     const actionForm = dialog.querySelector('form');
-    const entries = new Map(), outgoing = new Map(), changing = new Set();
+    const entries = new Map(), outgoing = new Map(), changing = new Set(), deferredRows = new Map();
     let timer, stopped = false, refreshing = false, actionTarget, threadSnapshot;
+    let syncCursor = null, initialVersion = null, acknowledging = false, threadsLoading = false, threadDepth = 1;
+    const moreThreads = app.querySelector('[data-chat-more-threads]');
     const notify = (message, type = 'error') => window.YellovedToast?.show({title: type === 'error' ? 'Chat' : 'Success', message, type});
     const csrf = () => compose?.querySelector('[name=csrfmiddlewaretoken]').value;
     const request = async (url, data) => {
@@ -66,16 +68,36 @@
         list.replaceChildren(fragment);
         if (nearBottom || forceBottom) list.scrollTop = list.scrollHeight;
     };
-    const merge = rows => {
+    const merge = (rows, delta = false) => {
         let changed = false;
         for (const row of rows) {
-            if (changing.has(row.id)) continue;
-            const previous = entries.get(row.id);
-            if (previous && Date.parse(row.revision) < Date.parse(previous.revision)) continue;
-            if (!previous || previous.revision !== row.revision) {entries.set(row.id, row); changed = true;}
+            if (changing.has(row.id)) {deferredRows.set(row.id, row); continue;}
             if (outgoing.delete(row.id)) {changed = true; drafts?.schedule();}
+            const previous = entries.get(row.id);
+            // An edit to unloaded older history must not skip the pages between
+            // that message and the current window when loading older messages.
+            if (delta && !previous && row.created_version <= initialVersion) continue;
+            if (previous && (Number.isFinite(row.version) && Number.isFinite(previous.version)
+                ? row.version < previous.version : Date.parse(row.revision) < Date.parse(previous.revision))) continue;
+            if (!previous || previous.revision !== row.revision) {entries.set(row.id, row); changed = true;}
         }
         return changed;
+    };
+    const acknowledge = async () => {
+        if (!list || stopped || acknowledging || document.hidden || document.hasFocus?.() === false ||
+            list.scrollHeight - list.scrollTop - list.clientHeight >= 90) return;
+        acknowledging = true;
+        try {
+            const unread = [...entries.values()].filter(row => row.unread);
+            for (let offset = 0; offset < unread.length; offset += 50) {
+                const batch = unread.slice(offset, offset + 50), data = new FormData();
+                batch.forEach(row => data.append('ids', row.id));
+                await request(app.dataset.readUrl, data);
+                if (stopped) return;
+                batch.forEach(row => {row.unread = false;});
+            }
+            if (unread.length) window.dispatchEvent(new Event('chat:read'));
+        } finally {acknowledging = false;}
     };
     const loadMessages = async (previousPage = false) => {
         if (!list) return;
@@ -84,35 +106,52 @@
             const first = [...entries.values()].sort((a, b) => a.created_at.localeCompare(b.created_at) || a.id.localeCompare(b.id))[0];
             url.searchParams.set('before', first.id);
         }
-        const result = await request(url);
-        if (stopped) return;
-        const firstLoad = !entries.size;
-        const height = list.scrollHeight, top = list.scrollTop;
-        if (merge(result.messages)) render(firstLoad);
-        if (!entries.size) render();
-        if (previousPage) list.scrollTop = top + list.scrollHeight - height;
-        if (previousPage || firstLoad) older.hidden = !result.has_older;
+        const firstLoad = syncCursor === null;
+        let more;
+        do {
+            if (!previousPage && !firstLoad) url.searchParams.set('after', syncCursor);
+            const result = await request(url);
+            if (stopped) return;
+            const height = list.scrollHeight, top = list.scrollTop;
+            if (merge(result.messages, !previousPage && !firstLoad)) render(firstLoad);
+            if (!entries.size) render();
+            if (previousPage) list.scrollTop = top + list.scrollHeight - height;
+            if (previousPage || firstLoad) older.hidden = !result.has_older;
+            if (!previousPage) {
+                syncCursor = result.sync_cursor ?? 0;
+                if (firstLoad) initialVersion = syncCursor;
+            }
+            more = !previousPage && !firstLoad && result.has_more_changes;
+        } while (more && !stopped);
         status.textContent = '';
-        const unread = result.messages.filter(row => row.unread);
-        if (unread.length && !document.hidden && document.hasFocus?.() !== false && list.scrollHeight - list.scrollTop - list.clientHeight < 90) {
-            const data = new FormData(); unread.forEach(row => data.append('ids', row.id));
-            await request(app.dataset.readUrl, data);
-            window.dispatchEvent(new Event('chat:read'));
-        }
+        await acknowledge();
     };
     const loadThreads = async () => {
-        const result = await request(app.dataset.inboxUrl);
-        if (stopped) return;
-        const snapshot = JSON.stringify(result.conversations);
+        if (threadsLoading || stopped) return;
+        threadsLoading = true;
+        try {
+        const rows = new Map(); let cursor;
+        for (let page = 0; page < threadDepth; page++) {
+            const url = new URL(app.dataset.inboxUrl, location.origin);
+            if (cursor) url.searchParams.set('cursor', cursor);
+            const result = await request(url);
+            if (stopped) return;
+            result.conversations.forEach(row => rows.set(row.peer_id, row));
+            cursor = result.next_cursor;
+            if (!cursor) break;
+        }
+        if (moreThreads) moreThreads.hidden = !cursor;
+        const conversations = [...rows.values()], snapshot = JSON.stringify(conversations);
         if (snapshot === threadSnapshot) return;
         threadSnapshot = snapshot;
         const nav = app.querySelector('[data-chat-threads]'), fragment = document.createDocumentFragment();
-        if (!result.conversations.length) fragment.append(node('p', 'No conversations yet.', 'chat-app-muted'));
-        for (const row of result.conversations) {
+        if (!conversations.length) fragment.append(node('p', 'No conversations yet.', 'chat-app-muted'));
+        for (const row of conversations) {
             const link = node('a', undefined, `chat-app-thread${String(row.peer_id) === app.dataset.peerId ? ' is-active' : ''}`);
             link.href = row.url; link.append(node('strong', row.name), node('small', row.preview)); fragment.append(link);
         }
         nav.replaceChildren(fragment);
+        } finally {threadsLoading = false;}
     };
     const refresh = async (explicit = false) => {
         if (refreshing || stopped) return;
@@ -163,6 +202,10 @@
         });
     }
     app.addEventListener('click', event => {
+        if (event.target.closest('[data-chat-more-threads]') && !threadsLoading) {
+            threadDepth++; moreThreads.disabled = true;
+            loadThreads().catch(error => {threadDepth--; notify(error.message);}).finally(() => {moreThreads.disabled = false;});
+        }
         if (event.target.closest('[data-chat-older]')) {
             older.disabled = true;
             loadMessages(true).catch(error => notify(error.message)).finally(() => {older.disabled = false;});
@@ -200,7 +243,13 @@
             if (stopped) return;
             entries.set(row.id, result.entry); notify(result.message, 'success');
         } catch (error) {if (!stopped) {entries.set(row.id, row); notify(error.message);}}
-        finally {changing.delete(row.id); if (!stopped) {render(); refresh();}}
+        finally {
+            changing.delete(row.id);
+            if (!stopped) {
+                if (deferredRows.has(row.id)) {merge([deferredRows.get(row.id)]); deferredRows.delete(row.id);}
+                render(); refresh();
+            }
+        }
     });
     const tick = async () => {
         if (stopped) return;
@@ -216,6 +265,18 @@
                 if (!composerTouched && saved.composer) {compose.elements.body.value = saved.composer.body || ''; restoredFile = saved.composer.file || null; updateCompose();}
                 for (const row of saved.outgoing || []) if (!entries.has(row.id)) outgoing.set(row.id, {...row, state: 'failed'});
                 render();
+                // A response may have been lost before leaving the page. Resolve
+                // stored tokens against the server before offering Retry again.
+                const ids = [...outgoing.keys()];
+                (async () => {
+                    for (let offset = 0; offset < ids.length; offset += 50) {
+                        const url = new URL(app.dataset.messagesUrl, location.origin);
+                        url.searchParams.set('resolve', ids.slice(offset, offset + 50).join(','));
+                        const result = await request(url);
+                        if (stopped) return;
+                        if (merge(result.messages, true)) render();
+                    }
+                })().catch(error => {if (!stopped) notify(error.message);});
                 if (saved.composer?.body || saved.composer?.file || saved.outgoing?.length) notify('Your draft and unsent messages were restored on this browser.', 'success');
             }, onError: message => notify(`${message} Keep this tab open or copy your text before leaving.`)});
     }
@@ -223,8 +284,9 @@
         if (!window.YellovedChatHTTP.blocked && drafts?.dirty) {event.preventDefault(); event.returnValue = '';}
     });
     window.addEventListener('focus', () => refresh());
+    list?.addEventListener('scroll', () => {acknowledge().catch(() => {});});
     window.addEventListener('chat:session-ended', event => {
-        stopped = true; clearTimeout(timer); entries.clear(); outgoing.clear(); changing.clear();
+        stopped = true; clearTimeout(timer); entries.clear(); outgoing.clear(); changing.clear(); deferredRows.clear();
         drafts?.stop(); restoredFile = null;
         if (compose) {compose.elements.body.value = ''; if (fileInput) fileInput.value = '';}
         actionForm.elements.body.value = ''; dialog.close();

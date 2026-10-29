@@ -10,6 +10,7 @@
             <nav data-chat-threads aria-label="Choose a conversation">
                 {% for row in conversations %}<a class="chat-app-thread{% if row.peer == peer %} is-active{% endif %}" href="{% url 'chat:with_user' row.peer.pk %}"><strong>{{ row.peer.get_full_name|default:row.peer.username }}</strong><small>{{ row.preview|truncatechars:80 }}</small></a>{% empty %}<p class="chat-app-muted">No conversations yet.</p>{% endfor %}
             </nav>
+            <button class="chat-app-secondary" type="button" data-chat-more-threads hidden>Load more conversations</button>
         </aside>
         <section class="chat-app-conversation" aria-label="Messages">
             {% if peer %}

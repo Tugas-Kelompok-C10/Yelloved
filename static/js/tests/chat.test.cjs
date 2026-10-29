@@ -11,6 +11,7 @@ class Element {
     replaceChildren(...nodes) {this.children = nodes;}
     addEventListener(name, fn) {this.handlers[name] = fn;}
     querySelector(selector) {return this.selectors?.[selector];}
+    setAttribute() {}
     reportValidity() {return true;}
     focus() {}
     showModal() {this.open = true;}
@@ -23,20 +24,24 @@ const flush = () => new Promise(resolve => setImmediate(resolve));
 const original = {id: randomUUID(), body: 'Original', mine: true, deleted: false, created_at: new Date().toISOString(),
     revision: 'v1', edit_url: '/edit/', delete_url: '/delete/'};
 
-function harness(initial = []) {
+function harness(initial = [], getResult) {
     const list = new Element(), compose = new Element(), input = new Element(), submit = new Element();
     compose.elements = {body: input}; compose.selectors = {'[type=submit]': submit, '[name=csrfmiddlewaretoken]': {value: 'csrf'}};
     const app = new Element(), dialog = new Element(), actionForm = new Element();
     app.dataset = {messagesUrl: '/messages/', inboxUrl: '/inbox/', peerId: '2'};
     app.selectors = {'[data-chat-messages]': list, '[data-chat-compose]': compose, '[data-chat-status]': new Element(),
-        '[data-chat-older]': new Element(), '[data-chat-threads]': new Element()};
+        '[data-chat-older]': new Element(), '[data-chat-threads]': new Element(), '[data-chat-more-threads]': new Element()};
     dialog.selectors = Object.fromEntries(['[data-chat-cancel]', '[data-chat-dialog-title]', '[data-chat-edit-fields]',
         '[data-chat-delete-text]', '[data-chat-confirm]'].map(selector => [selector, new Element()]));
     dialog.selectors.form = actionForm; actionForm.elements = {body: new Element()};
-    const calls = [], notifications = [];
+    const calls = [], notifications = [], gets = [];
     const events = {};
     const fakeFetch = async (url, options) => {
-        if (options.method === 'GET') return response(200, String(url).includes('/messages/') ? {messages: initial, has_older: false} : {conversations: []});
+        if (options.method === 'GET') {
+            gets.push(String(url));
+            const result = getResult?.(new URL(url, 'https://local.test'));
+            return response(200, result || (String(url).includes('/messages/') ? {messages: initial, has_older: false, sync_cursor: 0} : {conversations: []}));
+        }
         return new Promise(resolve => calls.push({data: options.body, resolve}));
     };
     const window = {addEventListener(name, fn) {events[name] = fn;}, YellovedToast: {show: value => notifications.push(value)},
@@ -52,7 +57,7 @@ function harness(initial = []) {
         document: {hidden: false, querySelector: selector => selector === '[data-chat-app]' ? app : dialog,
             createElement: () => new Element(), createDocumentFragment: () => new Element()},
     });
-    return {list, compose, input, calls, notifications, actionForm, events, app,
+    return {list, compose, input, calls, gets, notifications, actionForm, events, app,
         send: text => {input.value = text; compose.handlers.submit({preventDefault() {}});},
         openAction: (action, id = original.id) => app.handlers.click({target: {closest: selector => selector === '[data-chat-action]' ? {dataset: {messageId: id, chatAction: action}} : null}})};
 }
@@ -109,4 +114,38 @@ test('optimistic delete is confirmed asynchronously', async () => {
     await saving;
     assert.equal(ui.notifications[0].type, 'success');
     assert.match(ui.list.textContent, /Message deleted/);
+});
+
+test('polling drains change batches and does not insert unloaded old edits', async () => {
+    const recent = {...original, version: 60, created_version: 60};
+    const next = {...original, id: randomUUID(), body: 'New incoming', version: 161, created_version: 161};
+    const old = {...original, id: randomUUID(), body: 'Unloaded old edit', version: 162, created_version: 1};
+    const ui = harness([], url => {
+        if (!url.pathname.includes('/messages/')) return {conversations: []};
+        if (!url.searchParams.has('after')) return {messages: [recent], sync_cursor: 60, has_older: true};
+        if (url.searchParams.get('after') === '60') return {messages: [next, old], sync_cursor: 162, has_more_changes: true};
+        return {messages: [{...next, deleted: true, body: '', version: 163, revision: 'v2'}], sync_cursor: 163, has_more_changes: false};
+    });
+    await flush(); ui.events.focus(); await flush();
+    assert.match(ui.list.textContent, /Message deleted/);
+    assert.doesNotMatch(ui.list.textContent, /Unloaded old edit|New incoming/);
+    assert.ok(ui.gets.some(url => url.includes('after=162')));
+    assert.equal(ui.app.selectors['[data-chat-older]'].hidden, false);
+});
+
+test('conversation pages remain visible after polling refreshes the inbox', async () => {
+    const row = id => ({peer_id: id, name: `Person ${id}`, preview: 'Hello', url: `/chat/with/${id}/`});
+    const ui = harness([], url => {
+        if (url.pathname === '/inbox/') return url.searchParams.has('cursor')
+            ? {conversations: [row(52)], next_cursor: null} : {conversations: [row(2)], next_cursor: 'page-two'};
+        return {messages: [], sync_cursor: 0, has_older: false};
+    });
+    await flush();
+    const control = ui.app.selectors['[data-chat-more-threads]'];
+    assert.equal(control.hidden, false);
+    ui.app.handlers.click({target: {closest: selector => selector === '[data-chat-more-threads]' ? control : null}});
+    await flush(); ui.events.focus(); await flush();
+    const text = ui.app.selectors['[data-chat-threads]'].textContent;
+    assert.match(text, /Person 2/); assert.match(text, /Person 52/);
+    assert.equal(control.hidden, true);
 });
