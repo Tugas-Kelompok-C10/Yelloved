@@ -125,7 +125,7 @@
         refreshing = true;
         try { await Promise.all([loadMessages(), loadThreads()]); }
         catch (error) {
-            if (status) status.textContent = 'Unable to refresh messages. Your current conversation is still shown. Use Refresh to try again.';
+            if (status) status.textContent = 'Reconnecting… Your current conversation is still shown. We will retry automatically.';
             if (explicit) notify(error.message);
         } finally {refreshing = false;}
     };
@@ -150,6 +150,7 @@
             if (file && file.size > 5 * 1024 * 1024) {notify('Attachments must not exceed 5 MB.'); fileInput.value = '';}
             updateCompose();
         });
+        compose.querySelector('[data-chat-choose-file]')?.addEventListener('click', () => fileInput.click());
         compose.querySelector('[data-chat-remove-file]')?.addEventListener('click', () => {fileInput.value = ''; updateCompose();});
         compose.addEventListener('submit', event => {
             event.preventDefault();
@@ -160,7 +161,6 @@
         });
     }
     app.addEventListener('click', event => {
-        if (event.target.closest('[data-chat-refresh]')) refresh(true);
         if (event.target.closest('[data-chat-older]')) {
             older.disabled = true;
             loadMessages(true).catch(error => notify(error.message)).finally(() => {older.disabled = false;});
