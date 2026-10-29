@@ -380,20 +380,20 @@ def create_offer(request, pk):
         messages.error(request, "You cannot make an offer on your own post.")
     elif wanted_post.status != WantedPost.Status.OPEN:
         messages.error(request, "This wanted post is no longer accepting offers.")
-    elif Offer.objects.filter(
-        wanted_post=wanted_post,
-        offerer=request.user,
-    ).exists():
-        messages.error(request, "You have already made an offer on this post.")
     else:
         form = OfferForm(request.POST)
         if form.is_valid():
-            offer = form.save(commit=False)
-            offer.wanted_post = wanted_post
-            offer.offerer = request.user
-            offer.message = ""
-            offer.save()
-            messages.success(request, "Your offer has been sent.")
+            # The database uniqueness constraint is the final authority. Django
+            # retries the lookup when a concurrent insert wins the same pair.
+            _, created = Offer.objects.get_or_create(
+                wanted_post=wanted_post,
+                offerer=request.user,
+                defaults={"offered_price": form.cleaned_data["offered_price"], "message": ""},
+            )
+            if created:
+                messages.success(request, "Your offer has been sent.")
+            else:
+                messages.error(request, "You have already made an offer on this post.")
         else:
             for errors in form.errors.values():
                 for error in errors:
