@@ -19,7 +19,7 @@ function harness(fetch, deletion = false) {
         setAttribute() {}, removeAttribute() {}, after() {}, append(node) {status = node;}};
     const form = {
         action: '/wanted-post/uuid/' + (deletion ? 'delete/' : 'edit/'),
-        dataset: {boardUrl: '/wanted-post/', detailUrl: '/wanted-post/uuid/'},
+        dataset: {boardUrl: '/wanted-post/', detailUrl: '/wanted-post/uuid/', deletionStateUrl: '/wanted-post/uuid/deletion-state/'},
         elements: {revision: {value: 'original'}}, isConnected: true,
         matches: selector => selector.includes('data-ajax-upload') || (deletion && selector.includes('data-ajax-delete')),
         closest: () => modal, reportValidity: () => true,
@@ -99,7 +99,7 @@ test('expired login preserves entered details', async () => {
 });
 test('optimistic deletion hides the post before response and rolls back on failure', async () => {
     let fail;
-    const ui = harness(() => new Promise((_, reject) => {fail = reject;}), true);
+    const ui = harness((url) => url.endsWith('/deletion-state/') ? Promise.resolve(response(200, {state: 'present'})) : new Promise((_, reject) => {fail = reject;}), true);
     const request = ui.submit();
     assert.equal(ui.card.hidden, true);
     assert.equal(ui.modal.open, false);
@@ -110,6 +110,26 @@ test('optimistic deletion hides the post before response and rolls back on failu
     assert.equal(ui.modal.open, true);
     assert.equal(ui.submitButton.disabled, false);
     assert.match(ui.errors[0].textContent, /Offline/);
+});
+
+test('uncertain delete outcome stays hidden and offers safe retry instead of false rollback', async () => {
+    const ui = harness(async () => {throw new Error('Offline');}, true);
+    await ui.submit();
+    assert.equal(ui.card.hidden, true);
+    assert.equal(ui.modal.open, true);
+    assert.match(ui.errors[0].textContent, /Unable to confirm whether/);
+    assert.equal(ui.submitButton.disabled, false);
+});
+
+test('lost delete response is reconciled against the server receipt', async () => {
+    const ui = harness(async url => {
+        if (url.endsWith('/deletion-state/')) return response(200, {state: 'deleted'});
+        throw new Error('Response lost');
+    }, true);
+    await ui.submit();
+    assert.equal(ui.card.hidden, true);
+    assert.equal(ui.modal.open, false);
+    assert.match(ui.notifications[0].message, /was deleted/);
 });
 test('confirmed deletion is not rolled back when refreshing the board fails', async () => {
     let calls = 0;

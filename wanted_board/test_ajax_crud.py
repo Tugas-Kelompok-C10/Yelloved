@@ -59,3 +59,15 @@ class WantedAjaxCrudTests(TestCase):
         pk = self.post.pk
         self.post.delete()
         self.assertEqual(self.client.get(reverse("wanted_board:edit_wanted", args=[pk])).status_code, 404)
+
+    def test_delete_retries_are_safe_and_deletion_state_is_owner_only(self):
+        pk = self.post.pk
+        state = reverse("wanted_board:deletion_state", args=[pk])
+        self.assertEqual(self.client.get(state).json()["state"], "present")
+        url = reverse("wanted_board:delete_wanted", args=[pk])
+        self.assertEqual(self.client.post(url, **AJAX).status_code, 200)
+        self.assertEqual(self.client.get(state).json()["state"], "deleted")
+        self.assertEqual(self.client.post(url, **AJAX).status_code, 200)
+        self.client.force_login(get_user_model().objects.create_user(username="receipt-outsider"))
+        self.assertEqual(self.client.get(state).status_code, 404)
+        self.assertEqual(self.client.post(url, **AJAX).status_code, 404)

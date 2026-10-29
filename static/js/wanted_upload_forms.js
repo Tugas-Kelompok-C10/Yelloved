@@ -90,21 +90,39 @@
             notify(data.message);
             window.scrollTo({top: 0, behavior: 'instant'});
         } catch (error) {
+            let confirmedPresent = false;
+            if (!committed) {
+                try {
+                    const check = await fetch(form.dataset.deletionStateUrl, {credentials: 'same-origin', headers: {Accept: 'application/json'}, cache: 'no-store'});
+                    if (check.ok && !check.redirected && (check.headers.get('Content-Type') || '').includes('application/json')) {
+                        const state = (await check.json()).state;
+                        committed = state === 'deleted';
+                        confirmedPresent = state === 'present';
+                    }
+                } catch (_) { /* An unknown outcome must stay unknown, never pretend rollback succeeded. */ }
+            }
             if (!committed) {
                 document.querySelectorAll(dialogs).forEach(node => node.remove());
                 const current = document.querySelector('main.wanted-page, main.wanted-detail-page');
                 if (current !== previous.main) current.replaceWith(previous.main);
                 previous.main.after(...previous.dialogs);
-                previous.main.querySelector('.wanted-detail-card').hidden = false;
+                previous.main.querySelector('.wanted-detail-card').hidden = !confirmedPresent;
                 previous.main.querySelector('[data-delete-pending]')?.remove();
                 previous.main.removeAttribute('aria-busy');
                 document.title = previous.title;
                 history.replaceState(history.state, '', previous.url);
                 window.dispatchEvent(new Event('wanted:mounted'));
                 modal.showModal();
-                showErrors(form, {__all__: [{message: error.message}]});
-                notify(error.message, 'error');
+                const message = confirmedPresent ? error.message
+                    : 'Unable to confirm whether this post was deleted. Retry Delete to safely confirm the result; it will not delete anything twice.';
+                showErrors(form, {__all__: [{message}]});
+                notify(message, 'error');
             } else {
+                try {
+                    renderBoard(await boardHTML(form.dataset.boardUrl), form.dataset.boardUrl);
+                    notify('Your wanted post has been deleted.');
+                    return;
+                } catch (_) { /* Deletion is confirmed even when refreshing still fails. */ }
                 // Never restore a post after the server confirmed its deletion.
                 if (cachedBoard) renderBoard(cachedBoard, form.dataset.boardUrl, form.dataset.detailUrl);
                 else {

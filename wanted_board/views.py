@@ -10,13 +10,13 @@ from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
 
 from .creation import creation_uid, issue_creation_token
 from .forms import OfferForm, WantedCreateForm, WantedEditForm
 from .locking import locked_wanted_post
-from .models import Offer, WantedPost
+from .models import Offer, WantedPost, WantedCreationReceipt
 from .rate_limits import CreationRateLimited, create_with_quota
 from .sample_data import SAMPLE_WANTED_POSTS
 
@@ -376,9 +376,13 @@ def edit_wanted(request, pk):
 @login_required
 @_clear_access_errors
 def delete_wanted(request, pk):
-    wanted_post = get_object_or_404(WantedPost, pk=pk, requester=request.user)
     if request.method == "POST":
-        wanted_post.delete()
+        try:
+            with locked_wanted_post(pk, requester=request.user) as wanted_post:
+                wanted_post.delete()
+        except Http404:
+            if not WantedCreationReceipt.objects.filter(pk=pk, requester=request.user, deleted_at__isnull=False).exists():
+                raise
         if _is_ajax(request):
             return JsonResponse({"message": "Your wanted post has been deleted.",
                                  "board_url": reverse("wanted_board:show_wanted")})
@@ -386,9 +390,20 @@ def delete_wanted(request, pk):
         return redirect("wanted_board:show_wanted")
     if request.method != "GET":
         return HttpResponseNotAllowed(["GET", "POST"])
+    wanted_post = get_object_or_404(WantedPost, pk=pk, requester=request.user)
     return redirect(
         f"{reverse('wanted_board:wanted_detail', args=[wanted_post.pk])}?delete=1"
     )
+
+
+@login_required
+@require_GET
+def deletion_state(request, pk):
+    if WantedPost.objects.filter(pk=pk, requester=request.user).exists():
+        return JsonResponse({"state": "present"})
+    if WantedCreationReceipt.objects.filter(pk=pk, requester=request.user, deleted_at__isnull=False).exists():
+        return JsonResponse({"state": "deleted"})
+    return JsonResponse({"state": "unavailable"}, status=404)
 
 
 @login_required

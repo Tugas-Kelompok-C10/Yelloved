@@ -41,7 +41,7 @@
         <button class="wanted-modal-close" type="button" data-close-delete-wanted-modal aria-label="Close delete modal">×</button>
     </div>
     <p>“<span data-delete-title>{{ wanted_post.title }}</span>” will be permanently deleted. This action cannot be undone.</p>
-    <form method="post" action="{% url 'wanted_board:delete_wanted' wanted_post.pk %}" data-ajax-delete data-board-url="{% url 'wanted_board:show_wanted' %}" data-detail-url="{% url 'wanted_board:wanted_detail' wanted_post.pk %}">
+    <form method="post" action="{% url 'wanted_board:delete_wanted' wanted_post.pk %}" data-ajax-delete data-board-url="{% url 'wanted_board:show_wanted' %}" data-detail-url="{% url 'wanted_board:wanted_detail' wanted_post.pk %}" data-deletion-state-url="{% url 'wanted_board:deletion_state' wanted_post.pk %}">
         {% csrf_token %}
         <div data-upload-form-errors role="alert"></div>
         <div class="wanted-modal-actions wanted-modal-actions-split">
