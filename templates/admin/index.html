@@ -1,0 +1,48 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block bodyclass %}{{ block.super }} admin-index{% endblock %}
+{% block content_title %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+{% block nav-breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <header class="admin-welcome">
+        <div>
+            <p class="admin-eyebrow">Yelloved workspace</p>
+            <h1>Dashboard admin</h1>
+            <p>Kelola pengguna, barang, transaksi, dan aktivitas platform.</p>
+        </div>
+        <span class="admin-welcome-mark" aria-hidden="true">Y</span>
+    </header>
+
+    {% if app_list %}
+    <div class="admin-app-grid">
+        {% for app in app_list %}
+        <section class="admin-app-card">
+            <h2>{% if app.app_url %}<a href="{{ app.app_url }}">{{ app.name }}</a>{% else %}{{ app.name }}{% endif %}</h2>
+            <ul>
+                {% for model in app.models %}
+                <li>
+                    <a class="admin-model-name" href="{{ model.admin_url|default:'#' }}">{{ model.name }}</a>
+                    <div class="admin-model-actions">
+                        {% if model.add_url %}<a href="{{ model.add_url }}">Tambah</a>{% endif %}
+                        {% if model.admin_url %}<a href="{{ model.admin_url }}">Kelola</a>{% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+        {% endfor %}
+    </div>
+    {% else %}
+    <section class="admin-empty">
+        <h2>Belum ada menu yang tersedia</h2>
+        <p>Akun ini belum memiliki izin untuk mengelola data.</p>
+    </section>
+    {% endif %}
+
+    {% if is_popup %}<div class="admin-popup-close">{% translate "Close" %}</div>{% endif %}
+</div>
+{% endblock %}
