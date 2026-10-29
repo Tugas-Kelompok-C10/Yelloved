@@ -18,11 +18,11 @@ from .forms import OfferForm, WantedCreateForm, WantedEditForm
 from .locking import locked_wanted_post
 from .models import Offer, WantedPost, WantedCreationReceipt
 from .rate_limits import CreationRateLimited, create_with_quota
-from .sample_data import SAMPLE_WANTED_POSTS
+from .sample_data import get_sample_wanted_posts
 
 
 def _sample_posts_for(query, category):
-    sample_posts = SAMPLE_WANTED_POSTS
+    sample_posts = get_sample_wanted_posts()
     if query:
         normalized_query = query.casefold()
         sample_posts = tuple(
@@ -222,7 +222,7 @@ def wanted_detail(request, pk):
 
 def sample_wanted_detail(request, slug):
     sample_post = next(
-        (post for post in SAMPLE_WANTED_POSTS if post["slug"] == slug),
+        (post for post in get_sample_wanted_posts() if post["slug"] == slug),
         None,
     )
     if sample_post is None:
