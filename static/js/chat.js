@@ -19,7 +19,7 @@
     const dialog = document.querySelector('[data-chat-dialog]');
     const actionForm = dialog.querySelector('form');
     const entries = new Map(), outgoing = new Map(), changing = new Set(), deferredRows = new Map();
-    let timer, stopped = false, refreshing = false, actionTarget, threadSnapshot;
+    let timer, stopped = false, refreshing = false, actionTarget, threadSnapshot, navigation = 0;
     let syncCursor = null, initialVersion = null, acknowledging = false, threadsLoading = false, threadDepth = 1;
     const moreThreads = app.querySelector('[data-chat-more-threads]');
     const notify = (message, type = 'error') => window.YellovedToast?.show({title: type === 'error' ? 'Chat' : 'Success', message, type});
@@ -165,14 +165,15 @@
     };
     const send = async row => {
         if (row.state === 'sending') return;
+        const startedOn = navigation;
         row.state = 'sending'; outgoing.set(row.id, row); render(true);
         await drafts?.save();
-        if (stopped) return;
+        if (stopped || startedOn !== navigation) return;
         const data = new FormData(); data.set('body', row.body); data.set('client_id', row.id);
         if (row.file) data.set('attachment', row.file);
         try {
             const result = await request(app.dataset.messagesUrl, data);
-            if (stopped) return;
+            if (stopped || startedOn !== navigation) return;
             const alreadyDelivered = initialVersion !== null && result.entry.created_version <= initialVersion && !entries.has(result.entry.id);
             if (!alreadyDelivered) entries.set(result.entry.id, result.entry);
             else notify('This message was already delivered. Load older messages to find it.', 'success');
@@ -180,7 +181,7 @@
             drafts?.schedule();
             loadThreads().catch(() => {});
         } catch (error) {
-            if (stopped) return;
+            if (stopped || startedOn !== navigation) return;
             if (!entries.has(row.id)) {row.state = 'failed'; render(); drafts?.schedule(); notify(error.message);}
         }
     };
@@ -304,7 +305,18 @@
         const reload = node('a', 'Reload Chat', 'chat-app-secondary'); reload.href = '/chat/';
         app.replaceChildren(message, reload);
     });
-    window.addEventListener('pagehide', () => {stopped = true; clearTimeout(timer);});
-    window.addEventListener('pageshow', event => {if (event.persisted && !window.YellovedChatHTTP.blocked) {stopped = false; tick();}});
+    window.addEventListener('pagehide', () => {
+        stopped = true; navigation++; clearTimeout(timer);
+        // A restored browser snapshot must not keep an aborted request Sending.
+        // Keep its original token: the next poll or Retry can confirm delivery.
+        let interrupted = false;
+        for (const row of outgoing.values()) {
+            if (row.state === 'sending') {row.state = 'failed'; interrupted = true;}
+        }
+        if (interrupted) drafts?.schedule();
+    });
+    window.addEventListener('pageshow', event => {
+        if (event.persisted && !window.YellovedChatHTTP.blocked) {stopped = false; render(); tick();}
+    });
     refresh(true).finally(() => {if (!stopped) timer = setTimeout(tick, 5000);});
 })();

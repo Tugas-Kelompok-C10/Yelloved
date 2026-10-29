@@ -161,3 +161,36 @@ test('retrying an already-delivered older message does not skip unloaded history
     assert.match(ui.notifications[0].message, /already delivered/);
     assert.equal(ui.app.selectors['[data-chat-older]'].hidden, false);
 });
+
+test('Back restores an interrupted send as retryable and ignores its late failure', async () => {
+    const ui = harness(); await flush();
+    ui.send('Keep this message'); await flush();
+    const token = ui.calls[0].data.get('client_id');
+    ui.events.pagehide();
+    ui.events.pageshow({persisted: true}); await flush();
+    assert.doesNotMatch(ui.list.textContent, /Sending/);
+    assert.match(ui.list.textContent, /Keep this message.*Not sent.*Retry/);
+    ui.openAction('retry', token); await flush();
+    assert.equal(ui.calls[1].data.get('client_id'), token);
+    // The cancelled attempt can settle after the restored page started Retry.
+    ui.calls[0].resolve(response(503, {message: 'Cancelled old request'})); await flush();
+    assert.match(ui.list.textContent, /Sending/);
+    assert.equal(ui.notifications.length, 0);
+    ui.calls[1].resolve(response(201, {entry: {...original, id: token, body: 'Keep this message'}})); await flush();
+    assert.doesNotMatch(ui.list.textContent, /Sending|Not sent|Retry/);
+});
+
+test('Back reconciles an interrupted send that the server already saved', async () => {
+    let delivered;
+    const ui = harness([], url => url.pathname === '/messages/' ? {
+        messages: delivered ? [delivered] : [], sync_cursor: delivered ? 1 : 0, has_older: false,
+    } : {conversations: []});
+    await flush(); ui.send('Saved despite navigation'); await flush();
+    const token = ui.calls[0].data.get('client_id');
+    ui.events.pagehide();
+    delivered = {...original, id: token, body: 'Saved despite navigation', version: 1, created_version: 1};
+    ui.events.pageshow({persisted: true}); await flush();
+    assert.match(ui.list.textContent, /Saved despite navigation/);
+    assert.doesNotMatch(ui.list.textContent, /Sending|Not sent|Retry/);
+    assert.equal(ui.calls.length, 1); // Restoring never automatically resends.
+});
