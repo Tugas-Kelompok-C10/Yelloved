@@ -11,6 +11,7 @@ class Element {
     replaceChildren(...nodes) {this.children = nodes;}
     addEventListener(name, fn) {this.handlers[name] = fn;}
     querySelector(selector) {return this.selectors?.[selector];}
+    setAttribute() {}
     reportValidity() {return true;}
     focus() {}
     showModal() {this.open = true;}
@@ -23,29 +24,40 @@ const flush = () => new Promise(resolve => setImmediate(resolve));
 const original = {id: randomUUID(), body: 'Original', mine: true, deleted: false, created_at: new Date().toISOString(),
     revision: 'v1', edit_url: '/edit/', delete_url: '/delete/'};
 
-function harness(initial = []) {
+function harness(initial = [], getResult) {
     const list = new Element(), compose = new Element(), input = new Element(), submit = new Element();
     compose.elements = {body: input}; compose.selectors = {'[type=submit]': submit, '[name=csrfmiddlewaretoken]': {value: 'csrf'}};
     const app = new Element(), dialog = new Element(), actionForm = new Element();
     app.dataset = {messagesUrl: '/messages/', inboxUrl: '/inbox/', peerId: '2'};
     app.selectors = {'[data-chat-messages]': list, '[data-chat-compose]': compose, '[data-chat-status]': new Element(),
-        '[data-chat-older]': new Element(), '[data-chat-threads]': new Element()};
+        '[data-chat-older]': new Element(), '[data-chat-threads]': new Element(), '[data-chat-more-threads]': new Element()};
     dialog.selectors = Object.fromEntries(['[data-chat-cancel]', '[data-chat-dialog-title]', '[data-chat-edit-fields]',
         '[data-chat-delete-text]', '[data-chat-confirm]'].map(selector => [selector, new Element()]));
     dialog.selectors.form = actionForm; actionForm.elements = {body: new Element()};
-    const calls = [], notifications = [];
-    const window = {addEventListener() {}, YellovedToast: {show: value => notifications.push(value)}};
+    const calls = [], notifications = [], gets = [];
+    const events = {};
+    const fakeFetch = async (url, options) => {
+        if (options.method === 'GET') {
+            gets.push(String(url));
+            const result = getResult?.(new URL(url, 'https://local.test'));
+            return response(200, result || (String(url).includes('/messages/') ? {messages: initial, has_older: false, sync_cursor: 0} : {conversations: []}));
+        }
+        return new Promise(resolve => calls.push({data: options.body, resolve}));
+    };
+    const window = {addEventListener(name, fn) {events[name] = fn;}, YellovedToast: {show: value => notifications.push(value)},
+        YellovedChatHTTP: {userId: '1', identity: 'session-a', request: async (url, data) => {
+            const result = await fakeFetch(url, {method: data ? 'POST' : 'GET', body: data});
+            const json = await result.json();
+            if (!result.ok) throw new Error(json.message);
+            return json;
+        }}};
     vm.runInNewContext(fs.readFileSync(path.join(__dirname, '..', 'chat.js'), 'utf8'), {
         window, location: {origin: 'https://local.test'}, URL, FormData, crypto: {randomUUID},
         setTimeout: () => 1, clearTimeout() {},
         document: {hidden: false, querySelector: selector => selector === '[data-chat-app]' ? app : dialog,
             createElement: () => new Element(), createDocumentFragment: () => new Element()},
-        fetch: async (url, options) => {
-            if (options.method === 'GET') return response(200, String(url).includes('/messages/') ? {messages: initial, has_older: false} : {conversations: []});
-            return new Promise(resolve => calls.push({data: options.body, resolve}));
-        },
     });
-    return {list, compose, input, calls, notifications, actionForm,
+    return {list, compose, input, calls, gets, notifications, actionForm, events, app,
         send: text => {input.value = text; compose.handlers.submit({preventDefault() {}});},
         openAction: (action, id = original.id) => app.handlers.click({target: {closest: selector => selector === '[data-chat-action]' ? {dataset: {messageId: id, chatAction: action}} : null}})};
 }
@@ -55,6 +67,7 @@ test('sending is optimistic; failed requests retain a retryable message and reus
     ui.send('Hello');
     assert.match(ui.list.textContent, /Sending/);
     assert.equal(ui.input.value, '');
+    await flush();
     const token = ui.calls[0].data.get('client_id');
     ui.calls[0].resolve(response(503, {message: 'Offline'})); await flush();
     assert.match(ui.list.textContent, /Not sent/);
@@ -62,9 +75,22 @@ test('sending is optimistic; failed requests retain a retryable message and reus
     assert.equal(ui.notifications[0].message, 'Offline');
     assert.equal(ui.calls.length, 1);
     ui.openAction('retry', token);
+    await flush();
     assert.equal(ui.calls[1].data.get('client_id'), token);
     ui.calls[1].resolve(response(201, {entry: {...original, id: token, body: 'Hello'}})); await flush();
     assert.doesNotMatch(ui.list.textContent, /Not sent/);
+});
+
+test('account/session changes clear private UI and ignore a late send response', async () => {
+    const ui = harness([original]); await flush();
+    ui.send('Private pending message');
+    await flush();
+    ui.events['chat:session-ended']({detail: {message: 'Account changed'}});
+    assert.equal(ui.input.value, '');
+    assert.doesNotMatch(ui.app.textContent, /Original|Private pending/);
+    assert.match(ui.app.textContent, /Reload Chat/);
+    ui.calls[0].resolve(response(201, {entry: {...original, body: 'Late response'}})); await flush();
+    assert.doesNotMatch(ui.app.textContent, /Late response/);
 });
 
 test('failed optimistic edit restores the original message', async () => {
@@ -88,4 +114,83 @@ test('optimistic delete is confirmed asynchronously', async () => {
     await saving;
     assert.equal(ui.notifications[0].type, 'success');
     assert.match(ui.list.textContent, /Message deleted/);
+});
+
+test('polling drains change batches and does not insert unloaded old edits', async () => {
+    const recent = {...original, version: 60, created_version: 60};
+    const next = {...original, id: randomUUID(), body: 'New incoming', version: 161, created_version: 161};
+    const old = {...original, id: randomUUID(), body: 'Unloaded old edit', version: 162, created_version: 1};
+    const ui = harness([], url => {
+        if (!url.pathname.includes('/messages/')) return {conversations: []};
+        if (!url.searchParams.has('after')) return {messages: [recent], sync_cursor: 60, has_older: true};
+        if (url.searchParams.get('after') === '60') return {messages: [next, old], sync_cursor: 162, has_more_changes: true};
+        return {messages: [{...next, deleted: true, body: '', version: 163, revision: 'v2'}], sync_cursor: 163, has_more_changes: false};
+    });
+    await flush(); ui.events.focus(); await flush();
+    assert.match(ui.list.textContent, /Message deleted/);
+    assert.doesNotMatch(ui.list.textContent, /Unloaded old edit|New incoming/);
+    assert.ok(ui.gets.some(url => url.includes('after=162')));
+    assert.equal(ui.app.selectors['[data-chat-older]'].hidden, false);
+});
+
+test('conversation pages remain visible after polling refreshes the inbox', async () => {
+    const row = id => ({peer_id: id, name: `Person ${id}`, preview: 'Hello', url: `/chat/with/${id}/`});
+    const ui = harness([], url => {
+        if (url.pathname === '/inbox/') return url.searchParams.has('cursor')
+            ? {conversations: [row(52)], next_cursor: null} : {conversations: [row(2)], next_cursor: 'page-two'};
+        return {messages: [], sync_cursor: 0, has_older: false};
+    });
+    await flush();
+    const control = ui.app.selectors['[data-chat-more-threads]'];
+    assert.equal(control.hidden, false);
+    ui.app.handlers.click({target: {closest: selector => selector === '[data-chat-more-threads]' ? control : null}});
+    await flush(); ui.events.focus(); await flush();
+    const text = ui.app.selectors['[data-chat-threads]'].textContent;
+    assert.match(text, /Person 2/); assert.match(text, /Person 52/);
+    assert.equal(control.hidden, true);
+});
+
+test('retrying an already-delivered older message does not skip unloaded history', async () => {
+    const ui = harness([], url => url.pathname === '/messages/'
+        ? {messages: [], sync_cursor: 100, has_older: true} : {conversations: []});
+    await flush(); ui.send('Retry me'); await flush();
+    const token = ui.calls[0].data.get('client_id');
+    ui.calls[0].resolve(response(200, {entry: {...original, id: token, body: 'Old delivered message', created_version: 2}}));
+    await flush();
+    assert.doesNotMatch(ui.list.textContent, /Old delivered message|Not sent/);
+    assert.match(ui.notifications[0].message, /already delivered/);
+    assert.equal(ui.app.selectors['[data-chat-older]'].hidden, false);
+});
+
+test('Back restores an interrupted send as retryable and ignores its late failure', async () => {
+    const ui = harness(); await flush();
+    ui.send('Keep this message'); await flush();
+    const token = ui.calls[0].data.get('client_id');
+    ui.events.pagehide();
+    ui.events.pageshow({persisted: true}); await flush();
+    assert.doesNotMatch(ui.list.textContent, /Sending/);
+    assert.match(ui.list.textContent, /Keep this message.*Not sent.*Retry/);
+    ui.openAction('retry', token); await flush();
+    assert.equal(ui.calls[1].data.get('client_id'), token);
+    // The cancelled attempt can settle after the restored page started Retry.
+    ui.calls[0].resolve(response(503, {message: 'Cancelled old request'})); await flush();
+    assert.match(ui.list.textContent, /Sending/);
+    assert.equal(ui.notifications.length, 0);
+    ui.calls[1].resolve(response(201, {entry: {...original, id: token, body: 'Keep this message'}})); await flush();
+    assert.doesNotMatch(ui.list.textContent, /Sending|Not sent|Retry/);
+});
+
+test('Back reconciles an interrupted send that the server already saved', async () => {
+    let delivered;
+    const ui = harness([], url => url.pathname === '/messages/' ? {
+        messages: delivered ? [delivered] : [], sync_cursor: delivered ? 1 : 0, has_older: false,
+    } : {conversations: []});
+    await flush(); ui.send('Saved despite navigation'); await flush();
+    const token = ui.calls[0].data.get('client_id');
+    ui.events.pagehide();
+    delivered = {...original, id: token, body: 'Saved despite navigation', version: 1, created_version: 1};
+    ui.events.pageshow({persisted: true}); await flush();
+    assert.match(ui.list.textContent, /Saved despite navigation/);
+    assert.doesNotMatch(ui.list.textContent, /Sending|Not sent|Retry/);
+    assert.equal(ui.calls.length, 1); // Restoring never automatically resends.
 });

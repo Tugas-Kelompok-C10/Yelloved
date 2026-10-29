@@ -1,4 +1,4 @@
-{% load static transaction_cart %}
+{% load static transaction_cart chat_tags %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -32,6 +32,7 @@
         <link rel="stylesheet" href="{% static 'css/item_matching.css' %}">
 
         <link rel="stylesheet" href="{% static 'css/cart-badge.css' %}?v=1">
+        <script src="{% static 'js/chat_session.js' %}" defer></script>
         {% block meta %}
         {% endblock meta %}
         {% if request.resolver_match.namespace == 'account_profile' or request.resolver_match.url_name == 'login' %}
@@ -196,7 +197,7 @@
                     </div>
                 </div>
 
-                <div class="nav-notification nav-chat" data-chat-notifications data-chat-notifications-url="{% url 'chat:notifications' %}">
+                <div class="nav-notification nav-chat" data-chat-notifications data-chat-session="{% chat_session_identity %}" data-chat-user="{{ user.pk }}" data-chat-notifications-url="{% url 'chat:notifications' %}">
                     <button type="button" class="nav-icon-link nav-notification-trigger" aria-label="Chat" title="Chat" aria-expanded="false" aria-controls="chat-popover">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8l-5 4V6a2 2 0 0 1 2-2Z"/><path d="M7 9h10M7 13h7"/></svg>
                         <span class="nav-chat-badge" data-chat-unread hidden></span>
