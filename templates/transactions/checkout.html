@@ -1,3 +1,4 @@
+
 {% extends 'base.html' %}
 {% load static %}
 
@@ -32,13 +33,15 @@
 
     <!-- LAYOUT CHECKOUT -->
     <div class="checkout-layout">
+
         <div class="checkout-main-column">
 
             <!-- ALAMAT PENGIRIMAN / JADWAL PERTEMUAN -->
             <section class="checkout-address-card" id="checkout-delivery-section">
 
-                <!-- Tampilan alamat untuk QRIS dan Virtual Account -->
+                <!-- Alamat pengiriman untuk QRIS dan Virtual Account -->
                 <div id="shipping-address-fields">
+
                     <div class="checkout-card-heading">
                         <span class="checkout-section-icon">01</span>
                         <h2>Alamat Pengiriman</h2>
@@ -78,19 +81,25 @@
                         class="address-change-button"
                         data-open-address-modal
                     >
-                        {% if selected_address %}Ubah alamat{% else %}Tambah alamat{% endif %}
+                        {% if selected_address %}
+                            Ubah alamat
+                        {% else %}
+                            Tambah alamat
+                        {% endif %}
                     </button>
                 </div>
 
-                <!-- Tampilan jadwal untuk COD -->
+                <!-- Jadwal pertemuan untuk COD -->
                 <div id="cod-meeting-section" hidden>
+
                     <div class="checkout-card-heading">
                         <span class="checkout-section-icon">01</span>
                         <h2>Jadwal Pertemuan</h2>
                     </div>
 
                     <p class="payment-description">
-                        Tentukan lokasi dan waktu untuk bertemu langsung dengan penjual di kampus.
+                        Tentukan lokasi dan waktu untuk bertemu langsung
+                        dengan penjual di kampus.
                     </p>
 
                     <div class="checkout-field">
@@ -122,7 +131,8 @@
 
                     <p class="payment-description">
                         Pastikan jadwal disepakati bersama penjual.
-                        Lakukan pembayaran langsung saat bertemu di tempat umum kampus.
+                        Lakukan pembayaran langsung saat bertemu
+                        di tempat umum kampus.
                     </p>
                 </div>
             </section>
@@ -155,13 +165,28 @@
                     <div class="address-modal-list">
                         {% for address in addresses %}
                         <div class="address-modal-item">
+
                             <form method="post" class="address-select-form">
                                 {% csrf_token %}
-                                <input type="hidden" name="action" value="select_address">
-                                <input type="hidden" name="address_id" value="{{ address.id }}">
+                                <input
+                                    type="hidden"
+                                    name="action"
+                                    value="select_address"
+                                >
+                                <input
+                                    type="hidden"
+                                    name="address_id"
+                                    value="{{ address.id }}"
+                                >
 
-                                <button type="submit" class="address-pick-button">
-                                    <span class="address-radio" aria-hidden="true">
+                                <button
+                                    type="submit"
+                                    class="address-pick-button"
+                                >
+                                    <span
+                                        class="address-radio"
+                                        aria-hidden="true"
+                                    >
                                         {% if selected_address.id == address.id %}
                                         <span></span>
                                         {% endif %}
@@ -178,7 +203,7 @@
                                             {{ address.city }}{% if address.province %},
                                             {{ address.province }}{% endif %}
                                             {% if address.postal_code %}
-                                            {{ address.postal_code }}
+                                                {{ address.postal_code }}
                                             {% endif %}
                                         </span>
 
@@ -207,10 +232,21 @@
                                 {% if not address.is_default %}
                                 <form method="post" class="address-default-form">
                                     {% csrf_token %}
-                                    <input type="hidden" name="action" value="set_default">
-                                    <input type="hidden" name="address_id" value="{{ address.id }}">
+                                    <input
+                                        type="hidden"
+                                        name="action"
+                                        value="set_default"
+                                    >
+                                    <input
+                                        type="hidden"
+                                        name="address_id"
+                                        value="{{ address.id }}"
+                                    >
 
-                                    <button type="submit" class="address-action-button">
+                                    <button
+                                        type="submit"
+                                        class="address-action-button"
+                                    >
                                         Jadikan Utama
                                     </button>
                                 </form>
@@ -218,7 +254,9 @@
                             </div>
                         </div>
                         {% empty %}
-                        <p class="address-empty">Belum ada alamat tersimpan.</p>
+                        <p class="address-empty">
+                            Belum ada alamat tersimpan.
+                        </p>
                         {% endfor %}
                     </div>
 
@@ -266,12 +304,23 @@
                         id="new-address-form"
                     >
                         {% csrf_token %}
-                        <input type="hidden" name="action" value="save_address">
-                        <input type="hidden" name="address_id" value="">
+                        <input
+                            type="hidden"
+                            name="action"
+                            value="save_address"
+                        >
+                        <input
+                            type="hidden"
+                            name="address_id"
+                            value=""
+                        >
 
                         <div class="new-address-grid">
                             <div class="checkout-field">
-                                <label for="recipient-name">Nama Lengkap</label>
+                                <label for="recipient-name">
+                                    Nama Lengkap
+                                </label>
+
                                 <input
                                     id="recipient-name"
                                     type="text"
@@ -285,6 +334,7 @@
 
                             <div class="checkout-field">
                                 <label for="phone">Nomor Telepon</label>
+
                                 <input
                                     id="phone"
                                     type="tel"
@@ -299,6 +349,7 @@
 
                         <div class="checkout-field">
                             <label for="province">Provinsi</label>
+
                             <select id="province" name="province" required>
                                 <option value="">Pilih Provinsi</option>
                             </select>
@@ -307,14 +358,26 @@
                         <div class="new-address-grid">
                             <div class="checkout-field">
                                 <label for="regency">Kota/Kabupaten</label>
-                                <select id="regency" name="regency" disabled required>
+
+                                <select
+                                    id="regency"
+                                    name="regency"
+                                    disabled
+                                    required
+                                >
                                     <option value="">Pilih Kota/Kabupaten</option>
                                 </select>
                             </div>
 
                             <div class="checkout-field">
                                 <label for="district">Kecamatan</label>
-                                <select id="district" name="district" disabled required>
+
+                                <select
+                                    id="district"
+                                    name="district"
+                                    disabled
+                                    required
+                                >
                                     <option value="">Pilih Kecamatan</option>
                                 </select>
                             </div>
@@ -323,13 +386,20 @@
                         <div class="new-address-grid">
                             <div class="checkout-field">
                                 <label for="village">Kelurahan/Desa</label>
-                                <select id="village" name="village" disabled required>
+
+                                <select
+                                    id="village"
+                                    name="village"
+                                    disabled
+                                    required
+                                >
                                     <option value="">Pilih Kelurahan/Desa</option>
                                 </select>
                             </div>
 
                             <div class="checkout-field">
                                 <label for="postal-code">Kode Pos</label>
+
                                 <input
                                     id="postal-code"
                                     type="text"
@@ -346,7 +416,10 @@
                         </div>
 
                         <div class="checkout-field">
-                            <label for="address">Nama Jalan, Gedung, No. Rumah</label>
+                            <label for="address">
+                                Nama Jalan, Gedung, No. Rumah
+                            </label>
+
                             <textarea
                                 id="address"
                                 name="address"
@@ -359,6 +432,7 @@
 
                         <div class="checkout-field">
                             <label for="address-label">Tandai Sebagai</label>
+
                             <select id="address-label" name="label">
                                 <option value="Rumah">Rumah</option>
                                 <option value="Kantor">Kantor</option>
@@ -385,7 +459,10 @@
                                 Batal
                             </button>
 
-                            <button type="submit" class="checkout-primary-button">
+                            <button
+                                type="submit"
+                                class="checkout-primary-button"
+                            >
                                 Simpan Alamat
                             </button>
                         </footer>
@@ -393,8 +470,9 @@
                 </section>
             </div>
 
-            <!-- METODE PEMBAYARAN -->
+            <!-- METODE PEMBAYARAN: HANYA SATU BLOK -->
             <section class="checkout-address-card checkout-payment-card">
+
                 <div class="checkout-card-heading">
                     <span class="checkout-section-icon">02</span>
                     <h2>Metode Pembayaran</h2>
@@ -406,9 +484,14 @@
 
                 <form method="post" id="payment-method-form">
                     {% csrf_token %}
-                    <input type="hidden" name="action" value="select_payment">
+                    <input
+                        type="hidden"
+                        name="action"
+                        value="select_payment"
+                    >
 
                     <div class="payment-options">
+
                         <label class="payment-option">
                             <input
                                 type="radio"
@@ -418,9 +501,13 @@
                             >
 
                             <span class="payment-option-icon">COD</span>
+
                             <span class="payment-option-content">
                                 <strong>COD</strong>
-                                <small>Bayar langsung kepada penjual saat bertemu di kampus.</small>
+                                <small>
+                                    Bayar langsung kepada penjual
+                                    saat bertemu di kampus.
+                                </small>
                             </span>
                         </label>
 
@@ -433,9 +520,12 @@
                             >
 
                             <span class="payment-option-icon">QR</span>
+
                             <span class="payment-option-content">
                                 <strong>QRIS</strong>
-                                <small>Bayar melalui aplikasi yang mendukung QRIS</small>
+                                <small>
+                                    Bayar melalui aplikasi yang mendukung QRIS.
+                                </small>
                             </span>
                         </label>
 
@@ -448,9 +538,10 @@
                             >
 
                             <span class="payment-option-icon">VA</span>
+
                             <span class="payment-option-content">
                                 <strong>Virtual Account</strong>
-                                <small>Transfer melalui rekening bank</small>
+                                <small>Transfer melalui rekening bank.</small>
                             </span>
                         </label>
                     </div>
@@ -473,7 +564,10 @@
                         </select>
                     </div>
 
-                    <button type="submit" class="checkout-primary-button">
+                    <button
+                        type="submit"
+                        class="checkout-primary-button"
+                    >
                         Bayar Sekarang
                     </button>
                 </form>
@@ -484,111 +578,63 @@
             </p>
         </div>
 
-        <p class="payment-description">
-            Pilih metode pembayaran yang paling nyaman untukmu.
-        </p>
+        <!-- RINGKASAN PESANAN -->
+        <aside class="checkout-summary-card">
 
-        <form method="post" id="payment-method-form">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="select_payment">
+            <h2 class="checkout-summary-heading">
+                Ringkasan Pesanan
+            </h2>
 
-            <div class="payment-options">
-                <label class="payment-option">
-                    <input type="radio"
-                           name="payment_method"
-                           value="qris"
-                           {% if selected_payment_method == "qris" or not selected_payment_method %}checked{% endif %}>
+            {% if cart_items %}
+                {% for entry in cart_items %}
 
-                    <span class="payment-option-icon">QR</span>
+                <article class="checkout-summary-item">
 
-                    <span class="payment-option-content">
-                        <strong>QRIS</strong>
-                        <small>Bayar melalui aplikasi yang mendukung QRIS</small>
-                    </span>
-                </label>
+                    {% if entry.item.display_image_url %}
+                    <img
+                        class="checkout-summary-image"
+                        src="{{ entry.item.display_image_url }}"
+                        {% if entry.item.fallback_image_url %}
+                        data-fallback="{{ entry.item.fallback_image_url }}"
+                        {% endif %}
+                        alt="{{ entry.item.title }}"
+                        loading="lazy"
+                    >
+                    {% else %}
+                    <div class="checkout-summary-image"></div>
+                    {% endif %}
 
-                <label class="payment-option">
-                    <input type="radio"
-                           name="payment_method"
-                           value="bank_transfer"
-                           {% if selected_payment_method == "bank_transfer" %}checked{% endif %}>
+                    <div class="checkout-summary-info">
+                        <h3>{{ entry.item.title }}</h3>
 
-                    <span class="payment-option-icon">VA</span>
+                        <p class="checkout-summary-price">
+                            {{ entry.item.price_display }}
+                        </p>
 
-                    <span class="payment-option-content">
-                        <strong>Virtual Account</strong>
-                        <small>Transfer melalui rekening bank</small>
-                    </span>
-                </label>
-            </div>
+                        <p class="checkout-summary-quantity">
+                            Jumlah: {{ entry.quantity }}
+                        </p>
+                    </div>
 
-            <div class="payment-bank-selection"
-                 id="payment-bank-selection"
-                 {% if selected_payment_method != "bank_transfer" %}hidden{% endif %}>
-
-                <label for="payment-bank">Pilih Bank</label>
-                <select name="bank" id="payment-bank">
-                    <option value="">Pilih bank</option>
-                    <option value="bca" {% if selected_bank == "bca" %}selected{% endif %}>BCA</option>
-                    <option value="bni" {% if selected_bank == "bni" %}selected{% endif %}>BNI</option>
-                    <option value="bri" {% if selected_bank == "bri" %}selected{% endif %}>BRI</option>
-                    <option value="mandiri" {% if selected_bank == "mandiri" %}selected{% endif %}>Mandiri</option>
-                    <option value="permata" {% if selected_bank == "permata" %}selected{% endif %}>Permata</option>
-                </select>
-            </div>
-
-            <button type="submit" class="checkout-primary-button">
-                Simpan Metode Pembayaran
-            </button>
-        </form>
-    </section>
-
-    
-<p class="checkout-note">
-    Pastikan nama penerima, nomor HP, dan alamat sudah benar.
-</p>
-
-    </div>
-
-    <!-- RINGKASAN PESANAN -->
-    <aside class="checkout-summary-card">
-        <h2 class="checkout-summary-heading">
-            Ringkasan Pesanan
-        </h2>
-
-        {% if cart_items %}
-            {% for entry in cart_items %}
-            <article class="checkout-summary-item">
-                {% if entry.item.display_image_url %}
-                <img
-                    class="checkout-summary-image"
-                    src="{{ entry.item.display_image_url }}"
-                    data-fallback="{{ entry.item.fallback_image_url }}"
-                    alt="{{ entry.item.title }}"
-                    loading="lazy"
-                >
-                {% else %}
-                <div class="checkout-summary-image"></div>
-                {% endif %}
-
-                <div class="checkout-summary-info">
-                    <h3>{{ entry.item.title }}</h3>
-
-                    <p class="checkout-summary-price">
-                        {{ entry.item.price_display }}
-                    </p>
+                </article>
+                {% endfor %}
 
                 <div class="checkout-summary-total">
                     <span>Total belanja</span>
                     <strong>Rp{{ total|floatformat:0 }}</strong>
                 </div>
+
             {% else %}
                 <p class="checkout-summary-empty">
                     Keranjangmu masih kosong. Tambahkan barang terlebih dahulu.
                 </p>
-                <a href="/transactions/cart/">Kembali ke keranjang</a>
+
+                <a href="{% url 'transactions:cart' %}">
+                    Kembali ke keranjang
+                </a>
             {% endif %}
         </aside>
+
     </div>
 </main>
 
