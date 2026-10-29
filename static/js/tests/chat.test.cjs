@@ -62,6 +62,17 @@ function harness(initial = [], getResult) {
         openAction: (action, id = original.id) => app.handlers.click({target: {closest: selector => selector === '[data-chat-action]' ? {dataset: {messageId: id, chatAction: action}} : null}})};
 }
 
+test('message HTML payloads are displayed as text, not inserted as HTML', async () => {
+    const payload = '<img src=x onerror=alert(1)>';
+    const ui = harness([{...original, body: payload}]);
+    await flush();
+    const nodes = [];
+    const visit = element => {nodes.push(element); element.children.forEach(visit);};
+    visit(ui.list);
+    assert.ok(nodes.some(element => element.text === payload));
+    assert.ok(nodes.every(element => !Object.hasOwn(element, 'innerHTML')));
+});
+
 test('rate limit shows the server message and keeps the outgoing message retryable', async () => {
     const ui = harness(); await flush();
     ui.send('Keep this message'); await flush();

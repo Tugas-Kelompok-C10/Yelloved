@@ -34,6 +34,7 @@
     };
     const node = (tag, text, className) => {
         const element = document.createElement(tag);
+        // Messages and names are plain text, never executable HTML.
         if (text !== undefined) element.textContent = text;
         if (className) element.className = className;
         return element;
