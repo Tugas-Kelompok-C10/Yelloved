@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.db.models import Q, OuterRef, Subquery
+from django.db.models import Count, Q, OuterRef, Subquery
 from django.db.models.functions import Coalesce
 from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404, render
@@ -23,14 +23,17 @@ def _peer(request, user_id):
     return get_object_or_404(get_user_model().objects.filter(is_active=True).exclude(pk=request.user.pk), pk=user_id)
 
 
-def _conversation_list(user):
+def _conversation_list(user, limit=50):
     latest = Message.objects.filter(conversation=OuterRef("pk")).order_by("-created_at", "-pk")
     rows = Conversation.objects.filter(Q(first_user=user) | Q(second_user=user)).select_related("first_user", "second_user").annotate(
         recent_body=Subquery(latest.values("body")[:1]),
+        recent_file=Subquery(latest.values("attachment_name")[:1]),
         recent_at=Coalesce(Subquery(latest.values("created_at")[:1]), "created_at"),
+        unread_count=Count("messages", filter=Q(messages__read_at__isnull=True, messages__deleted_at__isnull=True) & ~Q(messages__sender=user)),
     ).order_by("-recent_at", "pk")
     return [{"peer": row.second_user if row.first_user_id == user.pk else row.first_user,
-             "preview": row.recent_body or "Message deleted."} for row in rows[:50]]
+             "preview": row.recent_body or (f"Attachment: {row.recent_file}" if row.recent_file else "Message deleted."),
+             "unread": row.unread_count} for row in rows[:limit]]
 
 
 def _render(request, peer=None):
@@ -41,6 +44,7 @@ def _render(request, peer=None):
 def _entry(message, user):
     return {"id": str(message.pk), "body": message.body if not message.deleted_at else "",
         "mine": message.sender_id == user.pk, "deleted": bool(message.deleted_at),
+        "unread": message.sender_id != user.pk and message.read_at is None and message.deleted_at is None,
         "created_at": message.created_at.isoformat(), "revision": message.edited_at.isoformat(),
         "attachment": ({"name": message.attachment_name, "url": reverse("chat:attachment", args=[message.pk])}
                        if message.attachment and not message.deleted_at else None),
@@ -68,8 +72,36 @@ def inbox_api(request):
         return _error("Your session has expired. Please sign in again.", 401)
     return JsonResponse({"conversations": [{"peer_id": row["peer"].pk,
         "name": row["peer"].get_full_name() or row["peer"].username,
-        "preview": row["preview"][:80], "url": reverse("chat:with_user", args=[row["peer"].pk])}
+        "preview": row["preview"][:80], "unread": row["unread"], "url": reverse("chat:with_user", args=[row["peer"].pk])}
         for row in _conversation_list(request.user)]})
+
+
+@require_GET
+def notifications(request):
+    if not request.user.is_authenticated:
+        return _error("Please sign in again to check chat notifications.", 401)
+    incoming = Message.objects.filter(Q(conversation__first_user=request.user) | Q(conversation__second_user=request.user),
+                                     read_at__isnull=True, deleted_at__isnull=True).exclude(sender=request.user)
+    return JsonResponse({"unread": incoming.count(), "conversations": [{
+        "name": row["peer"].get_full_name() or row["peer"].username, "initial": row["peer"].username[:1].upper(),
+        "preview": row["preview"][:100], "unread": row["unread"], "url": reverse("chat:with_user", args=[row["peer"].pk])}
+        for row in _conversation_list(request.user, limit=3)]})
+
+
+@require_POST
+def mark_read(request, user_id):
+    if not request.user.is_authenticated:
+        return _error("Your session has expired. Please sign in again.", 401)
+    ids = request.POST.getlist("ids")
+    if not ids or len(ids) > 50 or not all(_valid_uuid(value) for value in ids):
+        return _error("Invalid message selection.", 422)
+    # Only acknowledge messages actually delivered to this participant, never
+    # messages that arrived after the browser fetched the current batch.
+    pair = _pair(request.user, get_object_or_404(get_user_model(), pk=user_id))
+    count = Message.objects.filter(conversation__first_user_id=pair["first_user_id"],
+        conversation__second_user_id=pair["second_user_id"], sender_id=user_id,
+        pk__in=ids, read_at__isnull=True, deleted_at__isnull=True).update(read_at=timezone.now())
+    return JsonResponse({"read": count})
 
 
 @require_http_methods(["GET", "POST"])

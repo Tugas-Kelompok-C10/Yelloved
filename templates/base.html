@@ -179,9 +179,16 @@
                     </div>
                 </div>
 
-                <a href="{% url 'chat:inbox' %}" class="nav-icon-link" title="Chat" aria-label="Chat">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H5l-3 2v-7.5A8.5 8.5 0 0 1 10.5 6H13"/><path d="M8 11h9M8 15h6"/></svg>
-                </a>
+                <div class="nav-notification nav-chat" data-chat-notifications data-chat-notifications-url="{% url 'chat:notifications' %}">
+                    <button type="button" class="nav-icon-link nav-notification-trigger" aria-label="Chat" title="Chat" aria-expanded="false" aria-controls="chat-popover">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8l-5 4V6a2 2 0 0 1 2-2Z"/><path d="M7 9h10M7 13h7"/></svg>
+                        <span class="nav-chat-badge" data-chat-unread hidden></span>
+                    </button>
+                    <section class="notification-popover nav-chat-popover" id="chat-popover" aria-label="Recent chats">
+                        <header class="notification-popover-header"><h2>Chat</h2><a href="{% url 'chat:inbox' %}">View all</a></header>
+                        <div data-chat-preview><p class="nav-chat-empty">Loading recent chats…</p></div>
+                    </section>
+                </div>
                 {% cart_listing_count user as nav_cart_count %}
                 <a href="{% url 'transactions:cart' %}"
                     class="nav-icon-link nav-cart-link"
@@ -277,6 +284,7 @@
         </div>
     </footer>
     <script src="{% static 'js/toast.js' %}?v=navigation-2" defer></script>
+    {% if user.is_authenticated %}<script src="{% static 'js/chat_notifications.js' %}" defer></script>{% endif %}
     <script src="{% static 'js/media_fallback.js' %}" data-avatar-fallback="{% static 'img/Default_PP.png' %}" defer></script>
     {% if request.resolver_match.namespace == 'account_profile' or request.resolver_match.url_name == 'login' %}
     <script src="{% static 'js/account.js' %}?v=account-refresh-3" defer></script>

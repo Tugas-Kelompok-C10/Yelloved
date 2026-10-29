@@ -33,6 +33,7 @@ class Message(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     edited_at = models.DateTimeField(default=timezone.now)
     deleted_at = models.DateTimeField(null=True, blank=True)
+    read_at = models.DateTimeField(null=True, blank=True)
     attachment = models.FileField(storage=ChatAttachmentStorage(), upload_to=attachment_path, blank=True)
     attachment_name = models.CharField(max_length=180, blank=True)
     attachment_type = models.CharField(max_length=60, blank=True)

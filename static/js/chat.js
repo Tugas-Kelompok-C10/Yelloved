@@ -99,6 +99,12 @@
         if (previousPage) list.scrollTop = top + list.scrollHeight - height;
         if (previousPage || firstLoad) older.hidden = !result.has_older;
         status.textContent = '';
+        const unread = result.messages.filter(row => row.unread);
+        if (unread.length && !document.hidden && document.hasFocus?.() !== false && list.scrollHeight - list.scrollTop - list.clientHeight < 90) {
+            const data = new FormData(); unread.forEach(row => data.append('ids', row.id));
+            await request(app.dataset.readUrl, data);
+            window.dispatchEvent(new Event('chat:read'));
+        }
     };
     const loadThreads = async () => {
         const result = await request(app.dataset.inboxUrl);
@@ -198,6 +204,7 @@
         if (!document.hidden) await refresh();
         timer = setTimeout(tick, 5000);
     };
+    window.addEventListener('focus', () => refresh());
     window.addEventListener('pagehide', () => {stopped = true; clearTimeout(timer);});
     window.addEventListener('pageshow', event => {if (event.persisted) {stopped = false; tick();}});
     refresh(true).finally(() => {timer = setTimeout(tick, 5000);});
