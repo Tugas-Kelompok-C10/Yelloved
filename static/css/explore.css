@@ -577,3 +577,21 @@
     .item-detail-page .item-seller-items-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
     .item-detail-page .item-detail-secondary { margin-top: 30px; }
 }
+
+/* Items form photo previews: bounded tiles, never full-size uploads. */
+.item-form-page .item-photo-preview { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; }
+.item-form-page .item-photo-preview:empty { display:none; }
+.item-form-page .item-photo-tile { display:flex; flex-direction:column; gap:6px; min-width:0; padding:7px; border:1px solid var(--items-border); border-radius:12px; background:#fffef9; }
+.item-form-page .item-photo-tile img { display:block; width:100%; height:90px; object-fit:cover; border-radius:8px; }
+.item-form-page .item-photo-tile span { display:flex; align-items:center; gap:5px; font-size:10px; font-weight:400; }
+.item-form-page .item-photo-tile input[type="checkbox"] { width:14px; height:14px; min-height:0; padding:0; accent-color:#320c35; }
+.item-form-page .item-photo-tile button { padding:4px 8px; border:1px solid #80518455; border-radius:999px; color:#320c35; background:#f2eebf; font:600 10px "Sora",sans-serif; cursor:pointer; }
+.item-form-page .item-photo-feedback { font-size:11px; color:#765779; }
+.item-form-page .item-photo-feedback:empty { display:none; }
+.item-form-page .item-legacy-photo { max-width:150px; }
+@media (max-width:600px) { .item-form-page .item-photo-preview { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media (max-width:380px) { .item-form-page .item-photo-preview { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+.item-detail-page .item-gallery-thumbnails { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.item-detail-page .item-gallery-thumbnails button { width:64px; height:64px; padding:3px; border:1px solid var(--items-border); border-radius:10px; background:var(--paper); cursor:pointer; overflow:hidden; }
+.item-detail-page .item-gallery-thumbnails button[aria-pressed="true"] { border-color:#320c35; box-shadow:0 0 0 2px #AEDAE7; }
+.item-detail-page .item-gallery-thumbnails img { display:block; width:100%; height:100%; object-fit:cover; border-radius:6px; }

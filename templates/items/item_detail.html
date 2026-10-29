@@ -1,12 +1,17 @@
 {% extends "base.html" %}
 {% load static items_ui %}
-{% block meta %}<script src="{% static 'js/items/favorites.js' %}?v=1" defer></script><script src="{% static 'js/items/ui.js' %}" defer></script><script src="{% static 'js/items/detail.js' %}?v=detail-reference-20261028-2" defer></script><script src="{% static 'js/items/images.js' %}" defer></script><title>{{ item.title }} | Yelloved</title><link rel="stylesheet" href="{% static 'css/explore.css' %}?v=detail-reference-20261028-2">{% endblock %}
+{% block meta %}<script src="{% static 'js/items/cart.js' %}?v=1" defer></script><script src="{% static 'js/items/gallery.js' %}?v=1" defer></script><script src="{% static 'js/items/favorites.js' %}?v=1" defer></script><script src="{% static 'js/items/ui.js' %}" defer></script><script src="{% static 'js/items/detail.js' %}?v=item-multiphoto-20261029-1" defer></script><script src="{% static 'js/items/images.js' %}" defer></script><title>{{ item.title }} | Yelloved</title><link rel="stylesheet" href="{% static 'css/explore.css' %}?v=item-multiphoto-20261029-1">{% endblock %}
 {% block content %}
 <main class="explore-page item-detail-page" lang="en">
     <nav class="item-detail-breadcrumb" aria-label="Breadcrumb"><a href="{% url 'items:explore_items' %}">Catalogue</a><span aria-hidden="true">/</span><span>Item details</span></nav>
     <article class="explore-detail">
         <figure class="explore-detail-media">
             <div class="explore-image explore-detail-image">{% include 'items/_item_image.html' with detail=True %}{% include 'items/_favorite_button.html' %}</div>
+            {% if item.images.count > 1 %}
+            <div class="item-gallery-thumbnails" aria-label="Item photos">
+                {% for photo in item.images.all %}<button type="button" data-gallery-src="{{ photo.image.url }}" aria-label="View photo {{ forloop.counter }}" aria-pressed="{{ forloop.first|yesno:'true,false' }}"><img src="{{ photo.image.url }}" alt="Item photo {{ forloop.counter }}" width="64" height="64" loading="lazy"></button>{% endfor %}
+            </div>
+            {% endif %}
         </figure>
         <div class="explore-detail-body">
             <p class="explore-category">{{ item.get_category_display|ui_text }} · {{ item.listing_type|listing_badge }}</p>
@@ -34,17 +39,13 @@
                         {% if not user.is_authenticated %}
                             <a class="item-cart-button" href="{{ login_url }}?next={{ request.path|urlencode }}" aria-label="Add to cart" title="Add to cart">
                         {% elif item.status == 'available' and item.listing_type == 'sale' %}
-                            {% if item_in_cart %}
-                                <a class="item-cart-button" href="{{ cart_url }}" aria-label="Add to cart" title="Add to cart" aria-describedby="item-cart-existing">
-                            {% else %}
-                                <form id="item-add-to-cart-form" action="{{ cart_add_url }}" method="post" hidden>{% csrf_token %}</form>
-                                <button class="item-cart-button" type="submit" form="item-add-to-cart-form" aria-label="Add to cart" title="Add to cart">
-                            {% endif %}
+                            <form id="item-add-to-cart-form" action="{{ cart_add_url }}" method="post" data-login-url="{{ login_url }}?next={{ request.path|urlencode }}" hidden>{% csrf_token %}</form>
+                            <button class="item-cart-button" type="submit" form="item-add-to-cart-form" aria-label="Add to cart" title="Add to cart">
                         {% else %}
                             <button class="item-cart-button" type="button" disabled aria-label="Add to cart" title="Add to cart">
                         {% endif %}
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h2l2.5 12h11L21 7H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
-                        {% if not user.is_authenticated %}</a>{% elif item.status == 'available' and item.listing_type == 'sale' %}{% if item_in_cart %}</a>{% else %}</button>{% endif %}{% else %}</button>{% endif %}
+                        {% if not user.is_authenticated %}</a>{% else %}</button>{% endif %}
                     </div>
                 {% if not user.is_authenticated or item.owner_id != user.pk %}
                     <button class="explore-button explore-button-secondary" type="button" id="item-offer-open" aria-haspopup="dialog" aria-controls="item-offer-dialog">Make an Offer</button>
@@ -57,7 +58,7 @@
                     <button class="explore-button explore-button-secondary" type="button" disabled title="Coming soon">Chat</button>
                 {% endif %}
                 </div>
-                {% if item_in_cart %}<p class="item-action-status" id="item-cart-existing">Already in your cart. Open your cart to continue.</p>{% endif %}
+                {% if item_in_cart %}<p class="item-action-status" id="item-cart-existing">This item is already in your cart.</p>{% endif %}
                 {% include 'items/_request_status.html' %}
             </section>
             {% endif %}
