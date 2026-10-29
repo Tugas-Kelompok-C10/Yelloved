@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block meta %}<title>Chat | Yelloved</title>{% endblock %}
+{% block content %}
+<main class="chat-app" lang="en">
+    <h1>Chat</h1>
+    <div class="chat-app-workspace">
+        <aside class="chat-app-sidebar" aria-label="Conversations"><h2>Your conversations</h2><p class="chat-app-muted">No conversations yet.</p></aside>
+        <section class="chat-app-conversation" aria-label="Messages"><div class="chat-app-empty"><h2>Hello, {{ user.first_name|default:user.username }}!</h2><p>Choose a conversation or chat with someone from the Wanted Board.</p></div></section>
+    </div>
+</main>
+{% endblock %}

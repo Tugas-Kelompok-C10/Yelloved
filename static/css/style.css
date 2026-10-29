@@ -1629,50 +1629,7 @@ body:has(.profile-page) .site-header {
     .biodata-details { padding-top: 0; }
 }
 
-/* Chat content inside the shared account profile shell. */
-.chat-profile-page .profile-content { display: flex; flex-direction: column; }
-.chat-menu-active,
-.profile-menu-active { color: var(--violet) !important; background: #f1eedb; font-weight: 700; }
-
-.chat-workspace {
-    display: grid;
-    grid-template-columns: minmax(180px, 32%) minmax(0, 1fr);
-    min-width: 0;
-    min-height: 444px;
-    overflow: hidden;
-    border: 1px solid #ded8bf;
-    border-radius: 12px;
-    background: #fbfaed;
-    box-shadow: 0 3px 12px #320c3509;
-}
-
-.chat-list-panel {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    border-right: 1px solid #e4dfcd;
-    background: #fbfaed;
-}
-
-.chat-list-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 48px;
-    padding: 0 12px;
-    border-bottom: 1px solid #e4dfcd;
-}
-
-.chat-list-header h1 { color: #49424c; font-size: 12px; font-weight: 700; }
-.chat-list-empty { display: grid; flex: 1; place-items: center; padding: 14px; color: #9992a3; font-size: 10px; text-align: center; }
-.chat-conversation-panel { display: grid; min-width: 0; min-height: 0; place-items: stretch; }
-.chat-empty-state { min-height: 100%; }
-
-@media (max-width: 700px) {
-    .chat-profile-page { grid-template-columns: 1fr; }
-    .chat-workspace { grid-template-columns: minmax(125px, 35%) minmax(0, 1fr); min-height: 360px; }
-    .chat-list-header h1 { font-size: 11px; }
-}
+.profile-menu-active { color: var(--violet) !important; background: var(--paper); font-weight: 700; }
 
 
 /* =========================
@@ -4753,3 +4710,20 @@ body:has(.profile-page) .profile-page :is(
 .nav-search-history-query span { min-width: 0; }
 .site-header .nav-search-results .nav-search-history-remove { flex: none; border-radius: var(--radius-pill); }
 .site-header .nav-search-results .nav-search-history-clear { flex: none; font-size: 10px; }
+
+/* =========================
+   Chat app — layout and empty states
+   ========================= */
+.chat-app { width: min(1280px, calc(100% - 40px)); margin: 40px auto 64px; color: var(--violet); }
+.chat-app h1 { margin-bottom: 24px; }
+.chat-app-workspace { display: grid; grid-template-columns: minmax(220px, 30%) minmax(0, 1fr); min-height: 560px; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius); background: var(--paper); }
+.chat-app-sidebar { padding: 24px; min-width: 0; border-right: 1px solid var(--border); }
+.chat-app-sidebar h2 { margin-bottom: 20px; font-size: 18px; }
+.chat-app-conversation { display: flex; flex-direction: column; min-width: 0; }
+.chat-app-empty { display: grid; align-content: center; justify-items: center; gap: 16px; flex: 1; padding: 32px; text-align: center; }
+.chat-app-muted, .chat-app-empty p { color: var(--gray); }
+@media (max-width: 700px) {
+    .chat-app-workspace { grid-template-columns: 1fr; }
+    .chat-app-sidebar { border-right: 0; border-bottom: 1px solid var(--border); }
+    .chat-app-conversation { min-height: 420px; }
+}
