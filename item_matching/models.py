@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
 from django.core.validators import FileExtensionValidator
 from wanted_board.validators import validate_reference_image
 
@@ -80,6 +81,19 @@ class ItemRequest(models.Model):
 
     def __str__(self):
         return f'Request by {self.requester} for {self.item}'
+
+
+class PhotoOfferQuota(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+
+class PhotoOfferSendEvent(models.Model):
+    # Keep send history even when a wanted post (and its offers) is deleted.
+    quota = models.ForeignKey(PhotoOfferQuota, on_delete=models.CASCADE, related_name='events')
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        indexes = [models.Index(fields=['quota', 'created_at'], name='photo_offer_send_window')]
 
 
 class ItemOffer(models.Model):

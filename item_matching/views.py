@@ -22,6 +22,8 @@ from .models import ItemOffer, ItemRequest
 from .services import MatchingError
 from .summary import tabs_with_stats
 from .tabs import TAB_KEYS
+from .rate_limits import (PhotoOfferRateLimited, check_photo_offer_limit,
+                          locked_photo_offer_quota, record_photo_offer)
 
 
 @login_required(login_url='login')
@@ -75,7 +77,7 @@ def photo_offer_create(request, wanted_id):
         return JsonResponse({'message': 'Reload the offer form before sending.'}, status=422)
     offer = None
     try:
-        with locked_wanted_post(wanted_id) as post:
+        with locked_photo_offer_quota(request.user) as quota, locked_wanted_post(wanted_id) as post:
             previous = ItemOffer.objects.filter(submission_id=token).first()
             if previous:
                 if previous.offerer_id != request.user.pk or previous.wanted_post_id != post.pk:
@@ -88,10 +90,17 @@ def photo_offer_create(request, wanted_id):
             form = PhotoOfferForm(request.POST, request.FILES)
             if not form.is_valid():
                 return JsonResponse({'message': next(iter(form.errors.values()))[0], 'errors': form.errors.get_json_data()}, status=422)
+            check_photo_offer_limit(quota)
             offer = ItemOffer(wanted_post=post, offerer=request.user, photo=form.cleaned_data['image'],
                               offered_price=form.cleaned_data['price'], message=form.cleaned_data['description'], submission_id=token)
             offer.full_clean()
             offer.save()
+            record_photo_offer(quota)
+    except PhotoOfferRateLimited as error:
+        response = JsonResponse({'code': 'rate_limited', 'message': error.message,
+                                 'retry_after': error.retry_after}, status=429)
+        response['Retry-After'] = str(error.retry_after)
+        return response
     except (OSError, IntegrityError, ValidationError):
         if offer and offer.photo and getattr(offer.photo, '_committed', False):
             try:
