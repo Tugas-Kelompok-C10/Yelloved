@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% load static %}
-{% block meta %}<title>Suggestions | {{ name }}</title><link rel="stylesheet" href="{% static 'css/explore.css' %}"><link rel="stylesheet" href="{% static 'css/item_matching.css' %}">{% endblock %}
+{% block meta %}<title>Suggestions | {{ name }}</title>{% endblock %}
 {% block content %}
-<main class="explore-page matching-page" lang="en">
+<main class="matching-page" lang="en">
     {% if mode == 'wanted' %}
-        <a class="explore-back" href="{% url 'wanted_board:wanted_detail' wanted_post.pk %}">‹ <span>Back</span></a>
+        <a class="wanted-back" href="{% url 'wanted_board:wanted_detail' wanted_post.pk %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span>Back</span></a>
         <header class="matching-header"><h1>Matching items</h1><p>Suggestions for “{{ wanted_post.title }}”.</p></header>
     {% else %}
-        <a class="explore-back" href="{{ item.get_absolute_url }}">‹ <span>Back</span></a>
+        <a class="wanted-back" href="{{ item.get_absolute_url }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span>Back</span></a>
         <header class="matching-header"><h1>Matching wanted posts</h1><p>People who may need “{{ item.title }}”.</p></header>
     {% endif %}
     <section class="matching-list">
@@ -25,7 +25,7 @@
             </div>
             <div class="matching-card-side">
                 <span class="matching-badge">Score {{ m.score }}</span>
-                {% if mode == 'item' %}<a class="explore-button" href="{% url 'item_matching:offer_create' m.wanted_post.pk %}">Offer</a>{% endif %}
+                {% if mode == 'item' %}<a class="matching-action" href="{% url 'item_matching:offer_create' m.wanted_post.pk %}">Offer</a>{% endif %}
             </div>
         </article>
     {% empty %}

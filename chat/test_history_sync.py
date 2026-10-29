@@ -1,4 +1,5 @@
 import uuid
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -9,6 +10,10 @@ from .models import Conversation, Message
 
 class HistorySyncTests(TestCase):
     def setUp(self):
+        # These tests build long histories quickly; send limits have their own tests.
+        quota = patch('chat.rate_limits.MESSAGE_LIMIT', 1000)
+        quota.start()
+        self.addCleanup(quota.stop)
         self.owner = get_user_model().objects.create_user(username='sync-owner')
         self.peer = get_user_model().objects.create_user(username='sync-peer')
         self.client.force_login(self.owner)
@@ -23,7 +28,7 @@ class HistorySyncTests(TestCase):
         first = self.send()
         cursor = self.client.get(self.url).json()['sync_cursor']
         expected = [self.send(str(number))['id'] for number in range(105)]
-        self.send(token=first['id'])  # Retry allocates a harmless gap, not another message.
+        self.send(token=first['id'])  # A successful retry does not create another message.
         result = self.client.get(self.url, {'after': cursor}).json()
         self.assertEqual(len(result['messages']), 100)
         self.assertTrue(result['has_more_changes'])

@@ -11,6 +11,11 @@
     const updateCompose = () => {
         if (!compose) return;
         const file = selectedFile();
+        const body = compose.elements.body;
+        if (body.style) {
+            body.style.height = 'auto';
+            body.style.height = `${Math.min(body.scrollHeight, 140)}px`;
+        }
         compose.querySelector('[type=submit]').disabled = (!compose.elements.body.value.trim() && !file) || compose.elements.body.value.length > 1000;
         const preview = compose.querySelector('[data-chat-file-preview]');
         if (preview) {preview.hidden = !file; compose.querySelector('[data-chat-file-name]').textContent = file?.name || '';}
@@ -29,6 +34,7 @@
     };
     const node = (tag, text, className) => {
         const element = document.createElement(tag);
+        // Messages and names are plain text, never executable HTML.
         if (text !== undefined) element.textContent = text;
         if (className) element.className = className;
         return element;
@@ -204,6 +210,7 @@
             const row = {id: crypto.randomUUID(), body: input.value.trim(), file, mine: true, deleted: false, created_at: new Date().toISOString()};
             composerTouched = true; input.value = ''; restoredFile = null; if (fileInput) fileInput.value = ''; updateCompose(); input.focus(); send(row);
         });
+        updateCompose();
     }
     app.addEventListener('click', event => {
         if (event.target.closest('[data-chat-more-threads]') && !threadsLoading) {

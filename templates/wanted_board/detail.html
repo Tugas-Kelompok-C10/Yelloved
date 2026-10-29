@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load wanted_board_tags static %}
 
-{% block meta %}<title>{{ wanted_post.title }} | {{ name }}</title><script src="{% static 'js/wanted_board.js' %}" defer></script>{% endblock meta %}
+{% block meta %}<title>{{ wanted_post.title }} | {{ name }}</title>{% include "wanted_board/_htmx_assets.html" %}{% endblock meta %}
 
 {% block content %}
 <main class="wanted-detail-page" lang="en">

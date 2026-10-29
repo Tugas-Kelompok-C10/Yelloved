@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load static %}
-{% block meta %}<title>Request {{ item.title }} | {{ name }}</title><link rel="stylesheet" href="{% static 'css/explore.css' %}"><link rel="stylesheet" href="{% static 'css/item_matching.css' %}">{% endblock %}
+{% block meta %}<title>Request {{ item.title }} | {{ name }}</title>{% endblock %}
 {% block content %}
-<main class="explore-page matching-page" lang="en">
-    <a class="explore-back" href="{{ item.get_absolute_url }}">‹ <span>Back</span></a>
+<main class="matching-page" lang="en">
+    <a class="wanted-back" href="{{ item.get_absolute_url }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span>Back</span></a>
     <section class="matching-form-card">
         <h1>Request item</h1>
         <p class="matching-meta"><strong>{{ item.title }}</strong> · {{ item.get_listing_type_display }} · {{ item.price_display }}</p>
@@ -12,7 +12,7 @@
             {% for error in form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
             {% for field in form %}
                 <div class="matching-field">
-                    {{ field.label_tag }}
+                    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="wanted-required" aria-hidden="true">*</span>{% endif %}</label>
                     {% if field.name == 'offer_price' %}
                         <div class="matching-money"><span>Rp</span>{{ field }}</div>
                     {% else %}
@@ -25,7 +25,7 @@
             {% if item.listing_type == 'swap' and not form.offered_item.field.queryset.exists %}
                 <p class="form-error">You don’t have an available item to swap yet. <a href="{% url 'items:item_create' %}">Add an item first</a>.</p>
             {% endif %}
-            <button class="explore-button" type="submit">Send request</button>
+            <button class="matching-action" type="submit">Send request</button>
         </form>
     </section>
 </main>
