@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import include, path
-from django.contrib.auth.views import LoginView
+from account_profile.views import AccountLoginView
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -8,7 +8,7 @@ from home.views import search_catalogue, send_love, show_main
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/login/', LoginView.as_view(template_name='account_profile/login.html'), name='login'),
+    path('accounts/login/', AccountLoginView.as_view(), name='login'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('explore/', include('items.urls')),
     path('transactions/', include('transactions.urls')),

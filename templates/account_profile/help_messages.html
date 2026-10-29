@@ -1,26 +1,26 @@
 {% extends 'account_profile/profile_base.html' %}
 
 {% block meta %}
-<title>Pesan Bantuan | {{ name }}</title>
-<meta name="description" content="Lihat tiket bantuan akun Yelloved.">
+<title>Support messages | {{ name }}</title>
+<meta name="description" content="View your Yelloved support requests.">
 {% endblock meta %}
 
 {% block profile_help_active %}profile-menu-active{% endblock %}
 {% block profile_content %}
-<section class="help-messages-panel" aria-label="Pesan Bantuan">
+<section class="help-messages-panel" aria-label="Support messages">
     <div class="help-ticket-list">
         <header class="help-ticket-header">
-            <h1>Pesan Bantuan</h1>
+            <h1>Support messages</h1>
             <label>
-                <span class="sr-only">Filter tiket bantuan</span>
-                <select name="status" aria-label="Filter tiket bantuan">
-                    <option>Semua</option>
-                    <option>Aktif</option>
-                    <option>Selesai</option>
+                <span class="sr-only">Filter support tickets</span>
+                <select name="status" aria-label="Filter support tickets">
+                    <option>All</option>
+                    <option>Open</option>
+                    <option>Resolved</option>
                 </select>
             </label>
         </header>
-        <div class="help-ticket-empty">Belum ada tiket pelaporan</div>
+        <div class="help-ticket-empty">No support tickets yet</div>
     </div>
 
     <div class="help-message-welcome">
@@ -31,14 +31,14 @@
                     <path d="M12 13h40v30H31L19 53v-10h-7z"/>
                     <path d="M22 24h20M22 32h14"/>
                     <circle cx="47" cy="46" r="11" fill="currentColor" stroke="none"/>
-                    <path d="M44 43.5a3 3 0 1 1 5 2.2c-1.3 1.1-2 1.4-2 3" stroke="#fffef8"/>
-                    <circle cx="47" cy="52" r=".8" fill="#fffef8" stroke="none"/>
+                    <path d="M44 43.5a3 3 0 1 1 5 2.2c-1.3 1.1-2 1.4-2 3" stroke="var(--paper)"/>
+                    <circle cx="47" cy="52" r=".8" fill="var(--paper)" stroke="none"/>
                 </svg>
             </span>
             <span class="help-message-sparkle">✦</span>
         </div>
-        <h2>Halo, {{ user.first_name|default:user.username }}!</h2>
-        <p>Seluruh keluhan yang kamu laporkan akan tampil di sini.</p>
+        <h2>Hello, {{ user.first_name|default:user.username }}!</h2>
+        <p>Your support requests will appear here.</p>
     </div>
 </section>
 {% endblock profile_content %}

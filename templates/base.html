@@ -27,12 +27,15 @@
 
         <link
             rel="stylesheet"
-            href="{% static 'css/style.css' %}?v=catalogue-search-history-46"
+            href="{% static 'css/style.css' %}?v=account-palette-48"
         >
         <link rel="stylesheet" href="{% static 'css/item_matching.css' %}">
 
         {% block meta %}
         {% endblock meta %}
+        {% if request.resolver_match.namespace == 'account_profile' or request.resolver_match.url_name == 'login' %}
+        <link rel="stylesheet" href="{% static 'css/account.css' %}?v=account-refresh-3">
+        {% endif %}
     </head>
 
     <body>
@@ -195,25 +198,25 @@
                     </a>
                 <div class="nav-profile-menu">
                     <button type="button" class="nav-profile-trigger" aria-label="Menu profil {{ user.username }}" aria-haspopup="true" aria-expanded="false" aria-controls="profile-dropdown">
-                        <img src="{% static 'img/Default_PP.png' %}" alt="">
+                        <img src="{% if user.account_profile.photo %}{{ user.account_profile.photo.url }}{% else %}{% static 'img/Default_PP.png' %}{% endif %}" alt="">
                         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
                     </button>
                     <section class="profile-dropdown" id="profile-dropdown" aria-label="Menu profil">
                     <a href="{% url 'account_profile:user_profile' user.username %}" class="profile-dropdown-heading">
-                        <img src="{% static 'img/Default_PP.png' %}" alt="">
+                        <img src="{% if user.account_profile.photo %}{{ user.account_profile.photo.url }}{% else %}{% static 'img/Default_PP.png' %}{% endif %}" alt="">
                         <div>
                             <strong>{{ user.username }}</strong>
-                            <span>Lihat profil</span>
+                            <span>View profile</span>
                         </div>
                     </a>
                         <div class="profile-dropdown-links">
-                            <a href="{% url 'transactions:transaction_history' %}">Pesanan</a>
-                            <a href="{% url 'items:item_create' %}"><span><strong>Mulai jualan</strong><small>Barang tak terpakai bisa jadi cuan</small></span></a>
+                            <a href="{% url 'transactions:transaction_history' %}">Orders</a>
+                            <a href="{% url 'items:item_create' %}"><span><strong>Sell</strong><small>Give your items another love</small></span></a>
                             <a href="{% url 'account_profile:profile' %}">Settings</a>
                         </div>
                         <form action="{% url 'logout' %}" method="post" class="profile-dropdown-logout">
                             {% csrf_token %}
-                            <button type="submit">Log out</button>
+                            <button type="submit">{% include "account_profile/_logout_icon.html" %}Log out</button>
                         </form>
                     </section>
                 </div>
@@ -225,7 +228,7 @@
     </header>
 
     <div class="site-toast-region" id="site-toast-region" aria-live="polite" aria-atomic="true">
-        {% if request.resolver_match.app_name == "wanted_board" %}
+        {% if request.resolver_match.app_name == "wanted_board" or request.resolver_match.app_name == "account_profile" or request.resolver_match.url_name == "show_main" or request.resolver_match.url_name == "login" %}
             {% for message in messages %}
                 <article class="site-toast" data-global-toast data-toast-duration="3000" data-toast-type="{{ message.tags|default:'info' }}" hidden>
                     <span class="site-toast-icon" aria-hidden="true">
@@ -271,6 +274,10 @@
         </div>
     </footer>
     <script src="{% static 'js/toast.js' %}" defer></script>
+    <script src="{% static 'js/media_fallback.js' %}" data-avatar-fallback="{% static 'img/Default_PP.png' %}" defer></script>
+    {% if request.resolver_match.namespace == 'account_profile' or request.resolver_match.url_name == 'login' %}
+    <script src="{% static 'js/account.js' %}?v=account-refresh-3" defer></script>
+    {% endif %}
     <script src="{% static 'js/wanted_item_offer.js' %}?v=drafts-1" defer></script>
     <script src="{% static 'js/wanted_image_validation.js' %}" defer></script>
     <script src="{% static 'js/wanted_budget_validation.js' %}" defer></script>

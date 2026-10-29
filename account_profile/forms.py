@@ -1,19 +1,22 @@
 from django import forms
+from django.core.files.uploadedfile import UploadedFile
+from PIL import Image, UnidentifiedImageError
+import warnings
 
 from .models import Address, NotificationPreference, PaymentMethod, Profile
 
 
 class ProfileForm(forms.ModelForm):
-    first_name = forms.CharField(label="Nama", max_length=150, required=False)
+    first_name = forms.CharField(label="Name", max_length=150, required=False)
     email = forms.EmailField(label="Email", required=False)
 
     class Meta:
         model = Profile
         fields = ("photo", "date_of_birth", "gender", "phone_number")
         labels = {
-            "date_of_birth": "Tanggal Lahir",
-            "gender": "Jenis kelamin",
-            "phone_number": "Nomor HP",
+            "date_of_birth": "Date of birth",
+            "gender": "Gender",
+            "phone_number": "Phone number",
         }
         widgets = {
             "photo": forms.FileInput(attrs={
@@ -26,30 +29,39 @@ class ProfileForm(forms.ModelForm):
     def __init__(self, *args, user, **kwargs):
         self.user = user
         super().__init__(*args, **kwargs)
+        # ModelForm validation replaces instance.photo with the new upload.
+        self.original_photo_name = self.instance.photo.name
         self.fields["first_name"].initial = user.first_name
         self.fields["email"].initial = user.email
-        self.fields["gender"].choices = [("", "Belum diatur"), *Profile.GENDER_CHOICES]
+        self.fields["gender"].choices = [("", "Not specified"), ("female", "Female"), ("male", "Male"), ("other", "Other")]
+        self.fields["first_name"].widget.attrs.update(placeholder="Your name", autocomplete="given-name")
+        self.fields["email"].widget.attrs.update(placeholder="you@example.com", autocomplete="email")
+        self.fields["phone_number"].widget.attrs.update(placeholder="e.g. +62 812 3456 7890", autocomplete="tel", inputmode="tel")
+        self.fields["date_of_birth"].widget.format = "%Y-%m-%d"
 
     def clean_photo(self):
         photo = self.cleaned_data.get("photo")
-        if not photo:
+        if not photo or not isinstance(photo, UploadedFile):
             return photo
         if photo.size > 5 * 1024 * 1024:
-            raise forms.ValidationError("Ukuran foto maksimal 5 MB.")
-        header = photo.read(12)
-        photo.seek(0)
-        valid_image = (
-            header.startswith(b"\xff\xd8\xff")
-            or header.startswith(b"\x89PNG\r\n\x1a\n")
-            or header.startswith((b"GIF87a", b"GIF89a"))
-            or (header.startswith(b"RIFF") and header[8:12] == b"WEBP")
-        )
-        if not valid_image:
-            raise forms.ValidationError("Pilih file gambar JPG, PNG, GIF, atau WebP.")
+            raise forms.ValidationError("Your photo must be 5 MB or smaller.")
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", Image.DecompressionBombWarning)
+                with Image.open(photo) as image:
+                    if image.format not in {"JPEG", "PNG", "GIF", "WEBP"}:
+                        raise forms.ValidationError("Choose a JPG, PNG, GIF, or WEBP image.")
+                    if max(image.size) > 4096:
+                        raise forms.ValidationError("Your photo must be 4096 × 4096 pixels or smaller.")
+                    image.verify()
+        except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombWarning, Image.DecompressionBombError):
+            raise forms.ValidationError("This photo could not be read. Choose a valid JPG, PNG, GIF, or WEBP image.")
+        finally:
+            photo.seek(0)
         return photo
 
     def save(self, commit=True):
-        old_photo_name = self.instance.photo.name
+        old_photo_name = self.original_photo_name
         profile = super().save(commit=False)
         profile.user = self.user
         self.user.first_name = self.cleaned_data["first_name"]
@@ -63,6 +75,17 @@ class ProfileForm(forms.ModelForm):
 
 
 class AddressForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["province"].required = True
+        self.fields["postal_code"].required = True
+        if not self.is_bound and self.instance._state.adding:
+            self.initial["label"] = "Home"
+        for name, placeholder in {"label": "e.g. Home or campus", "recipient_name": "Recipient's full name",
+                                  "phone_number": "e.g. +62 812 3456 7890", "street_address": "Street, building, and unit",
+                                  "city": "e.g. Depok", "province": "e.g. West Java", "postal_code": "Postal code"}.items():
+            self.fields[name].widget.attrs["placeholder"] = placeholder
+
     class Meta:
         model = Address
         fields = (
@@ -70,14 +93,14 @@ class AddressForm(forms.ModelForm):
             "city", "province", "postal_code", "is_default",
         )
         labels = {
-            "label": "Label alamat",
-            "recipient_name": "Nama penerima",
-            "phone_number": "Nomor HP",
-            "street_address": "Alamat lengkap",
-            "city": "Kota / Kabupaten",
-            "province": "Provinsi",
-            "postal_code": "Kode pos",
-            "is_default": "Jadikan alamat utama",
+            "label": "Address label",
+            "recipient_name": "Recipient name",
+            "phone_number": "Phone number",
+            "street_address": "Street address",
+            "city": "City",
+            "province": "Province",
+            "postal_code": "Postal code",
+            "is_default": "Set as default address",
         }
         widgets = {
             "street_address": forms.Textarea(attrs={"rows": 3}),
@@ -85,15 +108,22 @@ class AddressForm(forms.ModelForm):
 
 
 class PaymentMethodForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["method_type"].choices = [("", "Choose a payment type"), ("bank", "Bank transfer"), ("e_wallet", "E-wallet")]
+        for name, placeholder in {"provider": "e.g. BCA or GoPay", "account_name": "Name on the account",
+                                  "account_identifier": "Account or phone number"}.items():
+            self.fields[name].widget.attrs["placeholder"] = placeholder
+
     class Meta:
         model = PaymentMethod
         fields = ("method_type", "provider", "account_name", "account_identifier", "is_default")
         labels = {
-            "method_type": "Jenis pembayaran",
-            "provider": "Nama bank / e-wallet",
-            "account_name": "Nama pemilik",
-            "account_identifier": "Nomor rekening / HP",
-            "is_default": "Jadikan metode utama",
+            "method_type": "Payment type",
+            "provider": "Bank or e-wallet provider",
+            "account_name": "Account holder",
+            "account_identifier": "Account or phone number",
+            "is_default": "Set as default payment method",
         }
 
 
@@ -102,8 +132,8 @@ class NotificationPreferenceForm(forms.ModelForm):
         model = NotificationPreference
         fields = ("order_updates", "wanted_updates", "account_updates", "promotions")
         labels = {
-            "order_updates": "Pembaruan pesanan",
-            "wanted_updates": "Aktivitas Wanted Board",
-            "account_updates": "Keamanan dan aktivitas akun",
-            "promotions": "Promo dan rekomendasi",
+            "order_updates": "Order updates",
+            "wanted_updates": "Wanted Board activity",
+            "account_updates": "Account security and activity",
+            "promotions": "Offers and recommendations",
         }

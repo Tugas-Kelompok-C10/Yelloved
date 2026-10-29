@@ -1,35 +1,36 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block meta %}<title>Account settings | Yelloved</title>{% endblock %}
 
 {% block content %}
 <main class="profile-page{% block profile_layout_class %}{% endblock %}">
-    <aside class="profile-sidebar" aria-label="Menu akun">
+    <aside class="profile-sidebar" aria-label="Account menu">
         <div class="profile-identity">
             <div class="profile-avatar" aria-hidden="true">
                 {% if profile.photo %}<img src="{{ profile.photo.url }}" alt="">{% else %}<img src="{% static 'img/Default_PP.png' %}" alt="">{% endif %}
             </div>
             <span>{{ user.get_full_name|default:user.username|default:"Adib" }}</span>
         </div>
-        <nav class="profile-menu" aria-label="Navigasi akun">
+        <nav class="profile-menu" aria-label="Account navigation">
             <section>
                 <h2>Inbox</h2>
-                <a class="{% block profile_reviews_active %}{% endblock %}" href="{% url 'account_profile:reviews' %}">Ulasan</a>
-                <a class="{% block profile_help_active %}{% endblock %}" href="{% url 'account_profile:help_messages' %}">Bantuan</a>
+                <a class="{% block profile_reviews_active %}{% endblock %}" href="{% url 'account_profile:reviews' %}">Reviews</a>
+                <a class="{% block profile_help_active %}{% endblock %}" href="{% url 'account_profile:help_messages' %}">Help</a>
             </section>
             <section>
                 <h2>Matching</h2>
-                <a href="{% url 'item_matching:dashboard' %}">Request &amp; Penawaran</a>
+                <a href="{% url 'item_matching:dashboard' %}">Requests &amp; Offers</a>
             </section>
             <section>
                 <h2>Purchase</h2>
                 <a href="{% url 'transactions:transaction_history' %}?status=pending">Awaiting payment</a>
-                <a href="{% url 'transactions:transaction_history' %}">Daftar Transaksi</a>
+                <a href="{% url 'transactions:transaction_history' %}">Transaction history</a>
             </section>
         </nav>
         {% if user.is_authenticated %}
         <form action="{% url 'logout' %}" method="post" class="profile-logout">
             {% csrf_token %}
-            <button type="submit">Log out</button>
+            <button type="submit">{% include "account_profile/_logout_icon.html" %}Log out</button>
         </form>
         {% else %}
         <a class="profile-logout" href="{% url 'login' %}"><span>Log in</span></a>
@@ -38,7 +39,7 @@
 
     <section class="profile-content">
         {% block profile_heading %}
-        <h1 class="profile-heading"><span class="profile-heading-icon" aria-hidden="true">◎</span>{{ user.get_full_name|default:user.username|default:"Adib" }}</h1>
+        <h1 class="profile-heading"><span class="profile-heading-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span>{{ user.get_full_name|default:user.username|default:"Adib" }}</h1>
         {% endblock %}
         {% block profile_content %}{% endblock %}
     </section>

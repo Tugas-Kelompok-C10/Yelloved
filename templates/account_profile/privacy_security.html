@@ -1,44 +1,45 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block meta %}<title>Privacy &amp; Security | Yelloved</title>{% endblock %}
 {% block content %}
 <main class="profile-page privacy-page">
-    <aside class="profile-sidebar" aria-label="Menu akun">
+    <aside class="profile-sidebar" aria-label="Account menu">
         <div class="profile-identity">
             <div class="profile-avatar" aria-hidden="true">
                 {% if profile.photo %}<img src="{{ profile.photo.url }}" alt="">{% else %}<img src="{% static 'img/Default_PP.png' %}" alt="">{% endif %}
             </div>
             <span>{{ user.get_full_name|default:user.username }}</span>
         </div>
-        <nav class="profile-menu" aria-label="Navigasi akun">
+        <nav class="profile-menu" aria-label="Account navigation">
             <section>
                 <h2>Inbox</h2>
-                <a href="{% url 'account_profile:reviews' %}">Ulasan</a>
-                <a href="{% url 'account_profile:help_messages' %}">Bantuan</a>
+                <a href="{% url 'account_profile:reviews' %}">Reviews</a>
+                <a href="{% url 'account_profile:help_messages' %}">Help</a>
             </section>
             <section>
                 <h2>Matching</h2>
-                <a href="{% url 'item_matching:dashboard' %}">Request &amp; Penawaran</a>
+                <a href="{% url 'item_matching:dashboard' %}">Requests &amp; Offers</a>
             </section>
             <section>
                 <h2>Purchase</h2>
                 <a href="{% url 'transactions:transaction_history' %}?status=pending">Awaiting payment</a>
-                <a href="{% url 'transactions:transaction_history' %}">Daftar Transaksi</a>
+                <a href="{% url 'transactions:transaction_history' %}">Transaction history</a>
             </section>
         </nav>
         <form action="{% url 'logout' %}" method="post" class="profile-logout">
             {% csrf_token %}
-            <button type="submit">Log out</button>
+            <button type="submit">{% include "account_profile/_logout_icon.html" %}Log out</button>
         </form>
     </aside>
 
     <section class="profile-content">
-        <h1 class="profile-heading"><span class="profile-heading-icon" aria-hidden="true">◎</span>{{ user.get_full_name|default:user.username }}</h1>
+        <h1 class="profile-heading"><span class="profile-heading-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span>{{ user.get_full_name|default:user.username }}</h1>
         <div class="profile-panel privacy-panel">
-            <nav class="profile-tabs" aria-label="Pengaturan profil">
-                <a href="{% url 'account_profile:profile' %}">Biodata</a>
-                <a href="{% url 'account_profile:address_list' %}">Address List</a>
-                <a href="{% url 'account_profile:payment_methods' %}">Payment</a>
-                <a href="{% url 'account_profile:notifications' %}">Notification</a>
+            <nav class="profile-tabs" aria-label="Profile settings">
+                <a href="{% url 'account_profile:profile' %}">Personal details</a>
+                <a href="{% url 'account_profile:address_list' %}">Addresses</a>
+                <a href="{% url 'account_profile:payment_methods' %}">Payment methods</a>
+                <a href="{% url 'account_profile:notifications' %}">Notifications</a>
                 <a class="active" href="{% url 'account_profile:privacy_security' %}" aria-current="page">Privacy &amp; Security</a>
             </nav>
 
@@ -46,7 +47,7 @@
                 <div class="address-intro">
                     <div>
                         <h2>Privacy &amp; Security</h2>
-                        <p>Kelola akses akun dan jaga informasi pribadimu.</p>
+                        <p>Manage account access and keep your personal information secure.</p>
                     </div>
                     <span class="notification-mark" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -61,17 +62,17 @@
                         {% if profile.photo %}<img src="{{ profile.photo.url }}" alt="">{% else %}<img src="{% static 'img/Default_PP.png' %}" alt="">{% endif %}
                     </div>
                     <div>
-                        <h3>Akun kamu</h3>
+                        <h3>Your account</h3>
                         <p><span>Username</span><strong>{{ user.username }}</strong></p>
-                        <p><span>Email</span><strong>{{ user.email|default:"Belum ditambahkan" }}</strong></p>
+                        <p><span>Email</span><strong>{{ user.email|default:"Not added" }}</strong></p>
                     </div>
                 </section>
 
                 <section class="security-password-card">
                     <div class="security-section-heading">
                         <div>
-                            <h3>Ganti kata sandi</h3>
-                            <p>Gunakan kata sandi yang kuat dan tidak dipakai di tempat lain.</p>
+                            <h3>Change password</h3>
+                            <p>Choose a strong password you do not use elsewhere.</p>
                         </div>
                         <span class="security-lock-icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -84,18 +85,18 @@
                         {% csrf_token %}
                         {% for field in form %}
                         <div class="security-field">
-                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="profile-required" aria-hidden="true">*</span>{% endif %}</label>
                             {{ field }}
                             {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
                             {% if field.help_text %}<small class="security-help">{{ field.help_text|safe }}</small>{% endif %}
                         </div>
                         {% endfor %}
                         {% for error in form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}
-                        <button class="profile-save-button" type="submit">Perbarui Kata Sandi</button>
+                        <button class="profile-save-button" type="submit">Update password</button>
                     </form>
                 </section>
 
-                <p class="privacy-note">Jangan pernah membagikan kata sandi atau kode keamanan kepada orang lain.</p>
+                <p class="privacy-note">Never share your password or security codes with anyone.</p>
             </div>
         </div>
     </section>
