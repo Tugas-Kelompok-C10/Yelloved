@@ -90,8 +90,18 @@ class Item(models.Model):
         return 'Rp' + f'{price:,.0f}'.replace(',', '.')
 
     @property
+    def primary_image(self):
+        return next(iter(self.images.all()), None) if self.pk else None
+
+    @property
+    def has_image(self):
+        return bool(self.primary_image or self.image or self.image_url)
+
+    @property
     def display_image_url(self):
         from django.templatetags.static import static
+        if self.primary_image:
+            return self.primary_image.image.url
         if self.image:
             return self.image.url
         if self.source != 'dummyjson' and self.image_url:
@@ -113,3 +123,18 @@ class Item(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class ItemImage(models.Model):
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='item_photos/', validators=[
+        FileExtensionValidator(allowed_extensions=('jpg', 'jpeg', 'png', 'webp')),
+        validate_item_upload,
+    ])
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'pk']
+
+    def __str__(self):
+        return f'Photo {self.pk} of item {self.item_id}'
