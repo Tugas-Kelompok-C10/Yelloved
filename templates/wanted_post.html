@@ -75,28 +75,6 @@
     </form>
 </dialog>
 
-<script>
-    (() => {
-        const modal = document.getElementById("create-wanted-modal");
-        if (!modal) return;
-
-        document.addEventListener("click", (event) => {
-            if (!event.target.closest("[data-open-wanted-modal]")) return;
-            event.preventDefault();
-            modal.showModal();
-        });
-
-        modal.querySelector("[data-close-wanted-modal]")?.addEventListener("click", () => {
-            if (modal.dataset.submitting !== "true") modal.close();
-        });
-
-        modal.addEventListener("click", (event) => {
-            if (event.target === modal && modal.dataset.submitting !== "true") modal.close();
-        });
-
-        if (modal.dataset.autoOpen === "true") modal.showModal();
-    })();
-</script>
 {% endif %}
 {% include "wanted_board/_item_offer_modal.html" %}
 <script src="{% static 'js/wanted_board.js' %}" defer></script>

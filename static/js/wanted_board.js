@@ -1,4 +1,5 @@
 (() => {
+    const init = () => {
     const form = document.querySelector("[data-ajax-search]");
     const grid = document.querySelector(".wanted-grid");
     const queryInput = document.getElementById("wanted-query");
@@ -6,6 +7,8 @@
     const pagination = document.querySelector("[data-wanted-pagination]");
 
     if (!form || !grid || !queryInput || !categoryChips.length || !pagination) return;
+    if (form.dataset.searchBound) return;
+    form.dataset.searchBound = 'true';
 
     const debounceDelay = 300;
     let debounceTimer;
@@ -114,4 +117,7 @@
             window.setTimeout(typeNextCharacter, 250);
         }
     }
+    };
+    window.YellovedWantedBoard = {init};
+    init();
 })();

@@ -1,80 +1,174 @@
+/* Wanted CRUD: server-confirmed Create/Edit and optimistic Delete with rollback. */
 (() => {
-    document.querySelectorAll("[data-ajax-upload]").forEach((form) => {
-        const modal = form.closest("dialog");
-        const summary = form.querySelector("[data-upload-form-errors]");
-        let submitting = false;
-
-        const showErrors = (errors) => {
-            let firstInput;
-            Object.entries(errors).forEach(([name, messages]) => {
-                const field = [...form.querySelectorAll("[data-upload-field]")]
-                    .find((element) => element.dataset.uploadField === name);
-                const container = field || summary;
-                const input = field?.querySelector("input, select, textarea");
-                if (input) {
-                    input.setAttribute("aria-invalid", "true");
-                    firstInput ||= input;
-                }
-                messages.forEach((error) => {
-                    const text = document.createElement("small");
-                    text.className = "form-error";
-                    text.dataset.serverError = "";
-                    text.textContent = error.message;
-                    container.append(text);
-                });
-            });
-            firstInput?.focus();
-        };
-
-        modal?.addEventListener("cancel", (event) => {
-            if (submitting) event.preventDefault();
-        });
-
-        form.addEventListener("submit", async (event) => {
-            event.preventDefault();
-            if (submitting || !form.reportValidity()) return;
-            submitting = true;
-            modal.dataset.submitting = "true";
-            form.setAttribute("aria-busy", "true");
-            form.querySelectorAll("[data-server-error]").forEach((error) => error.remove());
-            const body = new FormData(form);
-            const buttons = [...modal.querySelectorAll("button")];
-            const previousStates = buttons.map((button) => button.disabled);
-            const submitButton = form.querySelector('[type="submit"]');
-            const previousLabel = submitButton.textContent;
-            buttons.forEach((button) => { button.disabled = true; });
-            submitButton.textContent = "Saving…";
-
-            try {
-                const response = await fetch(form.action, {
-                    method: "POST",
-                    body,
-                    credentials: "same-origin",
-                    headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
-                });
-                if (response.redirected) {
-                    throw new Error("Your session may have expired. Sign in again in another tab, then retry. Your details are still here.");
-                }
-                if (!(response.headers.get("Content-Type") || "").includes("application/json")) {
-                    throw new Error("Unable to save. Please check your connection or sign in again, then retry.");
-                }
-                const data = await response.json();
-                if (response.status === 422 && data.errors) {
-                    showErrors(data.errors);
-                } else if (response.ok && data.redirect_url) {
-                    window.location.assign(data.redirect_url);
-                } else {
-                    throw new Error("Unable to save. Your details have been kept; please retry.");
-                }
-            } catch (error) {
-                showErrors({ __all__: [{ message: error.message || "Unable to save. Please retry." }] });
-            } finally {
-                submitting = false;
-                modal.dataset.submitting = "false";
-                form.setAttribute("aria-busy", "false");
-                buttons.forEach((button, index) => { button.disabled = previousStates[index]; });
-                submitButton.textContent = previousLabel;
-            }
-        });
+    const dialogs = '#create-wanted-modal, #edit-wanted-modal, #delete-wanted-modal, #item-offer-modal';
+    const pending = new WeakSet();
+    const savedCreates = new WeakMap();
+    let deleting = false, cachedBoard;
+    const notify = (message, type = 'success') => window.YellovedToast?.show({
+        title: type === 'error' ? 'Unable to complete action' : 'Success', message, type,
     });
+    const boardHTML = async url => {
+        const response = await fetch(url, {credentials: 'same-origin', headers: {Accept: 'text/html'}});
+        if (!response.ok || response.redirected) throw new Error('Unable to refresh the board. Please retry.');
+        const html = await response.text();
+        if (!new DOMParser().parseFromString(html, 'text/html').querySelector('main.wanted-page')) {
+            throw new Error('Unable to refresh the board. Please retry.');
+        }
+        cachedBoard = html;
+        return html;
+    };
+    const renderBoard = (html, url, omittedDetail) => {
+        const page = new DOMParser().parseFromString(html, 'text/html');
+        const current = document.querySelector('main.wanted-page, main.wanted-detail-page');
+        const main = document.importNode(page.querySelector('main.wanted-page'), true);
+        if (omittedDetail) main.querySelectorAll('.wanted-card').forEach(card => {
+            if (card.querySelector('.wanted-card-link')?.getAttribute('href') === omittedDetail) card.remove();
+        });
+        document.querySelectorAll(dialogs).forEach(node => node.remove());
+        current.replaceWith(main);
+        main.after(...[...page.querySelectorAll(dialogs)].map(node => document.importNode(node, true)));
+        document.title = page.title;
+        history.replaceState(history.state, '', url);
+        window.YellovedWantedBoard?.init();
+        window.dispatchEvent(new Event('wanted:mounted'));
+        return main;
+    };
+    const post = async form => {
+        const response = await fetch(form.action, {method: 'POST', body: new FormData(form), credentials: 'same-origin',
+            headers: {Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest'}});
+        if (response.redirected) throw new Error('Your session may have expired. Sign in again in another tab, then retry. Your details are still here.');
+        if (!(response.headers.get('Content-Type') || '').includes('application/json')) {
+            throw new Error('Unable to confirm this action. Check your connection or sign in again, then retry.');
+        }
+        const data = await response.json();
+        if (!response.ok) {
+            const error = new Error(data.message || 'Unable to complete this action. Your details are kept; please retry.');
+            error.fields = data.errors;
+            throw error;
+        }
+        return data;
+    };
+    const showErrors = (form, errors) => {
+        let first;
+        Object.entries(errors).forEach(([name, messages]) => {
+            const field = [...form.querySelectorAll('[data-upload-field]')].find(node => node.dataset.uploadField === name);
+            const input = field?.querySelector('input, select, textarea');
+            if (input) { input.setAttribute('aria-invalid', 'true'); first ||= input; }
+            const container = field || form.querySelector('[data-upload-form-errors]');
+            messages.forEach(error => {
+                const node = document.createElement('small');
+                node.className = 'form-error'; node.dataset.serverError = ''; node.textContent = error.message;
+                container.append(node);
+            });
+        });
+        first?.focus();
+    };
+    const removeOptimistically = async form => {
+        const main = document.querySelector('main.wanted-detail-page');
+        const previous = {main, dialogs: [...document.querySelectorAll(dialogs)], url: location.href, title: document.title};
+        const modal = form.closest('dialog');
+        let committed = false;
+        deleting = true;
+        modal.close();
+        // Prefetch makes the board available before deletion is confirmed.
+        if (cachedBoard) renderBoard(cachedBoard, form.dataset.boardUrl, form.dataset.detailUrl).inert = true;
+        else {
+            main.querySelector('.wanted-detail-card').hidden = true;
+            main.setAttribute('aria-busy', 'true');
+            const status = document.createElement('p');
+            status.dataset.deletePending = ''; status.setAttribute('role', 'status'); status.textContent = 'Deleting wanted post…';
+            main.append(status);
+        }
+        try {
+            const data = await post(form);
+            committed = true;
+            renderBoard(await boardHTML(data.board_url), data.board_url);
+            notify(data.message);
+            window.scrollTo({top: 0, behavior: 'instant'});
+        } catch (error) {
+            if (!committed) {
+                document.querySelectorAll(dialogs).forEach(node => node.remove());
+                const current = document.querySelector('main.wanted-page, main.wanted-detail-page');
+                if (current !== previous.main) current.replaceWith(previous.main);
+                previous.main.after(...previous.dialogs);
+                previous.main.querySelector('.wanted-detail-card').hidden = false;
+                previous.main.querySelector('[data-delete-pending]')?.remove();
+                previous.main.removeAttribute('aria-busy');
+                document.title = previous.title;
+                history.replaceState(history.state, '', previous.url);
+                window.dispatchEvent(new Event('wanted:mounted'));
+                modal.showModal();
+                showErrors(form, {__all__: [{message: error.message}]});
+                notify('Deletion could not be confirmed. The post has been restored on screen. Please retry.', 'error');
+            } else {
+                // Never restore a post after the server confirmed its deletion.
+                if (cachedBoard) renderBoard(cachedBoard, form.dataset.boardUrl, form.dataset.detailUrl);
+                else {
+                    previous.main.querySelector('[data-delete-pending]').textContent = 'Post deleted. Open the board to refresh the list.';
+                    previous.main.removeAttribute('aria-busy');
+                }
+                notify('Your post was deleted, but the board could not refresh. Open the board to refresh the list.', 'error');
+            }
+        } finally { deleting = false; }
+    };
+    document.addEventListener('submit', async event => {
+        const form = event.target;
+        if (!form.matches('[data-ajax-upload], [data-ajax-delete]')) return;
+        event.preventDefault();
+        if (pending.has(form) || deleting || !form.reportValidity()) return;
+        pending.add(form);
+        const modal = form.closest('dialog');
+        modal.dataset.submitting = 'true'; form.setAttribute('aria-busy', 'true');
+        form.querySelectorAll('[data-server-error]').forEach(node => node.remove());
+        form.querySelectorAll('[aria-invalid]').forEach(node => node.removeAttribute('aria-invalid'));
+        const buttons = [...modal.querySelectorAll('button')];
+        const states = buttons.map(button => button.disabled);
+        const submit = form.querySelector('[type=submit]');
+        const label = submit.textContent;
+        buttons.forEach(button => { button.disabled = true; }); submit.textContent = 'Saving…';
+        try {
+            if (form.matches('[data-ajax-delete]')) await removeOptimistically(form);
+            else {
+                const data = savedCreates.get(form) || await post(form);
+                if (data.detail_html) {
+                    document.querySelector('.wanted-detail-card').innerHTML = data.detail_html;
+                    form.elements.revision.value = data.revision;
+                    document.querySelector('[data-delete-title]').textContent = data.title;
+                    document.title = `${data.title} | Yelloved`;
+                    modal.close();
+                } else {
+                    savedCreates.set(form, data);
+                    renderBoard(await boardHTML(data.board_url), data.board_url);
+                }
+                notify(data.message);
+            }
+        } catch (error) {
+            showErrors(form, error.fields || {__all__: [{message: savedCreates.has(form)
+                ? 'Your post was saved. Click Refresh board to refresh the list without creating another post.' : error.message}]});
+        } finally {
+            pending.delete(form); modal.dataset.submitting = 'false'; form.removeAttribute('aria-busy');
+            buttons.forEach((button, index) => { button.disabled = states[index]; });
+            submit.textContent = savedCreates.has(form) && form.isConnected ? 'Refresh board' : label;
+            if (savedCreates.has(form)) form.querySelectorAll('input:not([type=hidden]), select, textarea').forEach(input => { input.disabled = true; });
+        }
+    });
+    const modalControls = [
+        ['create-wanted-modal', '[data-open-wanted-modal]', '[data-close-wanted-modal]'],
+        ['edit-wanted-modal', '[data-open-edit-wanted-modal]', '[data-close-edit-wanted-modal]'],
+        ['delete-wanted-modal', '[data-open-delete-wanted-modal]', '[data-close-delete-wanted-modal]'],
+    ];
+    document.addEventListener('click', event => {
+        for (const [id, open, close] of modalControls) {
+            const modal = document.getElementById(id);
+            if (!modal) continue;
+            if (event.target.closest(open)) { event.preventDefault(); if (!deleting) modal.showModal(); }
+            if ((event.target.closest(close) || event.target === modal) && modal.dataset.submitting !== 'true') modal.close();
+        }
+    });
+    document.addEventListener('cancel', event => {
+        if (event.target.matches(dialogs) && event.target.dataset.submitting === 'true') event.preventDefault();
+    }, true);
+    document.querySelectorAll('dialog[data-auto-open=true]').forEach(modal => modal.showModal());
+    const deletion = document.querySelector('[data-ajax-delete]');
+    if (deletion) boardHTML(deletion.dataset.boardUrl).catch(() => { /* The optimistic placeholder remains available. */ });
 })();

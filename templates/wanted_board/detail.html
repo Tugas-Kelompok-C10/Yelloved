@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load wanted_board_tags %}
+{% load wanted_board_tags static %}
 
-{% block meta %}<title>{{ wanted_post.title }} | {{ name }}</title>{% endblock meta %}
+{% block meta %}<title>{{ wanted_post.title }} | {{ name }}</title><script src="{% static 'js/wanted_board.js' %}" defer></script>{% endblock meta %}
 
 {% block content %}
 <main class="wanted-detail-page" lang="en">
@@ -40,9 +40,10 @@
         <h2 id="delete-wanted-title">Delete wanted post?</h2>
         <button class="wanted-modal-close" type="button" data-close-delete-wanted-modal aria-label="Close delete modal">×</button>
     </div>
-    <p>“{{ wanted_post.title }}” will be permanently deleted. This action cannot be undone.</p>
-    <form method="post" action="{% url 'wanted_board:delete_wanted' wanted_post.pk %}">
+    <p>“<span data-delete-title>{{ wanted_post.title }}</span>” will be permanently deleted. This action cannot be undone.</p>
+    <form method="post" action="{% url 'wanted_board:delete_wanted' wanted_post.pk %}" data-ajax-delete data-board-url="{% url 'wanted_board:show_wanted' %}" data-detail-url="{% url 'wanted_board:wanted_detail' wanted_post.pk %}">
         {% csrf_token %}
+        <div data-upload-form-errors role="alert"></div>
         <div class="wanted-modal-actions wanted-modal-actions-split">
             <button class="wanted-button wanted-action-secondary" type="button" data-close-delete-wanted-modal>Cancel</button>
             <button class="wanted-button wanted-action-offer" type="submit">Delete</button>
@@ -50,26 +51,5 @@
     </form>
 </dialog>
 
-<script>
-    (() => {
-        const bindModal = (modalId, openSelector, closeSelector) => {
-            const modal = document.getElementById(modalId);
-            if (!modal) return;
-            document.querySelector(openSelector)?.addEventListener("click", () => modal.showModal());
-            modal.querySelectorAll(closeSelector).forEach((button) => {
-                button.addEventListener("click", () => {
-                    if (modal.dataset.submitting !== "true") modal.close();
-                });
-            });
-            modal.addEventListener("click", (event) => {
-                if (event.target === modal && modal.dataset.submitting !== "true") modal.close();
-            });
-            if (modal.dataset.autoOpen === "true") modal.showModal();
-        };
-
-        bindModal("edit-wanted-modal", "[data-open-edit-wanted-modal]", "[data-close-edit-wanted-modal]");
-        bindModal("delete-wanted-modal", "[data-open-delete-wanted-modal]", "[data-close-delete-wanted-modal]");
-    })();
-</script>
 {% endif %}
 {% endblock content %}

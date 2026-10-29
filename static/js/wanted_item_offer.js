@@ -1,7 +1,6 @@
 (() => {
-    const forms = [...document.querySelectorAll('[data-item-offer-form]')];
-    if (!forms.length) return;
-    const modal = document.getElementById('item-offer-modal');
+    let modal = document.getElementById('item-offer-modal');
+    const bound = new WeakSet();
     const states = new Map();
     let activeForm, guard = false, leaving = false, asking = false;
     const notify = (message, type = 'success') => window.YellovedToast?.show({title: type === 'error' ? 'Unable to save draft' : 'Offer draft', message, type});
@@ -98,9 +97,16 @@
             exit(activeForm, () => { leaving = true; location.assign(link.href); }, true);
         }
     });
-    modal?.addEventListener('click', event => { if (event.target === modal) closeModal(); });
-    modal?.addEventListener('cancel', event => { event.preventDefault(); closeModal(); });
-    forms.forEach(form => {
+    const init = () => {
+    modal = document.getElementById('item-offer-modal');
+    if (modal && !bound.has(modal)) {
+        bound.add(modal);
+        modal.addEventListener('click', event => { if (event.target === modal) closeModal(); });
+        modal.addEventListener('cancel', event => { event.preventDefault(); closeModal(); });
+    }
+    document.querySelectorAll('[data-item-offer-form]').forEach(form => {
+        if (bound.has(form)) return;
+        bound.add(form);
         states.set(form, {dirty: false});
         const changed = () => { states.get(form).dirty = true; activeForm = form; update(form); if (hasContent(form)) protectBack(); };
         form.addEventListener('input', changed);
@@ -119,6 +125,9 @@
         update(form);
         if (!form.closest('dialog')) restore(form);
     });
+    };
+    window.addEventListener('wanted:mounted', init);
+    init();
     window.addEventListener('popstate', () => {
         if (!guard || leaving) return;
         guard = false;

@@ -236,10 +236,17 @@ def _is_ajax(request):
 
 
 def _saved_response(request, wanted_post, message):
-    messages.success(request, message)
     url = reverse("wanted_board:wanted_detail", args=[wanted_post.pk])
     if _is_ajax(request):
-        return JsonResponse({"redirect_url": url, "uid": str(wanted_post.pk)})
+        data = {"redirect_url": url, "uid": str(wanted_post.pk), "message": message,
+                "board_url": reverse("wanted_board:show_wanted")}
+        if request.resolver_match.url_name == "edit_wanted":
+            wanted_post.refresh_from_db()
+            data.update(title=wanted_post.title, revision=wanted_post.updated_at.isoformat(),
+                        detail_html=render_to_string("wanted_board/_detail_body.html",
+                                                    {"wanted_post": wanted_post}, request=request))
+        return JsonResponse(data)
+    messages.success(request, message)
     return redirect(url)
 
 
@@ -339,6 +346,9 @@ def delete_wanted(request, pk):
     wanted_post = get_object_or_404(WantedPost, pk=pk, requester=request.user)
     if request.method == "POST":
         wanted_post.delete()
+        if _is_ajax(request):
+            return JsonResponse({"message": "Your wanted post has been deleted.",
+                                 "board_url": reverse("wanted_board:show_wanted")})
         messages.success(request, "Your wanted post has been deleted.")
         return redirect("wanted_board:show_wanted")
     if request.method != "GET":
