@@ -1,0 +1,8 @@
+.item-detail-page .item-seller-reviews { padding-top:18px; margin-top:20px; border-top:1px solid var(--items-border); }
+.item-detail-page .item-seller-reviews > p { font-size:12px; color:#765779; }
+.item-detail-page .item-seller-reviews > a { color:#320c35; font-size:12px; text-underline-offset:3px; }
+.item-detail-page .item-seller-reviews .profile-review-card { margin:12px 0; padding:12px; border:1px solid var(--items-border); border-radius:12px; background:#fffef9; overflow-wrap:anywhere; }
+.item-detail-page .profile-review-card header { display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; font-size:12px; }
+.item-detail-page .profile-review-card time { font-size:10px; color:#726f59; }
+.item-detail-page .profile-review-stars { margin:6px 0; font-size:17px; color:#71446e; letter-spacing:2px; }
+.item-detail-page .profile-review-comment { margin:0; font-size:12px; line-height:1.7; }

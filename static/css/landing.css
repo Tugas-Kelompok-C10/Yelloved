@@ -268,11 +268,6 @@
 .landing-carousel-controls button:disabled { opacity: 0.35; cursor: not-allowed; }
 .landing-carousel-controls svg, .landing-action-icon { width: 18px; height: 18px; flex: none; }
 .landing-page .landing-hanging-card .explore-card-link { overflow: hidden; border-radius: inherit; }
-.landing-page .landing-placeholder-image { background: var(--text); color: var(--violet); }
-.landing-page .landing-hanging-card:nth-of-type(4n + 2) .landing-placeholder-image { background: var(--blue); }
-.landing-page .landing-hanging-card:nth-of-type(4n + 3) .landing-placeholder-image { background: var(--violet-light-hover); }
-.landing-page .landing-hanging-card:nth-of-type(4n) .landing-placeholder-image { background: var(--light-paper); }
-.landing-placeholder-label { position: absolute; top: 70%; left: 0; width: 100%; text-align: center; font-size: 10px; }
 
 /* Live Wanted Board preview uses the board's shared card and modal templates. */
 .landing-wanted-preview { width: 100%; margin: 0 0 90px; padding: 40px 0; background: var(--paper); }
@@ -375,3 +370,67 @@
     .landing-step-grid { grid-template-columns: 1fr; gap: 16px; }
     .landing-step-art { height: 150px; }
 }
+
+/* FAQ is deliberately isolated from the other landing sections and shared chrome. */
+.landing-faq { --faq-purple:#320c35; --faq-cream:#fffef9; --faq-yellow:#f2eebf; --faq-blue:#AEDAE7; display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,.9fr); grid-template-areas:"questions introduction"; gap:clamp(32px,5vw,72px); width:min(1280px,calc(100% - 48px)); margin:64px auto 48px; color:var(--faq-purple); }
+.landing-faq *, .landing-faq *::before, .landing-faq *::after { box-sizing:border-box; }
+.landing-faq .landing-faq-intro { grid-area:introduction; min-width:0; padding-top:8px; }
+.landing-faq .landing-faq-pill { display:inline-flex; align-items:center; padding:5px 16px; border:2px solid var(--faq-purple); border-radius:999px; background:var(--faq-yellow); font:700 11px/1.5 "Trispace",sans-serif; }
+.landing-faq .landing-faq-intro h2 { max-width:420px; margin:26px 0 22px; font-family:"Trispace","Sora",sans-serif; font-size:clamp(29px,3.2vw,44px); font-weight:750; line-height:1.2; letter-spacing:-1px; }
+.landing-faq .landing-faq-intro > p { max-width:390px; margin:0; font-size:15px; line-height:1.8; }
+.landing-faq .landing-faq-illustration { display:block; width:190px; height:155px; max-width:100%; margin:32px 0 0; }
+.landing-faq .landing-faq-list { grid-area:questions; display:grid; align-content:start; gap:18px; min-width:0; }
+.landing-faq .landing-faq-card { min-width:0; overflow:hidden; border:2px solid var(--faq-purple); border-radius:20px; background:var(--faq-cream); box-shadow:0 5px 0 var(--faq-purple); transition:background-color .22s ease; }
+.landing-faq .landing-faq-card.is-open { background:var(--faq-yellow); }
+.landing-faq .landing-faq-card h3 { margin:0; font:inherit; }
+.landing-faq .landing-faq-trigger { display:grid; grid-template-columns:36px minmax(0,1fr) 38px; align-items:center; gap:16px; width:100%; margin:0; padding:18px 20px; border:0; background:transparent; color:var(--faq-purple); font:inherit; text-align:left; cursor:pointer; }
+.landing-faq .landing-faq-number { display:grid; place-items:center; width:36px; height:36px; border-radius:11px; background:var(--faq-purple); color:var(--faq-yellow); font:700 12px/1 "Trispace",sans-serif; }
+.landing-faq .landing-faq-question { font-size:16px; font-weight:750; line-height:1.5; overflow-wrap:anywhere; }
+.landing-faq .landing-faq-toggle { position:relative; display:block; width:38px; height:38px; border:2px solid var(--faq-purple); border-radius:50%; background:var(--faq-blue); transition:transform .22s ease; }
+.landing-faq .landing-faq-toggle::before, .landing-faq .landing-faq-toggle::after { content:""; position:absolute; top:50%; left:50%; width:14px; height:2px; border-radius:2px; background:var(--faq-purple); transform:translate(-50%,-50%); }
+.landing-faq .landing-faq-toggle::after { transform:translate(-50%,-50%) rotate(90deg); }
+.landing-faq .landing-faq-trigger[aria-expanded="true"] .landing-faq-toggle { transform:rotate(45deg); }
+.landing-faq .landing-faq-trigger:focus-visible { outline:3px solid #805184; outline-offset:-6px; border-radius:17px; }
+.landing-faq .landing-faq-panel { display:grid; grid-template-rows:0fr; opacity:0; transition:grid-template-rows .24s ease,opacity .2s ease; }
+.landing-faq .landing-faq-card.is-open .landing-faq-panel { grid-template-rows:1fr; opacity:1; }
+.landing-faq .landing-faq-answer { min-height:0; overflow:hidden; }
+.landing-faq .landing-faq-answer p { margin:0; padding:0 24px 22px 72px; font-size:14px; line-height:1.8; }
+@media (max-width:900px) {
+    .landing-faq { grid-template-columns:minmax(0,1fr); grid-template-areas:"introduction" "questions"; gap:28px; margin-top:48px; }
+    .landing-faq .landing-faq-intro { display:grid; grid-template-columns:minmax(0,1fr) 150px; column-gap:24px; align-items:start; }
+    .landing-faq .landing-faq-pill { justify-self:start; }
+    .landing-faq .landing-faq-intro h2, .landing-faq .landing-faq-intro > p { grid-column:1; max-width:100%; }
+    .landing-faq .landing-faq-illustration { grid-column:2; grid-row:1 / 4; width:150px; height:auto; margin:0; align-self:center; }
+}
+@media (max-width:540px) {
+    .landing-faq { width:calc(100% - 32px); margin:40px auto 32px; gap:24px; }
+    .landing-faq .landing-faq-intro { grid-template-columns:minmax(0,1fr) 84px; column-gap:12px; }
+    .landing-faq .landing-faq-intro h2 { grid-column:1 / -1; margin:18px 0 14px; font-size:29px; }
+    .landing-faq .landing-faq-intro > p { grid-column:1 / -1; font-size:14px; }
+    .landing-faq .landing-faq-illustration { grid-row:1; width:84px; }
+    .landing-faq .landing-faq-trigger { grid-template-columns:30px minmax(0,1fr) 32px; gap:10px; padding:15px 12px; }
+    .landing-faq .landing-faq-number { width:30px; height:30px; font-size:11px; border-radius:9px; }
+    .landing-faq .landing-faq-toggle { width:32px; height:32px; }
+    .landing-faq .landing-faq-question { font-size:13px; }
+    .landing-faq .landing-faq-answer p { padding:0 16px 18px 52px; font-size:13px; line-height:1.7; }
+    .landing-faq .landing-faq-list { gap:16px; }
+}
+@media (prefers-reduced-motion:reduce) {
+    .landing-faq .landing-faq-card, .landing-faq .landing-faq-toggle, .landing-faq .landing-faq-panel { transition:none; }
+}
+
+/* Database-backed clothesline cards; Catalogue's images/favorite handler are reused. */
+.landing-latest-items .landing-hanging-card { display:flex; flex-direction:column; }
+.landing-latest-items .landing-item-media { position:relative; flex:none; border-radius:inherit; }
+.landing-latest-items .landing-item-media > .explore-card-link { height:auto; border-radius:var(--radius) var(--radius) 0 0; }
+.landing-latest-items .landing-hanging-card > .explore-card-link { height:auto; flex:1; border-radius:0 0 var(--radius) var(--radius); }
+.landing-latest-items .landing-item-media .explore-image { aspect-ratio:4/3; }
+.landing-latest-items .landing-item-media .explore-image img { display:block; width:100%; height:100%; object-fit:cover; }
+.landing-latest-items .landing-item-media .explore-badges { right:52px; }
+.landing-latest-items .landing-item-media .item-favorite { position:absolute; z-index:3; top:10px; right:10px; width:34px; height:34px; padding:0; border-radius:10px; background:#fffef9ed; }
+.landing-latest-items .landing-item-media .item-favorite svg { width:19px; height:19px; }
+.landing-latest-items .landing-item-media .item-favorite:hover { background:#AEDAE7; }
+.landing-latest-items .landing-items-empty { padding:28px 20px; border:1px solid var(--border); border-radius:16px; background:var(--light-paper); text-align:center; }
+.landing-latest-items .landing-items-empty h3 { margin:0 0 8px; font-size:20px; }
+.landing-latest-items .landing-items-empty p { margin:0 0 18px; font-size:13px; color:var(--gray); }
+.landing-latest-items .landing-items-empty .landing-explore { display:inline-flex; }

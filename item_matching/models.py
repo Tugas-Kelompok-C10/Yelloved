@@ -3,6 +3,9 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
+from django.core.validators import FileExtensionValidator
+from wanted_board.validators import validate_reference_image
 
 from items.models import Item
 from wanted_board.models import WantedPost
@@ -80,6 +83,19 @@ class ItemRequest(models.Model):
         return f'Request by {self.requester} for {self.item}'
 
 
+class PhotoOfferQuota(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+
+class PhotoOfferSendEvent(models.Model):
+    # Keep send history even when a wanted post (and its offers) is deleted.
+    quota = models.ForeignKey(PhotoOfferQuota, on_delete=models.CASCADE, related_name='events')
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        indexes = [models.Index(fields=['quota', 'created_at'], name='photo_offer_send_window')]
+
+
 class ItemOffer(models.Model):
     """An item offered by its owner in response to somebody's wanted post."""
 
@@ -90,7 +106,12 @@ class ItemOffer(models.Model):
         WITHDRAWN = 'withdrawn', 'Withdrawn'
 
     wanted_post = models.ForeignKey(WantedPost, on_delete=models.CASCADE, related_name='item_offers')
-    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='wanted_offers')
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='wanted_offers', null=True, blank=True)
+    photo = models.ImageField(upload_to='item_offers/', blank=True, validators=[
+        FileExtensionValidator(allowed_extensions=('jpg', 'jpeg', 'png', 'webp')), validate_reference_image])
+    offered_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True,
+                                        validators=[MinValueValidator(0)])
+    submission_id = models.UUIDField(null=True, blank=True, unique=True, editable=False)
     offerer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                                 related_name='item_offers')
     message = models.TextField('Message', max_length=1000, blank=True)
@@ -106,12 +127,16 @@ class ItemOffer(models.Model):
 
     def clean(self):
         super().clean()
-        if self.wanted_post_id is None or self.item_id is None or self.offerer_id is None:
+        if self.wanted_post_id is None or self.offerer_id is None:
             return
         if self.wanted_post.requester_id == self.offerer_id:
             raise ValidationError('You cannot offer an item on your own wanted post.')
         if self.wanted_post.status != WantedPost.Status.OPEN:
             raise ValidationError('This wanted post is no longer accepting offers.')
+        if self.item_id is None:
+            if not self.photo or self.offered_price is None or not self.message.strip():
+                raise ValidationError('Include an item photo, price, and short description.')
+            return
         if self.item.owner_id != self.offerer_id or self.item.source != 'user':
             raise ValidationError({'item': 'You can only offer your own items.'})
         if self.item.status != Item.Status.AVAILABLE:
@@ -121,4 +146,18 @@ class ItemOffer(models.Model):
             raise ValidationError({'item': 'You already offered this item on this wanted post.'})
 
     def __str__(self):
-        return f'{self.item} offered for {self.wanted_post}'
+        return f'{self.display_title} offered for {self.wanted_post}'
+
+    @property
+    def display_title(self):
+        return self.item.title if self.item_id else self.wanted_post.title
+
+    @property
+    def display_image_url(self):
+        return self.item.display_image_url if self.item_id else (self.photo.url if self.photo else '')
+
+    @property
+    def price_display(self):
+        if self.offered_price is not None:
+            return 'Rp' + f'{self.offered_price:,.0f}'.replace(',', '.')
+        return self.item.price_display if self.item_id else '—'

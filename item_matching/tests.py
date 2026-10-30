@@ -255,30 +255,31 @@ class ItemOfferTests(Base):
 
 
 class WantedOfferModalTests(Base):
-    """The "Offer an Item" button on a wanted post: pick one of your own items, or go sell one."""
+    """Wanted photo offers are independent of existing catalogue listings."""
 
     def setUp(self):
         super().setUp()
         self.post = make_post(self.buyer)                    # pembuat wanted post
         self.detail = reverse('wanted_board:wanted_detail', args=[self.post.pk])
 
-    def test_modal_lists_only_own_available_items(self):
+    def test_detail_uses_photo_offer_form_instead_of_listing_picker(self):
         mine = make_item(self.owner, title='Lampu saya')
         make_item(self.owner, title='Sudah terjual', status='sold')
         make_item(self.other, title='Punya orang lain')
         self.client.force_login(self.owner)
         r = self.client.get(self.detail)
-        self.assertContains(r, 'Lampu saya')
+        self.assertContains(r, 'name="image"')
+        self.assertContains(r, 'name="price"')
+        self.assertContains(r, 'name="description"')
         self.assertNotContains(r, 'Sudah terjual')
         self.assertNotContains(r, 'Punya orang lain')
-        self.assertContains(r, reverse('item_matching:offer_create', args=[self.post.pk]))
-        self.assertContains(r, f'value="{mine.pk}"')
+        self.assertNotContains(r, 'name="item"')
 
-    def test_modal_links_to_item_create_when_user_has_no_items(self):
+    def test_offer_form_available_without_a_catalogue_listing(self):
         self.client.force_login(self.owner)
         r = self.client.get(self.detail)
-        self.assertContains(r, 'Jual Barang')
-        self.assertContains(r, reverse('items:item_create'))
+        self.assertContains(r, 'Send offer')
+        self.assertContains(r, 'name="image"')
         self.assertNotContains(r, 'name="item"')
 
     def test_anonymous_visitor_is_asked_to_log_in(self):

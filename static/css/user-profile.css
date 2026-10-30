@@ -50,15 +50,14 @@
 .profile-page.public-profile-page .public-profile-actions a { min-height:42px; padding:10px 20px; border:1px solid #320c35; border-radius:999px; color:#320c35; background:#fffef9; font-size:12px; font-weight:650; }
 .profile-page.public-profile-page .public-profile-actions a:last-child { background:#320c35; color:#f2eebf; }
 .profile-page.public-profile-page .public-profile-actions a:hover { box-shadow:0 0 0 3px #AEDAE755; transform:none; }
-.profile-page.public-profile-page .public-profile-impact { display:flex; align-items:center; justify-content:space-between; gap:24px; margin:28px 0; padding:22px 28px; border:1px solid #ded8a0; border-radius:16px; background:#faf9e9; }
-.profile-page.public-profile-page .public-profile-impact-copy { flex:1; }
-.profile-page.public-profile-page .public-profile-impact h2 { margin:0 0 4px; font-size:10px; letter-spacing:1.6px; color:#726f59; }
-.profile-page.public-profile-page .public-profile-impact p { margin:0; font-size:14px; font-weight:750; }
-.profile-page.public-profile-page .public-profile-impact dl { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:28px; flex:0 1 420px; margin:0; }
-.profile-page.public-profile-page .public-profile-impact dl div { display:flex; flex-direction:column; min-width:0; }
-.profile-page.public-profile-page .public-profile-impact dt { order:2; max-width:115px; font-size:10px; line-height:1.4; color:#514e40; }
-.profile-page.public-profile-page .public-profile-impact dd { margin:0 0 3px; font-size:26px; font-weight:750; line-height:1.3; }
-.profile-page.public-profile-page .public-profile-impact dd small { font-size:22px; }
+
+
+
+
+
+
+
+
 .profile-page.public-profile-page .public-profile-tabs { display:flex; flex-wrap:wrap; min-height:0; border:0; gap:10px; margin:0 0 28px; }
 .profile-page.public-profile-page .public-profile-tabs a { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-width:0; padding:10px 20px; border:0; border-radius:999px; font-size:12px; color:#726f59; text-decoration:none; }
 .profile-page.public-profile-page .public-profile-tabs a.is-active { background:#320c35; color:#f2eebf; }
@@ -87,8 +86,7 @@
 .profile-page.public-profile-page .profile-favorites-feedback.is-error { background:#f6e5db; }
 @media (max-width:900px) {
     .profile-page.public-profile-page .profile-favorites-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
-    .profile-page.public-profile-page .public-profile-impact { flex-direction:column; align-items:stretch; }
-    .profile-page.public-profile-page .public-profile-impact dl { flex:auto; }
+
 }
 @media (max-width:560px) {
     .profile-page.public-profile-page { width:calc(100% - 32px); margin-top:20px; }
@@ -101,10 +99,25 @@
     .profile-page.public-profile-page .public-profile-details h1 { font-size:21px; }
     .profile-page.public-profile-page .public-profile-stats { font-size:10px; gap:6px 12px; }
     .profile-page.public-profile-page .public-profile-actions a { min-height:38px; padding:8px 15px; font-size:11px; }
-    .profile-page.public-profile-page .public-profile-impact { padding:18px; gap:18px; }
-    .profile-page.public-profile-page .public-profile-impact dl { gap:14px; }
-    .profile-page.public-profile-page .public-profile-impact p { font-size:13px; }
-    .profile-page.public-profile-page .public-profile-tabs { gap:2px; }
+
+
+.profile-page.public-profile-page .public-profile-tabs { gap:2px; }
     .profile-page.public-profile-page .public-profile-tabs a { padding:9px 12px; font-size:11px; }
     .profile-page.public-profile-page .profile-favorites-grid { grid-template-columns:minmax(0,1fr); }
 }
+
+.profile-page.public-profile-page .public-profile-tabs { margin-top:22px; }
+.profile-page .profile-review-card { padding:16px; margin:12px 0; border:1px solid #ded8a0; border-radius:12px; background:#fffef9; overflow-wrap:anywhere; }
+.profile-page .profile-review-card header { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px; font-size:13px; }
+.profile-page .profile-review-card time { color:#726f59; font-size:11px; }
+.profile-page .profile-review-stars { margin:8px 0; color:#71446e; font-size:19px; letter-spacing:2px; }
+.profile-page .profile-review-comment { margin:0; font-size:13px; line-height:1.7; }
+.profile-page .profile-review-form { display:grid; gap:14px; margin:20px 0; padding:20px; border:1px solid #ded8a0; border-radius:14px; background:#fffef9; }
+.profile-page .profile-review-form h2 { margin:0; font-size:20px; }
+.profile-page .profile-review-form p { margin:0; font-size:12px; }
+.profile-page .profile-review-form label { display:block; margin-bottom:6px; font-size:13px; font-weight:650; }
+.profile-page .profile-review-form :is(select,textarea) { width:100%; padding:10px 14px; border:1px solid #ded8a0; border-radius:12px; background:#fdfcf5; font:inherit; }
+.profile-page .profile-review-form button, .profile-page .profile-review-order a { justify-self:start; padding:10px 18px; border:1px solid #320c35; border-radius:999px; background:#320c35; color:#f2eebf; font-size:12px; text-decoration:none; cursor:pointer; }
+.profile-page .profile-review-form .errorlist { color:#8d3851; font-size:12px; }
+.profile-page .profile-review-order { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; padding:16px; border-bottom:1px solid #ded8a0; font-size:13px; }
+.profile-page .profile-review-order p, .profile-page .profile-written-review > p { font-size:11px; color:#726f59; }

@@ -5,15 +5,15 @@
 
 {% block meta %}
 <title>Profile {{ profile_user.username }} | Yelloved</title>
-<link rel="stylesheet" href="{% static 'css/user-profile.css' %}?v=profile-figma-20261029-3">
+<link rel="stylesheet" href="{% static 'css/user-profile.css' %}?v=profile-reviews-20261030-1">
 <script src="{% static 'js/account_profile/favorites.js' %}?v=2" defer></script>
 {% endblock %}
 
 {% block content %}
-<main class="profile-page public-profile-page" lang="id">
+<main class="profile-page public-profile-page" lang="en">
     <div class="public-profile-frame">
         <div class="public-profile-banner">
-            <p><span aria-hidden="true">♻</span> Barang lama, cerita baru.</p>
+            <p><span aria-hidden="true">♻</span> Preloved things, new stories.</p>
             <svg class="public-profile-recycle" width="220" height="100" viewBox="0 0 220 120" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m34 85 35-60m-29 8 29-8 8 29M120 12l26 45m5-27-5 27-29-5M188 62l-26 29H98m21-20-21 20 21 20"/></svg>
         </div>
         <header class="public-profile-header">
@@ -24,24 +24,19 @@
                     <span class="public-profile-avatar public-profile-initial" aria-hidden="true">{{ profile_user.username|slice:':1'|upper }}</span>
                 {% endif %}
                 <div class="public-profile-details">
-                    <div class="public-profile-name-row"><h1>{{ profile_user.username }}</h1><span class="public-profile-rescuer"><span aria-hidden="true">♻</span> Penyelamat Barang</span></div>
+                    <div class="public-profile-name-row"><h1>{{ profile_user.username }}</h1><span class="public-profile-rescuer"><span aria-hidden="true">♻</span> Item Saver</span></div>
                     {% if profile_user.get_full_name %}<p class="public-profile-name">{{ profile_user.get_full_name }}</p>{% endif %}
-                    <p class="public-profile-handle">@{{ profile_user.username }} · Mahasiswa UI</p>
-                    <div class="public-profile-stats"><span><strong>{{ profile_stats.followers }}</strong> followers</span><span><strong>{{ profile_stats.following }}</strong> following</span><span>{% if profile_stats.review_count %}{{ profile_stats.review_score }} ({{ profile_stats.review_count }} ulasan){% else %}Belum ada ulasan{% endif %}</span></div>
+                    <p class="public-profile-handle">@{{ profile_user.username }} · UI Student</p>
+                    <div class="public-profile-stats">{% if profile_stats.review_count %}<span>{{ profile_stats.review_score|floatformat:1 }} ★ ({{ profile_stats.review_count }} review{{ profile_stats.review_count|pluralize }})</span>{% else %}<span>No reviews yet</span>{% endif %}</div>
                 </div>
             </div>
             {% if is_own_profile %}
                 <div class="public-profile-actions">
                     <a href="{% url 'account_profile:profile' %}">Edit profile</a>
-                    <a href="{% url 'items:item_create' %}">Tambah produk</a>
+                    <a href="{% url 'items:item_create' %}">Add item</a>
                 </div>
             {% endif %}
         </header>
-
-        <section class="public-profile-impact" aria-labelledby="profile-impact-title">
-            <div class="public-profile-impact-copy"><h2 id="profile-impact-title">DAMPAK KAMU</h2><p>Barang Yelloved, barang nggak berakhir jadi sampah.</p></div>
-            <dl><div><dt>barang diberi kehidupan kedua</dt><dd>{{ impact.reloved_items }}</dd></div><div><dt>perkiraan limbah yang terhindar</dt><dd>{{ impact.waste_avoided_kg }} <small>kg</small></dd></div><div><dt>barang preloved yang kamu beli</dt><dd>{{ impact.purchased_items }}</dd></div></dl>
-        </section>
 
         <nav class="public-profile-tabs" aria-label="Profile content">
             <a href="?tab=posted"{% if active_tab == "posted" %} class="is-active" aria-current="page"{% endif %}>Posted</a>
@@ -102,7 +97,9 @@
             {% endif %}
         </div>
     {% else %}
-        <div class="public-profile-empty-state"><p>No reviews yet</p></div>
+        <section class="profile-received-reviews" aria-label="Seller reviews">
+            {% for review in seller_reviews %}{% include 'account_profile/_review_card.html' %}{% empty %}<div class="public-profile-empty-state"><p>No reviews yet</p></div>{% endfor %}
+        </section>
     {% endif %}
     </div>
 </main>

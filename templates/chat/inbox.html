@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
-{% block meta %}<title>Chat | Yelloved</title><script src="{% static 'js/chat.js' %}" defer></script>{% endblock %}
+{% block meta %}<title>Chat | Yelloved</title><script src="{% static 'js/chat_drafts.js' %}" defer></script><script src="{% static 'js/chat.js' %}" defer></script>{% endblock %}
 {% block content %}
 <main class="chat-app" lang="en" data-chat-app data-inbox-url="{% url 'chat:inbox_data' %}"{% if peer %} data-messages-url="{% url 'chat:messages' peer.pk %}" data-read-url="{% url 'chat:mark_read' peer.pk %}" data-peer-id="{{ peer.pk }}"{% endif %}>
     <h1>Chat</h1>
@@ -10,6 +10,7 @@
             <nav data-chat-threads aria-label="Choose a conversation">
                 {% for row in conversations %}<a class="chat-app-thread{% if row.peer == peer %} is-active{% endif %}" href="{% url 'chat:with_user' row.peer.pk %}"><strong>{{ row.peer.get_full_name|default:row.peer.username }}</strong><small>{{ row.preview|truncatechars:80 }}</small></a>{% empty %}<p class="chat-app-muted">No conversations yet.</p>{% endfor %}
             </nav>
+            <button class="chat-app-secondary" type="button" data-chat-more-threads hidden>Load more conversations</button>
         </aside>
         <section class="chat-app-conversation" aria-label="Messages">
             {% if peer %}
@@ -24,7 +25,7 @@
                         <button class="chat-app-attach" type="button" data-chat-choose-file aria-label="Attach a file" title="Attach a file">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 11-8.5 8.5a6 6 0 0 1-8.5-8.5L13 2a4 4 0 0 1 5.7 5.7l-9 9a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg>
                         </button>
-                        <textarea id="chat-body" name="body" maxlength="1000" rows="1" placeholder="Type a message…" aria-label="Message" aria-describedby="chat-attachment-help"></textarea>
+                        <textarea id="chat-body" name="body" maxlength="1000" rows="1" placeholder="Message…" aria-label="Message" aria-describedby="chat-attachment-help"></textarea>
                         <input id="chat-attachment" type="file" name="attachment" accept=".jpg,.jpeg,.png,.webp,.pdf,.txt" data-chat-file hidden>
                     </div>
                     <button class="chat-app-primary" type="submit" disabled>Send</button>

@@ -3,7 +3,7 @@ from django.core.files.uploadedfile import UploadedFile
 from PIL import Image, UnidentifiedImageError
 import warnings
 
-from .models import Address, NotificationPreference, PaymentMethod, Profile
+from .models import Address, NotificationPreference, PaymentMethod, Profile, Review
 
 
 class ProfileForm(forms.ModelForm):
@@ -75,8 +75,14 @@ class ProfileForm(forms.ModelForm):
 
 
 class AddressForm(forms.ModelForm):
+    latitude = forms.DecimalField(required=False, max_digits=10, decimal_places=7, widget=forms.HiddenInput())
+    longitude = forms.DecimalField(required=False, max_digits=10, decimal_places=7, widget=forms.HiddenInput())
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.initial.setdefault("latitude", self.instance.latitude)
+            self.initial.setdefault("longitude", self.instance.longitude)
         self.fields["province"].required = True
         self.fields["postal_code"].required = True
         if not self.is_bound and self.instance._state.adding:
@@ -105,6 +111,27 @@ class AddressForm(forms.ModelForm):
         widgets = {
             "street_address": forms.Textarea(attrs={"rows": 3}),
         }
+
+    def clean(self):
+        cleaned = super().clean()
+        latitude = cleaned.get("latitude")
+        longitude = cleaned.get("longitude")
+        if (latitude is None) != (longitude is None):
+            raise forms.ValidationError("Both map coordinates are required.")
+        if latitude is not None and not (-90 <= latitude <= 90):
+            self.add_error("latitude", "Choose a valid map location.")
+        if longitude is not None and not (-180 <= longitude <= 180):
+            self.add_error("longitude", "Choose a valid map location.")
+        return cleaned
+
+    def save(self, commit=True):
+        address = super().save(commit=False)
+        address.latitude = self.cleaned_data.get("latitude")
+        address.longitude = self.cleaned_data.get("longitude")
+        if commit:
+            address.save()
+            self.save_m2m()
+        return address
 
 
 class PaymentMethodForm(forms.ModelForm):
@@ -137,3 +164,24 @@ class NotificationPreferenceForm(forms.ModelForm):
             "account_updates": "Account security and activity",
             "promotions": "Offers and recommendations",
         }
+
+
+class ReviewForm(forms.ModelForm):
+    rating = forms.TypedChoiceField(choices=[(n, f'{n} star' if n == 1 else f'{n} stars') for n in range(1, 6)], coerce=int)
+
+    class Meta:
+        model = Review
+        fields = ['seller', 'rating', 'comment']
+        widgets = {'comment': forms.Textarea(attrs={'rows': 3, 'maxlength': 2000})}
+        labels = {'seller': 'Seller', 'rating': 'Rating', 'comment': 'Comment (optional)'}
+
+    def __init__(self, *args, transaction, user, **kwargs):
+        from django.contrib.auth import get_user_model
+        super().__init__(*args, **kwargs)
+        self.instance.transaction = transaction
+        self.instance.reviewer = user
+        self.fields['seller'].queryset = get_user_model().objects.filter(
+            pk__in=transaction.review_items.values_list('seller_id', flat=True),
+        ).exclude(pk=user.pk).distinct()
+        if self.fields['seller'].queryset.count() == 1:
+            self.fields['seller'].initial = self.fields['seller'].queryset.first()

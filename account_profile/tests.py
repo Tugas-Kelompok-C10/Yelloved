@@ -18,8 +18,8 @@ class AccountFeedbackTests(TestCase):
         response = self.client.get(reverse("account_profile:user_profile", args=[self.user.username]))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "public-profile-banner")
-        self.assertContains(response, "Barang lama, cerita baru.")
-        self.assertContains(response, "Belum ada ulasan")
+        self.assertContains(response, "Preloved things, new stories.")
+        self.assertContains(response, "No reviews yet")
         self.assertNotContains(response, "A little care. A second life.")
 
     def setUp(self):

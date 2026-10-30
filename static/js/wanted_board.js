@@ -1,138 +1,107 @@
+/* HTMX fetches/swaps Wanted results. JS only coordinates controls and feedback. */
 (() => {
     let destroy = () => {};
     const init = () => {
-    const form = document.querySelector("[data-ajax-search]");
-    const grid = document.querySelector(".wanted-grid");
-    const queryInput = document.getElementById("wanted-query");
-    const categoryChips = [...document.querySelectorAll("[data-category-chip]")];
-    const pagination = document.querySelector("[data-wanted-pagination]");
-
-    if (!form || !grid || !queryInput || !categoryChips.length || !pagination) return;
-    if (form.dataset.searchBound) return;
-    destroy();
-    form.dataset.searchBound = 'true';
-
-    const debounceDelay = 300;
-    let debounceTimer;
-    let activeRequest;
-    let disposed = false;
-    destroy = () => {
-        disposed = true;
-        window.clearTimeout(debounceTimer);
-        activeRequest?.abort();
-    };
-    let selectedCategory = categoryChips.find((chip) => chip.classList.contains("is-active"))?.dataset.categoryChip || "";
-    let confirmedCategory = selectedCategory;
-
-    const updateCategoryChips = (category) => {
-        selectedCategory = category;
-        categoryChips.forEach((chip) => {
-            const isActive = chip.dataset.categoryChip === category;
-            chip.classList.toggle("is-active", isActive);
-            chip.setAttribute("aria-pressed", String(isActive));
-        });
-    };
-
-    const buildUrl = (page) => {
-        const url = new URL(form.action, window.location.origin);
-        const query = queryInput.value.trim().slice(0, 70);
-        queryInput.value = query;
-
-        if (query) url.searchParams.set("q", query);
-        if (selectedCategory) url.searchParams.set("category", selectedCategory);
-        if (page > 1) url.searchParams.set("page", page);
-
-        return url;
-    };
-
-    // Search/category changes start at page one; page links retain current filters.
-    const loadResults = async (page = 1, scrollToTop = false) => {
-        if (disposed) return;
-        const url = buildUrl(page);
-        activeRequest?.abort();
-        const request = new AbortController();
-        activeRequest = request;
-        grid.classList.add("is-loading");
-        grid.setAttribute("aria-busy", "true");
-
-        try {
-            const response = await fetch(url, {
-                headers: {
-                    Accept: "application/json",
-                    "X-Requested-With": "XMLHttpRequest",
-                },
-                signal: request.signal,
+        const form = document.querySelector('[data-ajax-search]');
+        if (!form || form.dataset.searchBound) return;
+        destroy();
+        form.dataset.searchBound = 'true';
+        const input = form.querySelector('[name=q]');
+        const category = form.querySelector('[name=category]');
+        const sort = form.querySelector('[name=sort]');
+        const page = form.querySelector('[name=page]');
+        const results = document.getElementById('wanted-results');
+        const chips = [...form.querySelectorAll('[data-category-chip]')];
+        const sortButton = form.querySelector('[data-wanted-sort]');
+        const listeners = new AbortController();
+        let active, disposed = false, paginationRequested = false;
+        let confirmed = {category: category.value, sort: sort.value, page: page.value};
+        const on = (element, name, handler) => element.addEventListener(name, handler, {signal: listeners.signal});
+        const busy = value => {
+            const grid = results.querySelector('.wanted-grid');
+            grid?.classList.toggle('is-loading', value);
+            grid?.setAttribute('aria-busy', String(value));
+        };
+        const controls = state => {
+            category.value = state.category;
+            sort.value = state.sort;
+            if (state.page !== undefined) page.value = state.page;
+            chips.forEach(chip => {
+                const selected = chip.dataset.categoryChip === category.value;
+                chip.classList.toggle('is-active', selected);
+                chip.setAttribute('aria-pressed', String(selected));
             });
+            sortButton.dataset.sort = sort.value;
+            sortButton.setAttribute('aria-pressed', String(Boolean(sort.value)));
+            const label = sort.value === 'budget_asc' ? 'Lowest budget first' : sort.value === 'budget_desc' ? 'Highest budget first' : 'Newest posts first';
+            sortButton.title = label;
+            sortButton.setAttribute('aria-label', `${label}. Click for ${sort.value === 'budget_asc' ? 'highest' : 'lowest'} first.`);
+            form.querySelector('[data-wanted-sort-status]').textContent = label;
+        };
+        const cancel = () => {
+            const previous = active;
+            active = null;
+            previous?.xhr.abort();
+            busy(false);
+        };
+        destroy = () => {disposed = true; cancel(); listeners.abort();};
 
-            if (!response.ok) throw new Error(`Search failed with status ${response.status}`);
-
-            const data = await response.json();
-            if (disposed || activeRequest !== request) return;
-            grid.innerHTML = data.html;
-            pagination.innerHTML = data.pagination_html;
-            updateCategoryChips(data.selected_category);
-            confirmedCategory = data.selected_category;
-            if (data.page_number > 1) url.searchParams.set("page", data.page_number);
-            else url.searchParams.delete("page");
-            window.history.replaceState({}, "", url);
-            if (scrollToTop) window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-        } catch (error) {
-            if (!disposed && activeRequest === request && error.name !== "AbortError") {
-                updateCategoryChips(confirmedCategory);
+        on(input, 'input', () => {cancel(); page.value = '1'; paginationRequested = false;});
+        chips.forEach(chip => on(chip, 'click', () => {
+            controls({category: chip.dataset.categoryChip, sort: sort.value});
+            page.value = '1'; paginationRequested = false;
+            form.requestSubmit();
+        }));
+        on(sortButton, 'click', () => {
+            controls({category: category.value, sort: sort.value === 'budget_asc' ? 'budget_desc' : 'budget_asc'});
+            page.value = '1'; paginationRequested = false;
+            form.requestSubmit();
+        });
+        on(results, 'click', event => {
+            const link = event.target.closest('[data-wanted-page]');
+            if (!link || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            page.value = link.dataset.wantedPage;
+            paginationRequested = true;
+            // One HTMX form handles every request, also cancelling a pending search debounce.
+            form.requestSubmit();
+        });
+        on(document, 'htmx:configRequest', event => {
+            if (event.detail.target !== results) return;
+            event.detail.parameters.q = input.value.trim().slice(0, 70);
+        });
+        on(document, 'htmx:beforeRequest', event => {
+            if (event.detail.target !== results) return;
+            active = {xhr: event.detail.xhr, scroll: paginationRequested};
+            paginationRequested = false;
+            busy(true);
+        });
+        on(document, 'htmx:beforeSwap', event => {
+            if (event.detail.target !== results) return;
+            // A cancelled request or removed board must never replace newer results.
+            if (disposed || !form.isConnected || active?.xhr !== event.detail.xhr) event.preventDefault();
+        });
+        on(document, 'htmx:afterSwap', event => {
+            if (event.detail.target !== results || active?.xhr !== event.detail.xhr) return;
+            const state = results.querySelector('[data-wanted-state]').dataset;
+            confirmed = {category: state.category, sort: state.sort, page: state.page};
+            controls(confirmed);
+            window.history.replaceState(window.history.state, '', state.url);
+            if (active.scroll) window.scrollTo({top: 0, left: 0, behavior: 'instant'});
+        });
+        on(document, 'htmx:afterRequest', event => {
+            if (active?.xhr !== event.detail.xhr) return;
+            busy(false);
+            active = null;
+            if (event.detail.failed) {
+                controls(confirmed);
                 window.YellovedToast?.show({type: 'error', title: 'Unable to search',
                     message: 'Your previous results are still shown. Check your connection, then press Enter in the search field to try again.'});
             }
-        } finally {
-            if (activeRequest === request) {
-                grid.classList.remove("is-loading");
-                grid.setAttribute("aria-busy", "false");
-            }
-        }
-    };
-
-    queryInput.addEventListener("input", () => {
-        window.clearTimeout(debounceTimer);
-        debounceTimer = window.setTimeout(loadResults, debounceDelay);
-    });
-
-    categoryChips.forEach((chip) => {
-        chip.addEventListener("click", () => {
-            window.clearTimeout(debounceTimer);
-            updateCategoryChips(chip.dataset.categoryChip);
-            loadResults();
         });
-    });
-
-    form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        window.clearTimeout(debounceTimer);
-        loadResults();
-    });
-
-    pagination.addEventListener("click", (event) => {
-        const link = event.target.closest("a[data-wanted-page]");
-        if (!link || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-        event.preventDefault();
-        window.clearTimeout(debounceTimer);
-        loadResults(Number(link.dataset.wantedPage), true);
-    });
-
-    const placeholder = queryInput.dataset.typingPlaceholder;
-    if (!queryInput.value && placeholder) {
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            queryInput.placeholder = placeholder;
-        } else {
-            let characterIndex = 0;
-            const typeNextCharacter = () => {
-                characterIndex += 1;
-                queryInput.placeholder = placeholder.slice(0, characterIndex);
-                if (characterIndex < placeholder.length) {
-                    window.setTimeout(typeNextCharacter, 70);
-                }
-            };
-            window.setTimeout(typeNextCharacter, 250);
-        }
-    }
+        // Create/Delete can mount a fresh board without loading another document.
+        window.htmx?.process(form);
+        window.htmx?.process(results);
     };
     window.YellovedWantedBoard = {init, destroy: () => destroy()};
     init();

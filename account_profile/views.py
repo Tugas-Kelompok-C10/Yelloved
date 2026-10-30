@@ -7,13 +7,17 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import redirect_to_login
 from django.contrib.auth.views import LoginView
 from django.core.exceptions import PermissionDenied
-from django.db.models import BooleanField, Value, Sum
+from django.db.models import BooleanField, Value, Q
+from django.db import transaction as db_transaction
+from django.utils import timezone
+from datetime import timedelta
 from django.views.decorators.http import require_POST
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import JsonResponse
 from django.urls import reverse
-from .forms import AddressForm, NotificationPreferenceForm, PaymentMethodForm, ProfileForm
-from .models import Address, NotificationPreference, PaymentMethod, Profile
+from .forms import AddressForm, NotificationPreferenceForm, PaymentMethodForm, ProfileForm, ReviewForm
+from .models import Address, NotificationPreference, PaymentMethod, Profile, Review
+from .review_data import review_summary, received_reviews
 from items.models import Item
 from wanted_board.models import WantedPost
 
@@ -86,18 +90,11 @@ def user_profile(request, username):
         favorites_total = favorites.count()
         if listing_type:
             favorites = favorites.filter(listing_type=listing_type)
-    # Read-only presentation metrics. No social/review/weight models exist yet.
-    profile_stats = {"followers": 0, "following": 0, "review_score": None, "review_count": 0}
-    impact = {
-        "reloved_items": Item.objects.filter(owner=profile_user, source="user", external_id__isnull=True,
-                                              status=Item.Status.SOLD).count(),
-        "waste_avoided_kg": 0,
-        "purchased_items": profile_user.transactions.filter(transaction_status="completed").aggregate(
-            count=Sum("quantity"))["count"] or 0,
-    }
+    profile_stats = review_summary(profile_user)
+    seller_reviews = received_reviews(profile_user)
     context = {
         "name": "Yelloved",
-        "profile_stats": profile_stats, "impact": impact,
+        "profile_stats": profile_stats, "seller_reviews": seller_reviews,
         "profile_user": profile_user,
         "profile": profile,
         "items": Item.objects.filter(owner=profile_user, source="user").order_by("-created_at", "-pk"),
@@ -273,17 +270,52 @@ def privacy_security(request):
 
 
 @login_required
+@db_transaction.atomic
 def profile_reviews(request):
-    profile, _ = Profile.objects.get_or_create(user=request.user)
+    from transactions.models import Transaction
+    profile = Profile.objects.filter(user=request.user).first()
     active_tab = request.GET.get("tab", "pending")
     if active_tab not in {"pending", "mine"}:
         active_tab = "pending"
-    return render(request, "account_profile/reviews.html", {
-        "name": "Yelloved",
-        "profile": profile,
-        "active_tab": active_tab,
-        "period": request.GET.get("period", "3m"),
-        "query": request.GET.get("q", ""),
+    form = None
+    order = None
+    order_id = request.POST.get('transaction_id') if request.method == 'POST' else request.GET.get('order')
+    if order_id:
+        order = get_object_or_404(Transaction.objects.select_for_update(), pk=order_id, buyer=request.user)
+        if order.transaction_status != 'completed':
+            raise PermissionDenied('Reviews are available only for completed orders.')
+        if not order.review_items.exclude(seller_id=request.user.pk).filter(seller__isnull=False).exists():
+            raise PermissionDenied('No eligible seller is recorded for this order.')
+        if Review.objects.filter(transaction=order).exists():
+            messages.info(request, 'Review submitted for this order.')
+            return redirect(reverse('account_profile:reviews') + '?tab=mine')
+        form = ReviewForm(request.POST if request.method == 'POST' else None, transaction=order, user=request.user)
+        if request.method == 'POST' and form.is_valid():
+            form.save()
+            messages.success(request, 'Your review has been submitted.')
+            return redirect(reverse('account_profile:reviews') + '?tab=mine')
+    elif request.method == 'POST':
+        raise PermissionDenied('Choose a completed order to review.')
+    period = request.GET.get('period', '3m')
+    if period not in {'3m', '6m', 'all'}:
+        period = '3m'
+    query = request.GET.get('q', '').strip()[:200]
+    pending = Transaction.objects.filter(buyer=request.user, transaction_status='completed', review__isnull=True,
+                                         review_items__seller__isnull=False).exclude(review_items__seller=request.user).distinct()
+    mine = Review.objects.filter(reviewer=request.user).select_related('seller', 'transaction')
+    if period != 'all':
+        since = timezone.now() - timedelta(days=90 if period == '3m' else 180)
+        pending = pending.filter(created_at__gte=since)
+        mine = mine.filter(created_at__gte=since)
+    if query:
+        pending = pending.filter(Q(order_id__icontains=query) | Q(item_name__icontains=query)
+                                 | Q(review_items__seller__username__icontains=query)).distinct()
+        mine = mine.filter(Q(transaction__order_id__icontains=query) | Q(comment__icontains=query)
+                           | Q(seller__username__icontains=query))
+    return render(request, 'account_profile/reviews.html', {
+        'name': 'Yelloved', 'profile': profile, 'active_tab': active_tab,
+        'period': period, 'query': query, 'review_form': form, 'review_order': order,
+        'pending_orders': pending.order_by('-created_at'), 'written_reviews': mine,
     })
 
 

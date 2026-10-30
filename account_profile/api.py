@@ -64,6 +64,8 @@ def address_data(address):
         "city": address.city,
         "province": address.province,
         "postal_code": address.postal_code,
+        "latitude": address.latitude,
+        "longitude": address.longitude,
         "is_default": address.is_default,
     }
 

@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static items_ui %}
 
 {% block meta %}
     <title>Yelloved</title>
     <meta name="description" content="Buy less. Reuse more. Find what you need nearby with Yelloved, a community marketplace around UI.">
     <link rel="stylesheet" href="{% static 'css/explore.css' %}">
-    <link rel="stylesheet" href="{% static 'css/landing.css' %}?v=three-steps-20261028">
+    <link rel="stylesheet" href="{% static 'css/landing.css' %}?v=landing-live-items-20261030-3">
 {% endblock meta %}
 
 {% block content %}
@@ -45,7 +45,7 @@
             <div class="landing-intro">
                 <p>Buy less. Reuse more. Find what you need nearby.</p>
                 <div class="landing-hero-actions">
-                    <a class="landing-explore" href="{% url 'items:explore_items' %}">Explore</a>
+                    <a class="landing-explore" href="{% url 'items:explore_items' %}">Browse Catalogue</a>
                     <a class="landing-explore landing-pin-wanted" href="{% url 'wanted_board:create_wanted' %}">Pin a Wanted</a>
                 </div>
                 <p class="landing-feedback" data-love-message role="status"></p>
@@ -97,24 +97,29 @@
             </article>
         </div>
     </section>
-    <!-- Explore preview: placeholder imagery, catalogue card styling, brown rope and pegs. -->
+    <!-- Live available catalogue items, with the existing clothesline carousel. -->
     <section class="landing-latest-items explore-page" aria-labelledby="landing-latest-title">
         <div class="landing-latest-header">
             <div><h2 id="landing-latest-title">Recently Listed</h2><p>Recently listed by UI students. Hung up just for you.</p></div>
             <a class="landing-explore" href="{% url 'items:explore_items' %}"><svg class="landing-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg>See all items</a>
         </div>
+        {% if preview_items %}
         <div class="landing-carousel" data-hanging-carousel role="region" aria-roledescription="carousel" aria-label="Recently listed items">
             <svg class="landing-clothesline" viewBox="0 0 1200 100" preserveAspectRatio="none" fill="none" aria-hidden="true"><path d="M8 20Q600 90 1192 20"/><path class="landing-rope-thread" d="M8 20Q600 90 1192 20"/><path class="landing-rope-ends" d="M8 8v25M1192 8v25"/></svg>
             <div class="landing-hanging-grid" id="landing-items-track" tabindex="0" aria-label="Slide to browse items. Use the left and right arrow keys.">
             {% for item in preview_items %}
             <article class="explore-card landing-hanging-card">
-                <a class="explore-card-link" href="{% url 'items:explore_items' %}">
-                    <div class="explore-image landing-placeholder-image">
-                        <svg class="explore-image-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 18 6-6 4 4 3-3 4 5"/></svg>
-                        <span class="landing-placeholder-label">Item photo placeholder</span>
-                        <div class="explore-badges"><span>{{ item.condition }}</span></div>
-                    </div>
-                    <div class="explore-card-body"><h3>{{ item.title }}</h3><p class="explore-price">{{ item.price }}</p><p class="explore-location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2.4"/></svg>{{ item.location }}</p></div>
+                <div class="landing-item-media">
+                    <a class="explore-card-link" href="{{ item.get_absolute_url }}" aria-label="View {{ item.title }}">
+                        <div class="explore-image">
+                            {% include 'items/_item_image.html' %}
+                            <div class="explore-badges"><span>{{ item.condition|condition_badge }}</span></div>
+                        </div>
+                    </a>
+                    {% include 'items/_favorite_button.html' %}
+                </div>
+                <a class="explore-card-link" href="{{ item.get_absolute_url }}">
+                    <div class="explore-card-body"><h3>{{ item.title }}</h3><p class="explore-price">{{ item.price_display|ui_text }}</p><p class="explore-location"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2.4"/></svg>{{ item.location }}</p></div>
                 </a>
             </article>
             {% endfor %}
@@ -125,6 +130,9 @@
             </div>
             <output class="sr-only" data-carousel-status aria-live="polite"></output>
         </div>
+        {% else %}
+        <div class="landing-items-empty"><h3>No items listed yet</h3><p>New preloved finds will appear here when they become available.</p><a class="landing-explore" href="{% url 'items:explore_items' %}">Browse Catalogue</a></div>
+        {% endif %}
     </section>
     <!-- Reuse the live Wanted Board cards, including its Pin yours invitation. -->
     <section class="landing-wanted-preview" aria-labelledby="landing-board-title">
@@ -144,8 +152,53 @@
         </div></div>
         </div>
     </section>
+    <section class="landing-faq" aria-labelledby="landing-faq-title">
+        <header class="landing-faq-intro">
+            <span class="landing-faq-pill">FAQ</span>
+            <h2 id="landing-faq-title">Who can use Yelloved?</h2>
+            <p>Yelloved is for students in Depok and nearby campuses who want to buy, sell, exchange, or give away preloved items.</p>
+            <svg class="landing-faq-illustration" width="190" height="155" viewBox="0 0 190 155" fill="none" aria-hidden="true" focusable="false">
+                <path d="M24 22h112a15 15 0 0 1 15 15v51a15 15 0 0 1-15 15H81l-30 24v-24H24A15 15 0 0 1 9 88V37a15 15 0 0 1 15-15Z" fill="#AEDAE7" stroke="#320c35" stroke-width="3" stroke-linejoin="round"/>
+                <path d="M70 53c0-16 26-16 26 0 0 10-13 10-13 20" stroke="#320c35" stroke-width="7" stroke-linecap="round"/><circle cx="83" cy="86" r="4" fill="#320c35"/>
+                <circle cx="163" cy="19" r="6" fill="#f2eebf" stroke="#320c35" stroke-width="2.5"/><path d="M166 111v14m-7-7h14" stroke="#320c35" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+        </header>
+        <div class="landing-faq-list">
+            <article class="landing-faq-card is-open">
+                <h3><button type="button" class="landing-faq-trigger" id="landing-faq-button-01" aria-expanded="true" aria-controls="landing-faq-panel-01"><span class="landing-faq-number" aria-hidden="true">01</span><span class="landing-faq-question">Do I have to be a UI student?</span><span class="landing-faq-toggle" aria-hidden="true"></span></button></h3>
+                <div class="landing-faq-panel" id="landing-faq-panel-01" role="region" aria-labelledby="landing-faq-button-01" aria-hidden="false"><div class="landing-faq-answer"><p>No. Yelloved is open to students around Depok and nearby campuses, especially those looking for affordable everyday items.</p></div></div>
+            </article>
+            <article class="landing-faq-card">
+                <h3><button type="button" class="landing-faq-trigger" id="landing-faq-button-02" aria-expanded="false" aria-controls="landing-faq-panel-02"><span class="landing-faq-number" aria-hidden="true">02</span><span class="landing-faq-question">What items can I list on Yelloved?</span><span class="landing-faq-toggle" aria-hidden="true"></span></button></h3>
+                <div class="landing-faq-panel" id="landing-faq-panel-02" role="region" aria-labelledby="landing-faq-button-02" aria-hidden="true" inert><div class="landing-faq-answer"><p>You can list preloved clothing, bags, books, electronics, dorm essentials, furniture, study tools, and other items that are still in good condition.</p></div></div>
+            </article>
+            <article class="landing-faq-card">
+                <h3><button type="button" class="landing-faq-trigger" id="landing-faq-button-03" aria-expanded="false" aria-controls="landing-faq-panel-03"><span class="landing-faq-number" aria-hidden="true">03</span><span class="landing-faq-question">How do I sell an item?</span><span class="landing-faq-toggle" aria-hidden="true"></span></button></h3>
+                <div class="landing-faq-panel" id="landing-faq-panel-03" role="region" aria-labelledby="landing-faq-button-03" aria-hidden="true" inert><div class="landing-faq-answer"><p>Create a listing, add clear photos and item details, set the price or listing type, then publish it for others to discover.</p></div></div>
+            </article>
+            <article class="landing-faq-card">
+                <h3><button type="button" class="landing-faq-trigger" id="landing-faq-button-04" aria-expanded="false" aria-controls="landing-faq-panel-04"><span class="landing-faq-number" aria-hidden="true">04</span><span class="landing-faq-question">Can I buy, negotiate, or exchange items?</span><span class="landing-faq-toggle" aria-hidden="true"></span></button></h3>
+                <div class="landing-faq-panel" id="landing-faq-panel-04" role="region" aria-labelledby="landing-faq-button-04" aria-hidden="true" inert><div class="landing-faq-answer"><p>Yes. Depending on the listing, you can buy an item, make an offer, or arrange an exchange with the owner.</p></div></div>
+            </article>
+            <article class="landing-faq-card">
+                <h3><button type="button" class="landing-faq-trigger" id="landing-faq-button-05" aria-expanded="false" aria-controls="landing-faq-panel-05"><span class="landing-faq-number" aria-hidden="true">05</span><span class="landing-faq-question">How do I receive my item?</span><span class="landing-faq-toggle" aria-hidden="true"></span></button></h3>
+                <div class="landing-faq-panel" id="landing-faq-panel-05" role="region" aria-labelledby="landing-faq-button-05" aria-hidden="true" inert><div class="landing-faq-answer"><p>Buyers and sellers can arrange a safe meet-up or pickup location that works for both sides.</p></div></div>
+            </article>
+            <article class="landing-faq-card">
+                <h3><button type="button" class="landing-faq-trigger" id="landing-faq-button-06" aria-expanded="false" aria-controls="landing-faq-panel-06"><span class="landing-faq-number" aria-hidden="true">06</span><span class="landing-faq-question">Can I save items for later?</span><span class="landing-faq-toggle" aria-hidden="true"></span></button></h3>
+                <div class="landing-faq-panel" id="landing-faq-panel-06" role="region" aria-labelledby="landing-faq-button-06" aria-hidden="true" inert><div class="landing-faq-answer"><p>Yes. Log in and tap the heart icon on an item to save it to your favorites.</p></div></div>
+            </article>
+            <article class="landing-faq-card">
+                <h3><button type="button" class="landing-faq-trigger" id="landing-faq-button-07" aria-expanded="false" aria-controls="landing-faq-panel-07"><span class="landing-faq-number" aria-hidden="true">07</span><span class="landing-faq-question">What should I do when my item has been sold?</span><span class="landing-faq-toggle" aria-hidden="true"></span></button></h3>
+                <div class="landing-faq-panel" id="landing-faq-panel-07" role="region" aria-labelledby="landing-faq-button-07" aria-hidden="true" inert><div class="landing-faq-answer"><p>Update its availability status so other users know that the item is no longer available.</p></div></div>
+            </article>
+        </div>
+    </section>
 </main>
 <script src="{% static 'js/landing.js' %}?v=heart-limit-2" defer></script>
+<script src="{% static 'js/landing-faq.js' %}?v=1" defer></script>
+<script src="{% static 'js/items/images.js' %}" defer></script>
+<script src="{% static 'js/items/favorites.js' %}" defer></script>
 <script src="{% static 'js/landing-items.js' %}?v=clothesline-carousel" defer></script>
 <script src="{% static 'js/landing-stickers.js' %}" defer></script>
 {% include "wanted_board/_item_offer_modal.html" %}

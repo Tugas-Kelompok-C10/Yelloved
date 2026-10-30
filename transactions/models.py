@@ -138,3 +138,14 @@ class CartItem(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.item.title} ({self.quantity})"
+
+
+class TransactionItem(models.Model):
+    """Purchase provenance for reviews; seller is captured when the order is created."""
+    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, related_name='review_items')
+    item = models.ForeignKey('items.Item', null=True, on_delete=models.SET_NULL)
+    seller = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL,
+                               related_name='reviewable_sales')
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['transaction', 'item'], name='unique_review_purchase_item')]
