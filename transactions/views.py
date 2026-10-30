@@ -793,9 +793,42 @@ def transaction_history(request):
     for pending_order in pending_orders:
         sync_midtrans_status(pending_order)
 
-    transactions = Transaction.objects.filter(
-        buyer=request.user
-    ).order_by("-created_at")
+        # Determine whether the user is viewing purchased or sold orders.
+    active_type = request.GET.get("type", "bought")
+
+    if active_type not in {"sold", "bought"}:
+        active_type = "bought"
+
+    active_status = request.GET.get("status", "all")
+
+    # Synchronize pending online payments before displaying orders.
+    if active_type == "sold":
+        pending_orders = Transaction.objects.filter(
+            review_items__seller=request.user,
+            payment_status="pending",
+            transaction_status="pending",
+            payment_method__in=["qris", "va"],
+        ).distinct().order_by("-created_at")[:10]
+    else:
+        pending_orders = Transaction.objects.filter(
+            buyer=request.user,
+            payment_status="pending",
+            transaction_status="pending",
+            payment_method__in=["qris", "va"],
+        ).order_by("-created_at")[:10]
+
+    for pending_order in pending_orders:
+        sync_midtrans_status(pending_order)
+
+    # Retrieve orders based on the selected transaction type.
+    if active_type == "sold":
+        transactions = Transaction.objects.filter(
+            review_items__seller=request.user
+        ).distinct().order_by("-created_at")
+    else:
+        transactions = Transaction.objects.filter(
+            buyer=request.user
+        ).order_by("-created_at")
 
     active_status = request.GET.get("status", "all")
 
@@ -876,6 +909,7 @@ def transaction_history(request):
             "transactions": transactions,
             "name": "Yelloved",
             "active_status": active_status,
+            "active_type": active_type,
         },
     )
 
