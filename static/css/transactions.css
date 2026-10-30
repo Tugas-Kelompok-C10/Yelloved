@@ -1368,3 +1368,25 @@ body.address-modal-open {
         position: static;
     }
 }
+
+
+/* Checkout container - align with Catalogue width */
+.checkout-page {
+    width: 85%;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+}
+
+.checkout-layout {
+    width: 100%;
+}
+
+/* Responsive layout */
+@media (max-width: 768px) {
+    .checkout-page {
+        width: calc(100% - 32px);
+        max-width: none;
+    }
+}
