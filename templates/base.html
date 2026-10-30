@@ -427,7 +427,11 @@
             >
                 <span class="site-toast-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24">
-                        <path d="M20 6 9 17l-5-5"></path>
+                        {% if "error" in message.tags %}
+                            <path d="M6 6l12 12M18 6 6 18"></path>
+                        {% else %}
+                            <path d="M20 6 9 17l-5-5"></path>
+                        {% endif %}
                     </svg>
                 </span>
 
@@ -546,7 +550,7 @@
 </footer>
 
 <!-- JavaScript toast yang sudah ada -->
-<script src="{% static 'js/toast.js' %}?v=navigation-2" defer></script>
+<script src="{% static 'js/toast.js' %}?v=error-icon-3" defer></script>
 
 <!-- JavaScript toast transaksi -->
 {% if request.resolver_match.namespace == "transactions" %}
