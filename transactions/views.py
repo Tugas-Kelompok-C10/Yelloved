@@ -706,7 +706,7 @@ def cancel_order(request, order_id):
         # If it has already been paid, do not mark it as cancelled.
         elif midtrans_status in {"settlement", "capture"}:
             order.payment_status = "paid"
-            order.transaction_status = "processing"
+            order.transaction_status = "completed"
             order.save(
                 update_fields=[
                     "payment_status",
@@ -714,10 +714,10 @@ def cancel_order(request, order_id):
                     "updated_at",
                 ]
             )
-            messages.error(
+            messages.info(
                 request,
                 "This transaction has already been paid. "
-                "The order was not cancelled, and its status has been updated.",
+                "The order has been marked as completed.",
             )
 
         else:
@@ -1310,9 +1310,7 @@ def apply_midtrans_status(order, data):
         or (status == "capture" and fraud_status == "accept")
     ):
         order.payment_status = "paid"
-
-        if order.transaction_status != "completed":
-            order.transaction_status = "processing"
+        order.transaction_status = "completed"
 
         update_fields.update({
             "payment_status",
