@@ -34,7 +34,7 @@ def dashboard(request):
         tab = 'incoming'
     user = request.user
     requests_qs = ItemRequest.objects.select_related('item', 'offered_item', 'requester', 'item__owner')
-    offers_qs = ItemOffer.objects.select_related('item', 'wanted_post', 'wanted_post__requester', 'offerer')
+    offers_qs = ItemOffer.objects.select_related('item', 'wanted_post', 'wanted_post__requester', 'offerer', 'matched_transaction')
     data = {
         'incoming': requests_qs.filter(item__owner=user),
         'sent': requests_qs.filter(requester=user),
@@ -215,7 +215,7 @@ def request_cancel(request, pk):
 def offer_accept(request, pk):
     get_object_or_404(ItemOffer, pk=pk)
     return _act(request, services.accept_offer, pk, 'offers_received',
-                'Offer accepted. The wanted post is now marked as fulfilled.')
+                'Offer accepted. Continue to Transaction to arrange the handover.')
 
 
 @login_required(login_url='login')

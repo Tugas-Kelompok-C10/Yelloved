@@ -404,6 +404,12 @@ def delete_wanted(request, pk):
     if request.method == "POST":
         try:
             with locked_wanted_post(pk, requester=request.user) as wanted_post:
+                if wanted_post.status == WantedPost.Status.MATCHED or wanted_post.item_offers.filter(matched_transaction__isnull=False).exists():
+                    message = "This post has a transaction and cannot be deleted. Manage it from Activity."
+                    if _is_ajax(request):
+                        return JsonResponse({"message": message}, status=409)
+                    messages.error(request, message)
+                    return redirect("wanted_board:wanted_detail", pk=pk)
                 wanted_post.delete()
         except Http404:
             if not WantedCreationReceipt.objects.filter(pk=pk, requester=request.user, deleted_at__isnull=False).exists():
@@ -437,7 +443,11 @@ def deletion_state(request, pk):
 def update_status(request, pk):
     with locked_wanted_post(pk, requester=request.user) as wanted_post:
         status = request.POST.get("status")
-        if status not in WantedPost.Status.values:
+        if status == WantedPost.Status.MATCHED or wanted_post.status == WantedPost.Status.MATCHED:
+            messages.error(request, "Manage this match through its transaction in Activity.")
+        elif wanted_post.item_offers.filter(matched_transaction__isnull=False, matched_transaction__transaction_status="completed").exists():
+            messages.error(request, "A completed transaction keeps this wanted post fulfilled.")
+        elif status not in WantedPost.Status.values:
             messages.error(request, "That wanted post status is not valid.")
         else:
             wanted_post.status = status

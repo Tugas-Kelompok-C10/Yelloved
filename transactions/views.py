@@ -596,6 +596,9 @@ def cancel_order(request, order_id):
         buyer=request.user,
     )
 
+    if order.accepted_offer_id:
+        return redirect("transactions:wanted_detail", order_id=order.order_id)
+
     # Hanya pesanan yang masih pending yang bisa dibatalkan.
     if (
         order.transaction_status != "pending"

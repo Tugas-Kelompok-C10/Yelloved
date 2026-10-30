@@ -219,7 +219,7 @@ class ItemOfferTests(Base):
         offer.refresh_from_db(); rival.refresh_from_db(); self.post.refresh_from_db(); self.item.refresh_from_db()
         self.assertEqual(offer.status, 'accepted')
         self.assertEqual(rival.status, 'rejected')
-        self.assertEqual(self.post.status, WantedPost.Status.FULFILLED)
+        self.assertEqual(self.post.status, WantedPost.Status.MATCHED)
         self.assertEqual(self.item.status, Item.Status.UNAVAILABLE)
 
     def test_cannot_offer_on_own_post_or_someone_elses_item(self):
