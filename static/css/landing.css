@@ -268,11 +268,6 @@
 .landing-carousel-controls button:disabled { opacity: 0.35; cursor: not-allowed; }
 .landing-carousel-controls svg, .landing-action-icon { width: 18px; height: 18px; flex: none; }
 .landing-page .landing-hanging-card .explore-card-link { overflow: hidden; border-radius: inherit; }
-.landing-page .landing-placeholder-image { background: var(--text); color: var(--violet); }
-.landing-page .landing-hanging-card:nth-of-type(4n + 2) .landing-placeholder-image { background: var(--blue); }
-.landing-page .landing-hanging-card:nth-of-type(4n + 3) .landing-placeholder-image { background: var(--violet-light-hover); }
-.landing-page .landing-hanging-card:nth-of-type(4n) .landing-placeholder-image { background: var(--light-paper); }
-.landing-placeholder-label { position: absolute; top: 70%; left: 0; width: 100%; text-align: center; font-size: 10px; }
 
 /* Live Wanted Board preview uses the board's shared card and modal templates. */
 .landing-wanted-preview { width: 100%; margin: 0 0 90px; padding: 40px 0; background: var(--paper); }
@@ -423,3 +418,19 @@
 @media (prefers-reduced-motion:reduce) {
     .landing-faq .landing-faq-card, .landing-faq .landing-faq-toggle, .landing-faq .landing-faq-panel { transition:none; }
 }
+
+/* Database-backed clothesline cards; Catalogue's images/favorite handler are reused. */
+.landing-latest-items .landing-hanging-card { display:flex; flex-direction:column; }
+.landing-latest-items .landing-item-media { position:relative; flex:none; border-radius:inherit; }
+.landing-latest-items .landing-item-media > .explore-card-link { height:auto; border-radius:var(--radius) var(--radius) 0 0; }
+.landing-latest-items .landing-hanging-card > .explore-card-link { height:auto; flex:1; border-radius:0 0 var(--radius) var(--radius); }
+.landing-latest-items .landing-item-media .explore-image { aspect-ratio:4/3; }
+.landing-latest-items .landing-item-media .explore-image img { display:block; width:100%; height:100%; object-fit:cover; }
+.landing-latest-items .landing-item-media .explore-badges { right:52px; }
+.landing-latest-items .landing-item-media .item-favorite { position:absolute; z-index:3; top:10px; right:10px; width:34px; height:34px; padding:0; border-radius:10px; background:#fffef9ed; }
+.landing-latest-items .landing-item-media .item-favorite svg { width:19px; height:19px; }
+.landing-latest-items .landing-item-media .item-favorite:hover { background:#AEDAE7; }
+.landing-latest-items .landing-items-empty { padding:28px 20px; border:1px solid var(--border); border-radius:16px; background:var(--light-paper); text-align:center; }
+.landing-latest-items .landing-items-empty h3 { margin:0 0 8px; font-size:20px; }
+.landing-latest-items .landing-items-empty p { margin:0 0 18px; font-size:13px; color:var(--gray); }
+.landing-latest-items .landing-items-empty .landing-explore { display:inline-flex; }

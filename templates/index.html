@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static items_ui %}
 
 {% block meta %}
     <title>Yelloved</title>
     <meta name="description" content="Buy less. Reuse more. Find what you need nearby with Yelloved, a community marketplace around UI.">
     <link rel="stylesheet" href="{% static 'css/explore.css' %}">
-    <link rel="stylesheet" href="{% static 'css/landing.css' %}?v=landing-faq-left-20261030-2">
+    <link rel="stylesheet" href="{% static 'css/landing.css' %}?v=landing-live-items-20261030-3">
 {% endblock meta %}
 
 {% block content %}
@@ -45,7 +45,7 @@
             <div class="landing-intro">
                 <p>Buy less. Reuse more. Find what you need nearby.</p>
                 <div class="landing-hero-actions">
-                    <a class="landing-explore" href="{% url 'items:explore_items' %}">Explore</a>
+                    <a class="landing-explore" href="{% url 'items:explore_items' %}">Browse Catalogue</a>
                     <a class="landing-explore landing-pin-wanted" href="{% url 'wanted_board:create_wanted' %}">Pin a Wanted</a>
                 </div>
                 <p class="landing-feedback" data-love-message role="status"></p>
@@ -97,24 +97,29 @@
             </article>
         </div>
     </section>
-    <!-- Explore preview: placeholder imagery, catalogue card styling, brown rope and pegs. -->
+    <!-- Live available catalogue items, with the existing clothesline carousel. -->
     <section class="landing-latest-items explore-page" aria-labelledby="landing-latest-title">
         <div class="landing-latest-header">
             <div><h2 id="landing-latest-title">Recently Listed</h2><p>Recently listed by UI students. Hung up just for you.</p></div>
             <a class="landing-explore" href="{% url 'items:explore_items' %}"><svg class="landing-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg>See all items</a>
         </div>
+        {% if preview_items %}
         <div class="landing-carousel" data-hanging-carousel role="region" aria-roledescription="carousel" aria-label="Recently listed items">
             <svg class="landing-clothesline" viewBox="0 0 1200 100" preserveAspectRatio="none" fill="none" aria-hidden="true"><path d="M8 20Q600 90 1192 20"/><path class="landing-rope-thread" d="M8 20Q600 90 1192 20"/><path class="landing-rope-ends" d="M8 8v25M1192 8v25"/></svg>
             <div class="landing-hanging-grid" id="landing-items-track" tabindex="0" aria-label="Slide to browse items. Use the left and right arrow keys.">
             {% for item in preview_items %}
             <article class="explore-card landing-hanging-card">
-                <a class="explore-card-link" href="{% url 'items:explore_items' %}">
-                    <div class="explore-image landing-placeholder-image">
-                        <svg class="explore-image-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m4 18 6-6 4 4 3-3 4 5"/></svg>
-                        <span class="landing-placeholder-label">Item photo placeholder</span>
-                        <div class="explore-badges"><span>{{ item.condition }}</span></div>
-                    </div>
-                    <div class="explore-card-body"><h3>{{ item.title }}</h3><p class="explore-price">{{ item.price }}</p><p class="explore-location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2.4"/></svg>{{ item.location }}</p></div>
+                <div class="landing-item-media">
+                    <a class="explore-card-link" href="{{ item.get_absolute_url }}" aria-label="View {{ item.title }}">
+                        <div class="explore-image">
+                            {% include 'items/_item_image.html' %}
+                            <div class="explore-badges"><span>{{ item.condition|condition_badge }}</span></div>
+                        </div>
+                    </a>
+                    {% include 'items/_favorite_button.html' %}
+                </div>
+                <a class="explore-card-link" href="{{ item.get_absolute_url }}">
+                    <div class="explore-card-body"><h3>{{ item.title }}</h3><p class="explore-price">{{ item.price_display|ui_text }}</p><p class="explore-location"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2.4"/></svg>{{ item.location }}</p></div>
                 </a>
             </article>
             {% endfor %}
@@ -125,6 +130,9 @@
             </div>
             <output class="sr-only" data-carousel-status aria-live="polite"></output>
         </div>
+        {% else %}
+        <div class="landing-items-empty"><h3>No items listed yet</h3><p>New preloved finds will appear here when they become available.</p><a class="landing-explore" href="{% url 'items:explore_items' %}">Browse Catalogue</a></div>
+        {% endif %}
     </section>
     <!-- Reuse the live Wanted Board cards, including its Pin yours invitation. -->
     <section class="landing-wanted-preview" aria-labelledby="landing-board-title">
@@ -189,6 +197,8 @@
 </main>
 <script src="{% static 'js/landing.js' %}?v=heart-limit-2" defer></script>
 <script src="{% static 'js/landing-faq.js' %}?v=1" defer></script>
+<script src="{% static 'js/items/images.js' %}" defer></script>
+<script src="{% static 'js/items/favorites.js' %}" defer></script>
 <script src="{% static 'js/landing-items.js' %}?v=clothesline-carousel" defer></script>
 <script src="{% static 'js/landing-stickers.js' %}" defer></script>
 {% include "wanted_board/_item_offer_modal.html" %}
