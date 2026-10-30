@@ -62,16 +62,6 @@ class PaymentMethod(models.Model):
         return f"•••• {self.account_identifier[-4:]}"
 
 
-class NotificationPreference(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notification_preferences")
-    order_updates = models.BooleanField(default=True)
-    wanted_updates = models.BooleanField(default=True)
-    account_updates = models.BooleanField(default=True)
-    promotions = models.BooleanField(default=False)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"Preferensi notifikasi {self.user.username}"
 
 
 class Review(models.Model):

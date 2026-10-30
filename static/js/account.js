@@ -36,7 +36,7 @@
             const messages = Array.isArray(values) ? values : [String(values)];
             const field = form.elements.namedItem(name);
             const target = field?.length && !field.tagName ? field[0] : field;
-            const wrapper = target?.closest('.biodata-field, .address-form-field, .security-field, .notification-option');
+            const wrapper = target?.closest('.biodata-field, .address-form-field, .security-field');
             messages.forEach(message => {
                 summaries.push(`${wrapper?.querySelector('label')?.textContent.trim() || ''}${wrapper ? ': ' : ''}${message}`);
                 if (wrapper) {

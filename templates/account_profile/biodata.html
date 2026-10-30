@@ -6,7 +6,6 @@
                 <a class="active" href="#biodata" aria-current="page">Personal details</a>
                 <a href="{% url 'account_profile:address_list' %}">Addresses</a>
                 <a href="{% url 'account_profile:payment_methods' %}">Payment methods</a>
-                <a href="{% url 'account_profile:notifications' %}">Notifications</a>
                 <a href="{% url 'account_profile:privacy_security' %}">Privacy &amp; Security</a>
             </nav>
             {% if user.is_authenticated %}

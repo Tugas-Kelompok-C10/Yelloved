@@ -29,7 +29,7 @@ class AccountFeedbackTests(TestCase):
         self.payload = {"first_name": "Cindy", "email": "cindy@example.com", "gender": "female", "phone_number": "08123456789", "date_of_birth": "2000-01-02"}
 
     def test_settings_pages_use_shared_account_styles_and_toaster(self):
-        for route in ("profile", "address_list", "payment_methods", "notifications", "privacy_security", "reviews", "help_messages"):
+        for route in ("profile", "address_list", "payment_methods", "privacy_security", "reviews", "help_messages"):
             response = self.client.get(reverse(f"account_profile:{route}"))
             self.assertEqual(response.status_code, 200)
             self.assertContains(response, "css/account.css")
@@ -122,9 +122,6 @@ class AccountFeedbackTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["url"], reverse("account_profile:profile"))
         self.assertIn("updated", response.json()["message"])
-        response = self.client.post(reverse("account_profile:notifications"), {"promotions": "on"}, **headers)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["url"], reverse("account_profile:notifications"))
 
     def test_ajax_address_actions_and_required_fields(self):
         from .models import Address
@@ -229,15 +226,7 @@ class AccountProfileApiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(PaymentMethod.objects.filter(pk=method_id).exists())
 
-    def test_notification_preferences_and_password_are_updated_by_api(self):
-        from .models import NotificationPreference
-        prefs_url = reverse("account_profile:api_notifications")
-        self.assertEqual(self.client.get(prefs_url).status_code, 200)
-        response = self.client.patch(prefs_url, json.dumps({"order_updates": False, "promotions": True}), **self.json_headers)
-        self.assertEqual(response.status_code, 200, response.content)
-        prefs = NotificationPreference.objects.get(user=self.user)
-        self.assertFalse(prefs.order_updates)
-        self.assertTrue(prefs.promotions)
+    def test_password_is_updated_by_api(self):
         response = self.post_json("api_change_password", {
             "old_password": "A-strong-test-password-16", "new_password1": "Another-strong-password-2026",
             "new_password2": "Another-strong-password-2026",
