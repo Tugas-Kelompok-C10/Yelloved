@@ -1,21 +1,28 @@
 {% extends "base.html" %}
 {% load static items_ui %}
-{% block meta %}<script src="{% static 'js/items/cart.js' %}?v=1" defer></script><script src="{% static 'js/items/gallery.js' %}?v=1" defer></script><script src="{% static 'js/items/favorites.js' %}?v=1" defer></script><script src="{% static 'js/items/ui.js' %}" defer></script><script src="{% static 'js/items/detail.js' %}?v=item-multiphoto-20261029-1" defer></script><script src="{% static 'js/items/images.js' %}" defer></script><title>{{ item.title }} | Yelloved</title><link rel="stylesheet" href="{% static 'css/explore.css' %}?v=item-multiphoto-20261029-1">{% endblock %}
+{% block meta %}<script src="{% static 'js/items/cart.js' %}?v=1" defer></script><script src="{% static 'js/items/gallery.js' %}?v=detail-card-2" defer></script><script src="{% static 'js/items/favorites.js' %}?v=1" defer></script><script src="{% static 'js/items/ui.js' %}" defer></script><script src="{% static 'js/items/detail.js' %}?v=detail-card-20261030-2" defer></script><script src="{% static 'js/items/images.js' %}" defer></script><title>{{ item.title }} | Yelloved</title><link rel="stylesheet" href="{% static 'css/explore.css' %}?v=detail-card-20261030-2">{% endblock %}
 {% block content %}
 <main class="explore-page item-detail-page" lang="en">
     <nav class="item-detail-breadcrumb" aria-label="Breadcrumb"><a href="{% url 'items:explore_items' %}">Catalogue</a><span aria-hidden="true">/</span><span>Item details</span></nav>
     <article class="explore-detail">
-        <figure class="explore-detail-media">
+        <figure class="explore-detail-media item-product-gallery{% if gallery_thumbnails %} has-thumbnails{% endif %}">
             <div class="explore-image explore-detail-image">{% include 'items/_item_image.html' with detail=True %}{% include 'items/_favorite_button.html' %}</div>
-            {% if item.images.count > 1 %}
-            <div class="item-gallery-thumbnails" aria-label="Item photos">
-                {% for photo in item.images.all %}<button type="button" data-gallery-src="{{ photo.image.url }}" aria-label="View photo {{ forloop.counter }}" aria-pressed="{{ forloop.first|yesno:'true,false' }}"><img src="{{ photo.image.url }}" alt="Item photo {{ forloop.counter }}" width="64" height="64" loading="lazy"></button>{% endfor %}
+            {% if gallery_thumbnails %}
+            <div class="item-gallery-thumbnails" data-thumbnail-count="{{ gallery_thumbnails|length }}" aria-label="Item photos">
+                {% for photo in gallery_thumbnails %}
+                    <button type="button" data-gallery-src="{{ photo.url }}" data-gallery-index="{{ photo.index }}" aria-label="View photo {{ photo.number }}{% if forloop.last and gallery_extra_count %} and {{ gallery_extra_count }} more photos{% endif %}" aria-pressed="false"{% if forloop.last and gallery_extra_count %} data-gallery-more="true"{% endif %}>
+                        <img src="{{ photo.url }}" alt="Item photo {{ photo.number }}" width="160" height="200" loading="lazy">
+                        {% if forloop.last and gallery_extra_count %}<span class="item-gallery-more">+{{ gallery_extra_count }}</span>{% endif %}
+                    </button>
+                {% endfor %}
             </div>
             {% endif %}
+            {{ gallery_photos|json_script:'item-gallery-data' }}
+            <figcaption class="explore-sr-only" id="item-gallery-status" aria-live="polite">{% if gallery_photos %}Photo 1 of {{ gallery_photos|length }}{% else %}No item photos available{% endif %}</figcaption>
         </figure>
         <div class="explore-detail-body">
-            <p class="explore-category">{{ item.get_category_display|ui_text }} · {{ item.listing_type|listing_badge }}</p>
             <h1>{{ item.title }}</h1>
+            <p class="explore-category">{% if item.condition %}{{ item.get_condition_display|ui_text }}{% if item.category %} · {% endif %}{% endif %}{% if item.category %}{{ item.get_category_display|ui_text }}{% endif %}{% if item.condition or item.category %} · {% endif %}{{ item.listing_type|listing_badge }}</p>
             <p class="explore-price">{{ item.price_display|ui_text }}</p>
             {% url 'item_matching:request_create' item.pk as offer_url %}
             {% url 'transactions:pesan' as chat_url %}
@@ -48,7 +55,7 @@
                         {% if not user.is_authenticated %}</a>{% else %}</button>{% endif %}
                     </div>
                 {% if not user.is_authenticated or item.owner_id != user.pk %}
-                    <button class="explore-button explore-button-secondary" type="button" id="item-offer-open" aria-haspopup="dialog" aria-controls="item-offer-dialog">Make an Offer</button>
+                    <button class="explore-button explore-button-secondary" type="button" id="item-offer-open" aria-haspopup="dialog" aria-controls="item-offer-dialog">Make an offer</button>
                 {% endif %}
                 {% if not user.is_authenticated %}
                     <a class="explore-button explore-button-secondary" href="{{ login_url }}?next={{ chat_url|default:request.path|urlencode }}">Chat</a>
@@ -66,15 +73,16 @@
                 <h2 id="item-description-title">Item details</h2>
                 <p class="explore-description">{{ item.description|linebreaksbr }}</p>
                 <dl class="explore-specs">
-                    <div><dt>Condition</dt><dd>{{ item.get_condition_display|ui_text }}</dd></div>
-                    <div><dt>Location</dt><dd>{{ item.location }}</dd></div>
+                    {% if item.condition %}<div><dt>Condition</dt><dd>{{ item.get_condition_display|ui_text }}</dd></div>{% endif %}
+                    {% if item.category %}<div><dt>Category</dt><dd>{{ item.get_category_display|ui_text }}</dd></div>{% endif %}
+                    {% if item.location %}<div><dt>Location</dt><dd>{{ item.location }}</dd></div>{% endif %}
                     <div><dt>Status</dt><dd>{{ item.get_status_display|ui_text }}</dd></div>
                 </dl>
             </section>
             <section class="item-seller-summary" aria-label="Meet the seller">
                 {% if item.owner and user.is_authenticated %}
                     <div class="item-seller-avatar">{% if item.owner.account_profile.photo %}<img src="{{ item.owner.account_profile.photo.url }}" alt="Photo of {{ item.owner.username }}">{% else %}<span aria-hidden="true">{{ item.owner.username|slice:':2'|upper }}</span>{% endif %}</div>
-                    <div class="item-seller-summary-copy"><h2>{% if item.is_catalog %}Yelloved Community{% else %}@{{ item.owner.username }}{% endif %}</h2><p>UI community member · {{ item.location }}</p></div>
+                    <div class="item-seller-summary-copy"><h2>{% if item.is_catalog %}Yelloved Community{% else %}@{{ item.owner.username }}{% endif %}</h2><p>UI Student{% if seller_review_summary.review_count %} · {{ seller_review_summary.review_score|floatformat:1 }} ★ ({{ seller_review_summary.review_count }} review{{ seller_review_summary.review_count|pluralize }}){% else %} · No reviews yet{% endif %}</p></div>
                     <a class="explore-button explore-button-secondary" href="{% url 'account_profile:user_profile' item.owner.username %}">View profile</a>
                 {% elif item.owner %}
                     <p><a href="{% url 'login' %}?next={{ request.path|urlencode }}">Log in to meet the seller</a></p>
@@ -86,6 +94,19 @@
             {% if user.is_authenticated and item.owner_id == user.pk %}{% include 'items/_request_status.html' %}{% endif %}
         </div>
     </article>
+    <section class="item-seller-reviews" aria-labelledby="item-seller-reviews-title">
+        <header class="item-section-heading"><h2 id="item-seller-reviews-title">Seller reviews</h2>{% if item.owner and user.is_authenticated %}<a class="explore-button explore-button-secondary" href="{% url 'account_profile:user_profile' item.owner.username %}?tab=reviews">See all reviews</a>{% endif %}</header>
+        {% if seller_review_summary.review_count %}
+        <div class="item-reviews-layout" data-review-count="{{ seller_reviews|length }}">
+            <div class="item-review-summary"><p><strong>{{ seller_review_summary.review_score|floatformat:1 }}</strong> out of 5</p><p>Based on {{ seller_review_summary.review_count }} review{{ seller_review_summary.review_count|pluralize }}</p>
+                <div class="item-review-breakdown" aria-label="Rating breakdown">{% for row in seller_review_breakdown %}<div><span>{{ row.rating }} ★</span><progress max="100" value="{{ row.percentage|floatformat:0 }}" aria-label="{{ row.rating }} stars: {{ row.count }} reviews"></progress><span>{{ row.count }}</span></div>{% endfor %}</div>
+            </div>
+            {% for review in seller_reviews %}<article class="item-seller-review-card"><header><span class="item-review-avatar" aria-hidden="true">{{ review.reviewer.username|slice:':1'|upper }}</span><div><strong>{{ review.reviewer.username }}</strong><time datetime="{{ review.created_at|date:'c' }}">{{ review.created_at|date:'j F Y' }}</time></div></header><p class="item-review-stars" aria-label="{{ review.rating }} out of 5 stars">{{ review.stars }}</p>{% if review.comment %}<p>{{ review.comment|linebreaksbr }}</p>{% endif %}</article>{% endfor %}
+        </div>
+        {% else %}<div class="item-reviews-empty">No reviews yet. Reviews from completed purchases will appear here.</div>{% endif %}
+        {% if item.owner and not user.is_authenticated %}<p class="item-review-login"><a href="{% url 'login' %}?next={{ request.path|urlencode }}">Log in to see all reviews</a></p>{% endif %}
+    </section>
+    {% if seller_items %}
     <div class="item-detail-secondary">
         <section class="item-seller-listings" aria-labelledby="item-seller-listings-title">
             <h2 id="item-seller-listings-title">More from this seller</h2>
@@ -111,6 +132,7 @@
             </div>
         </section>
     </div>
+    {% endif %}
     <details class="item-seller-disclosure"><summary>Seller information and socials</summary>    <section class="item-seller-section" aria-labelledby="item-seller-title">
         <h2 id="item-seller-title">Meet the seller</h2>
         {% if item.owner and user.is_authenticated %}
@@ -152,6 +174,13 @@
             </div>
     {% if item.is_catalog %}<p class="explore-photo-credit"><a href="{% static 'img/items/SOURCES.md' %}">Catalogue photo sources and licences</a></p>{% endif %}
     </div>
+    {% if gallery_extra_count %}
+    <dialog class="item-photo-dialog" id="item-photo-dialog" aria-labelledby="item-photo-dialog-title">
+        <header><h2 id="item-photo-dialog-title">Item photos</h2><button type="button" data-photo-close aria-label="Close photos">×</button></header>
+        <img class="item-photo-viewer" alt="{{ item.title }}"><p data-photo-error hidden>Photo unavailable.</p>
+        <footer><button type="button" data-photo-prev aria-label="Previous photo">Previous</button><span data-photo-count aria-live="polite"></span><button type="button" data-photo-next aria-label="Next photo">Next</button></footer>
+    </dialog>
+    {% endif %}
     {% if not user.is_authenticated or item.owner_id != user.pk %}
     <dialog class="item-offer-dialog" id="item-offer-dialog" aria-labelledby="item-offer-title" aria-describedby="item-offer-note">
         <div class="item-offer-header"><h2 id="item-offer-title">Make an Offer</h2><button class="item-offer-close" type="button" aria-label="Close offer dialog">×</button></div>

@@ -102,8 +102,7 @@ class FavoriteTests(TestCase):
         self.assertContains(response, 'More from this seller')
         self.assertContains(response, 'aria-pressed="true"')
         sibling.delete()
-        self.assertContains(self.client.get(self.item.get_absolute_url()),
-                            'No other available listings from this seller yet.')
+        self.assertNotContains(self.client.get(self.item.get_absolute_url()), 'More from this seller')
         self.item.owner = None
         self.item.save()
         listing(None, 'Unassigned listing')

@@ -7,7 +7,7 @@ from django.shortcuts import render, redirect
 from django.db import transaction as db_transaction
 from django.urls import reverse
 from urllib.parse import urlencode
-from .models import Transaction, CartItem
+from .models import Transaction, CartItem, TransactionItem
 from items.models import Item
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
@@ -303,6 +303,8 @@ def checkout(request):
                                     transaction_status="pending",
                                 )
 
+                                snapshot_review_sellers(order, order_items)
+
                                 # Kosongkan keranjang hanya jika
                                 # checkout berasal dari keranjang.
                                 if not selected_item:
@@ -438,6 +440,7 @@ def checkout(request):
                                         payment_status="pending",
                                         transaction_status="pending",
                                     )
+                                    snapshot_review_sellers(order, order_items)
 
                             except Exception as e:
                                 print("ERROR CHECKOUT:", repr(e))
@@ -798,6 +801,13 @@ def transaction_history(request):
     else:
         active_status = "all"
 
+    from account_profile.models import Review
+    reviewed_ids = set(Review.objects.filter(reviewer=request.user).values_list('transaction_id', flat=True))
+    for order in transactions:
+        order.review_submitted = order.pk in reviewed_ids
+        order.can_review = (order.transaction_status == 'completed' and not order.review_submitted
+                            and order.buyer_id == request.user.pk
+                            and order.review_items.exclude(seller_id=request.user.pk).filter(seller__isnull=False).exists())
     
     # Siapkan gambar produk untuk kartu riwayat transaksi.
     history_transactions = list(transactions)
@@ -1190,6 +1200,11 @@ def create_midtrans_payment(order, payment_method, bank_code="bca"):
 
     return response
 
+def snapshot_review_sellers(order, entries):
+    TransactionItem.objects.bulk_create([
+        TransactionItem(transaction=order, item=entry['item'], seller_id=entry['item'].owner_id)
+        for entry in entries
+    ])
 @csrf_exempt
 @require_POST
 def midtrans_notification(request):

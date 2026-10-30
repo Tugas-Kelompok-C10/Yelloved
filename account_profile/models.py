@@ -72,3 +72,40 @@ class NotificationPreference(models.Model):
 
     def __str__(self):
         return f"Preferensi notifikasi {self.user.username}"
+
+
+class Review(models.Model):
+    transaction = models.OneToOneField('transactions.Transaction', on_delete=models.CASCADE, related_name='review')
+    reviewer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='written_reviews')
+    seller = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_reviews')
+    rating = models.PositiveSmallIntegerField()
+    comment = models.TextField(blank=True, max_length=2000)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at', '-pk']
+        constraints = [models.CheckConstraint(condition=models.Q(rating__gte=1, rating__lte=5), name='review_rating_1_to_5')]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        super().clean()
+        if self.rating is None or not 1 <= self.rating <= 5:
+            raise ValidationError({'rating': 'Choose a rating from 1 to 5.'})
+        if not self.transaction_id or not self.reviewer_id or not self.seller_id:
+            raise ValidationError('A completed purchase, buyer, and seller are required.')
+        if self.transaction.buyer_id != self.reviewer_id:
+            raise ValidationError('Only the buyer can review this order.')
+        if self.transaction.transaction_status != 'completed':
+            raise ValidationError('Reviews are available only after the order is completed.')
+        if self.reviewer_id == self.seller_id:
+            raise ValidationError('You cannot review yourself.')
+        if not self.transaction.review_items.filter(seller_id=self.seller_id).exists():
+            raise ValidationError('This seller is not part of your order.')
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    @property
+    def stars(self):
+        return '★' * self.rating + '☆' * (5 - self.rating)

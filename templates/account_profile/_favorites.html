@@ -1,11 +1,11 @@
 {% load items_ui %}
 <div class="profile-favorites-panel" data-total="{{ favorites_total }}">
     <div class="profile-favorites-toolbar">
-        <h2>Barang favoritmu (<span data-favorites-count>{{ favorites_total }}</span>)</h2>
+        <h2>Your favorites (<span data-favorites-count>{{ favorites_total }}</span>)</h2>
         <nav class="profile-favorites-filters" aria-label="Filter favorites">
-            <a href="?tab=favorites"{% if not listing_type %} class="is-active" aria-current="page"{% endif %}>Semua</a>
-            <a href="?tab=favorites&amp;listing_type=sale"{% if listing_type == 'sale' %} class="is-active" aria-current="page"{% endif %}>Dijual</a>
-            <a href="?tab=favorites&amp;listing_type=free"{% if listing_type == 'free' %} class="is-active" aria-current="page"{% endif %}>Gratis</a>
+            <a href="?tab=favorites"{% if not listing_type %} class="is-active" aria-current="page"{% endif %}>All</a>
+            <a href="?tab=favorites&amp;listing_type=sale"{% if listing_type == 'sale' %} class="is-active" aria-current="page"{% endif %}>For sale</a>
+            <a href="?tab=favorites&amp;listing_type=free"{% if listing_type == 'free' %} class="is-active" aria-current="page"{% endif %}>Free</a>
         </nav>
     </div>
     <div class="profile-favorites-grid">
@@ -29,7 +29,7 @@
         {% endfor %}
     </div>
     <div class="profile-favorites-empty" data-favorites-empty{% if favorites %} hidden{% endif %}>
-        {% if favorites_total %}<p>Belum ada favorit yang sesuai filter ini.</p><a href="?tab=favorites" class="profile-favorites-show-all">Lihat semua favorit</a>{% else %}<p>Belum ada barang favorit.</p>{% endif %}
-        <a class="profile-favorites-browse" href="{% url 'items:explore_items' %}">Jelajahi katalog</a>
+        {% if favorites_total %}<p>No favorites match this filter.</p><a href="?tab=favorites" class="profile-favorites-show-all">Show all favorites</a>{% else %}<p>You have no favorites yet.</p>{% endif %}
+        <a class="profile-favorites-browse" href="{% url 'items:explore_items' %}">Browse catalogue</a>
     </div>
 </div>

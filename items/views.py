@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Q, Exists, OuterRef, Value, BooleanField
+from django.db.models import Q, Exists, OuterRef, Value, BooleanField, Count
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
@@ -65,10 +65,28 @@ def item_detail(request, item_id):
     seller_items = (with_favorites(Item.objects.filter(
         owner_id=item.owner_id, status=Item.Status.AVAILABLE,
     ).exclude(pk=item.pk), request.user)[:4] if item.owner_id else Item.objects.none())
+    from account_profile.review_data import review_summary, received_reviews
+    summary = review_summary(item.owner) if item.owner_id else {}
+    reviews = received_reviews(item.owner) if item.owner_id else None
+    breakdown = []
+    if summary.get('review_count'):
+        counts = dict(reviews.order_by().values('rating').annotate(count=Count('pk')).values_list('rating', 'count'))
+        breakdown = [{'rating': rating, 'count': counts.get(rating, 0),
+                      'percentage': counts.get(rating, 0) * 100 / summary['review_count']}
+                     for rating in range(5, 0, -1)]
+    photos = [{'url': photo.image.url, 'index': index, 'number': index + 1}
+              for index, photo in enumerate(item.images.all())]
+    if not photos and item.has_image:
+        photos = [{'url': item.display_image_url, 'index': 0, 'number': 1}]
     return render(request, 'items/item_detail.html', {
         'name': 'Yelloved', 'item': item, 'can_manage': can_manage,
         'can_request_item': can_request_item, 'matching_request_form': matching_request_form,
         'seller_items': seller_items,
+        'seller_review_summary': summary,
+        'seller_reviews': reviews[:3] if reviews is not None else [],
+        'seller_review_breakdown': breakdown,
+        'gallery_photos': photos, 'gallery_thumbnails': photos[1:5],
+        'gallery_extra_count': max(0, len(photos) - 5),
         'item_in_cart': request.user.is_authenticated and item.cart_entries.filter(user_id=request.user.pk).exists(),
     })
 

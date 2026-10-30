@@ -1,0 +1,5 @@
+<article class="profile-review-card">
+    <header><strong>{{ review.reviewer.username }}</strong><time datetime="{{ review.created_at|date:'c' }}">{{ review.created_at|date:'j F Y' }}</time></header>
+    <p class="profile-review-stars" aria-label="{{ review.rating }} out of 5 stars">{{ review.stars }}</p>
+    {% if review.comment %}<p class="profile-review-comment">{{ review.comment|linebreaksbr }}</p>{% endif %}
+</article>
