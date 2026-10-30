@@ -1,3 +1,4 @@
+from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -21,7 +22,8 @@ class WantedChatLinkTests(TestCase):
         response = self.client.get(reverse("wanted_board:show_wanted"))
         self.assertContains(response, f'data-offer-chat="{reverse("chat:with_user", args=[self.owner.pk])}"')
 
-    def test_owner_and_demo_posters_link_to_inbox(self):
+    @patch("wanted_board.views.get_sample_wanted_posts", return_value=SAMPLE_WANTED_POSTS)
+    def test_owner_and_demo_posters_link_to_inbox(self, samples):
         self.client.force_login(self.owner)
         response = self.client.get(reverse("wanted_board:wanted_detail", args=[self.post.pk]))
         self.assertNotContains(response, f'href="{reverse("chat:with_user", args=[self.owner.pk])}"')

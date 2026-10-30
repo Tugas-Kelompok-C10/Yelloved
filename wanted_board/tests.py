@@ -1,4 +1,5 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
@@ -70,6 +71,11 @@ class WantedBoardModelTests(TestCase):
 
 class WantedBoardViewTests(TestCase):
     def setUp(self):
+        # Exercise legacy sample-card rendering with an explicit offline fixture.
+        # Production page requests no longer refresh external API data.
+        samples = patch('wanted_board.views.get_sample_wanted_posts', return_value=SAMPLE_WANTED_POSTS)
+        samples.start()
+        self.addCleanup(samples.stop)
         user_model = get_user_model()
         self.owner = user_model.objects.create_user(
             username="owner",

@@ -26,8 +26,11 @@ class Command(BaseCommand):
         try:
             # Ambil katalog lengkap agar 50 hasil pertama bukan kosmetik/sembako saja.
             response = requests.get('https://dummyjson.com/products', params={'limit': 0}, timeout=30)
-            response.raise_for_status()
-            payload = response.json()
+            try:
+                response.raise_for_status()
+                payload = response.json()
+            finally:
+                response.close()
         except (requests.RequestException, ValueError) as exc:
             raise CommandError(f'Gagal mengambil DummyJSON: {exc}') from exc
         products = payload.get('products') if isinstance(payload, dict) else None
