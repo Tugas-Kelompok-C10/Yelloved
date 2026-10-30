@@ -33,6 +33,12 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-local-development-only')
 # Development serves MEDIA_URL through home/urls.py; production needs its own media storage/server.
 DEBUG = not PRODUCTION
 
+# Keep local uploads on disk unless the complete Cloudinary configuration exists.
+# PWS continues to use Cloudinary when its three credentials are provided.
+USE_CLOUDINARY = all(os.getenv(name, '').strip() for name in (
+    'CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET',
+))
+
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "muhammad-adib51-yelloved.pws.cs.ui.ac.id", "cindy-olivia-yelloved.pws.cs.ui.ac.id",]
 CSRF_TRUSTED_ORIGINS = [
     "https://muhammad-adib51-yelloved.pws.cs.ui.ac.id",
@@ -47,9 +53,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    "cloudinary_storage",
+    *(["cloudinary_storage"] if USE_CLOUDINARY else []),
     "django.contrib.staticfiles",
-    "cloudinary",
+    *(["cloudinary"] if USE_CLOUDINARY else []),
     "home.apps.HomeConfig",
     "account_profile.apps.AccountProfileConfig",
     "chat.apps.ChatConfig",
@@ -164,7 +170,8 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 STORAGES = {
     "default": {
-        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        "BACKEND": ("cloudinary_storage.storage.MediaCloudinaryStorage" if USE_CLOUDINARY
+                    else "django.core.files.storage.FileSystemStorage"),
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
