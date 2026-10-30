@@ -185,7 +185,7 @@ def _cache_set(cache, key, posts, seconds):
         logger.warning("Wanted sample cache unavailable while writing")
 
 
-def get_sample_wanted_posts():
+def refresh_sample_wanted_posts():
     """API → ten-minute server cache; on failure, last-good data → snapshot."""
     cache = caches["wanted_samples"]
     cached = _cache_get(cache, CACHE_KEY)
@@ -205,5 +205,10 @@ def get_sample_wanted_posts():
     return posts
 
 
-# Stable fixture for existing tests; application views use the getter above.
+def get_sample_wanted_posts():
+    """Pages display persisted WantedPost rows; importing is an explicit operation."""
+    return ()
+
+
+# Offline fixture and API adapter, never fetched by page rendering.
 SAMPLE_WANTED_POSTS = _snapshot_posts()
