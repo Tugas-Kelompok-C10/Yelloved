@@ -85,6 +85,6 @@ class PhotoOfferTests(TestCase):
         with self.assertRaises(services.MatchingError): services.accept_offer(offer.pk, self.stranger)
         services.accept_offer(offer.pk, self.owner)
         self.post.refresh_from_db()
-        self.assertEqual(self.post.status, WantedPost.Status.FULFILLED)
+        self.assertEqual(self.post.status, WantedPost.Status.MATCHED)
         self.client.force_login(self.sender)
         self.assertContains(self.client.get(reverse('item_matching:dashboard'), {'tab': 'offers_sent'}), 'Chat')
