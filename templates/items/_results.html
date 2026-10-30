@@ -24,10 +24,31 @@
     <div class="explore-empty"><h3>No matching items yet?</h3><p>Try another search, adjust your filters, or add your first listing.</p><a class="explore-button" href="{% url 'items:explore_items' %}">View all items</a></div>
 {% endfor %}
 </div>
-{% if page_obj.paginator.num_pages > 1 %}
-<nav class="explore-pagination" aria-label="Item pages">
-    {% if page_obj.has_previous %}<a class="explore-button" data-page="{{ page_obj.previous_page_number }}" href="{% querystring status=None page=page_obj.previous_page_number %}">← Previous</a>{% endif %}
-    <span class="explore-page-label" aria-current="page">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-    {% if page_obj.has_next %}<a class="explore-button" data-page="{{ page_obj.next_page_number }}" href="{% querystring status=None page=page_obj.next_page_number %}">Next →</a>{% endif %}
+{% if page_obj.paginator.count %}
+<nav class="wanted-pagination" aria-label="Catalogue pages">
+    {% if page_obj.has_previous %}
+        <a data-page="{{ page_obj.previous_page_number }}" href="{% querystring status=None page=page_obj.previous_page_number %}" aria-label="Previous page">←</a>
+    {% else %}
+        <button type="button" disabled aria-disabled="true" aria-label="Previous page">←</button>
+    {% endif %}
+    {# Match Wanted Board's six-number window, clamped at either end. #}
+    {% with current=page_obj.number total=page_obj.paginator.num_pages %}
+    {% for number in page_obj.paginator.page_range %}
+        {% if total <= 6 or number == 1 or number == total or current <= 3 and number <= 5 or current >= total|add:"-3" and number >= total|add:"-4" or current > 3 and current < total|add:"-3" and number >= current|add:"-1" and number <= current|add:"2" %}
+            {% if number == page_obj.number %}
+                <span class="is-current" aria-current="page" aria-label="Page {{ number }}">{{ number }}</span>
+            {% else %}
+                <a data-page="{{ number }}" href="{% querystring status=None page=number %}" aria-label="Page {{ number }}">{{ number }}</a>
+            {% endif %}
+        {% elif current <= 3 and number == 6 or current >= total|add:"-3" and number == total|add:"-5" or current > 3 and current < total|add:"-3" and number == current|add:"-2" or current > 3 and current < total|add:"-3" and number == current|add:"3" %}
+            <span class="wanted-pagination-ellipsis" aria-hidden="true">…</span>
+        {% endif %}
+    {% endfor %}
+    {% endwith %}
+    {% if page_obj.has_next %}
+        <a data-page="{{ page_obj.next_page_number }}" href="{% querystring status=None page=page_obj.next_page_number %}" aria-label="Next page">→</a>
+    {% else %}
+        <button type="button" disabled aria-disabled="true" aria-label="Next page">→</button>
+    {% endif %}
 </nav>
 {% endif %}
