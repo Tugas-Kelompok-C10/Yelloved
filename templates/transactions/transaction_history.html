@@ -133,6 +133,7 @@
                             <!-- Footer dan aksi pesanan -->
                             <div class="order-card-footer">
                                 <span>Terima kasih telah memilih preloved.</span>
+                                {% if transaction.review_submitted %}<span class="order-review-status">Review submitted</span>{% elif transaction.can_review %}<a class="order-cancel-button" href="{% url 'account_profile:reviews' %}?order={{ transaction.pk }}">Leave a review</a>{% endif %}
 
                                 {% if active_type != 'sold' and transaction.payment_method == 'cod' and transaction.transaction_status == 'pending' and transaction.payment_status == 'pending' %}
                                     <form

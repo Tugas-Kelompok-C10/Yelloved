@@ -3,7 +3,7 @@ from django.core.files.uploadedfile import UploadedFile
 from PIL import Image, UnidentifiedImageError
 import warnings
 
-from .models import Address, NotificationPreference, PaymentMethod, Profile
+from .models import Address, NotificationPreference, PaymentMethod, Profile, Review
 
 
 class ProfileForm(forms.ModelForm):
@@ -137,3 +137,24 @@ class NotificationPreferenceForm(forms.ModelForm):
             "account_updates": "Account security and activity",
             "promotions": "Offers and recommendations",
         }
+
+
+class ReviewForm(forms.ModelForm):
+    rating = forms.TypedChoiceField(choices=[(n, f'{n} star' if n == 1 else f'{n} stars') for n in range(1, 6)], coerce=int)
+
+    class Meta:
+        model = Review
+        fields = ['seller', 'rating', 'comment']
+        widgets = {'comment': forms.Textarea(attrs={'rows': 3, 'maxlength': 2000})}
+        labels = {'seller': 'Seller', 'rating': 'Rating', 'comment': 'Comment (optional)'}
+
+    def __init__(self, *args, transaction, user, **kwargs):
+        from django.contrib.auth import get_user_model
+        super().__init__(*args, **kwargs)
+        self.instance.transaction = transaction
+        self.instance.reviewer = user
+        self.fields['seller'].queryset = get_user_model().objects.filter(
+            pk__in=transaction.review_items.values_list('seller_id', flat=True),
+        ).exclude(pk=user.pk).distinct()
+        if self.fields['seller'].queryset.count() == 1:
+            self.fields['seller'].initial = self.fields['seller'].queryset.first()

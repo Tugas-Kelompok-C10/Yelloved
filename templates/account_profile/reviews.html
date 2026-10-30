@@ -1,7 +1,9 @@
 {% extends 'account_profile/profile_base.html' %}
+{% load static %}
 
 {% block meta %}
 <title>Reviews | {{ name }}</title>
+<link rel="stylesheet" href="{% static 'css/user-profile.css' %}?v=profile-reviews-20261030-1">
 <meta name="description" content="View your Yelloved reviews.">
 {% endblock meta %}
 
@@ -33,6 +35,20 @@
         </label>
     </form>
 
-    <div class="reviews-empty-state">No reviews yet</div>
+    {% if review_form %}
+        <form class="profile-review-form" method="post" action="{% url 'account_profile:reviews' %}">
+            {% csrf_token %}<input type="hidden" name="transaction_id" value="{{ review_order.pk }}">
+            <h2>Leave a review</h2><p>{{ review_order.item_name }} · {{ review_order.order_id }}</p>
+            <p>Choose a seller from this completed order. You can submit one review per order.</p>
+            {{ review_form.non_field_errors }}
+            {% for field in review_form %}<div><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endfor %}
+            <button type="submit">Submit review</button>
+        </form>
+    {% endif %}
+    {% if active_tab == 'pending' %}
+        {% for order in pending_orders %}<article class="profile-review-order"><div><strong>{{ order.item_name }}</strong><p>{{ order.order_id }}</p></div><a href="?order={{ order.pk }}&amp;tab=pending">Leave a review</a></article>{% empty %}<div class="reviews-empty-state">No completed orders awaiting review.</div>{% endfor %}
+    {% else %}
+        {% for review in written_reviews %}<div class="profile-written-review"><p>Review submitted · {{ review.seller.username }} · {{ review.transaction.order_id }}</p>{% include 'account_profile/_review_card.html' %}</div>{% empty %}<div class="reviews-empty-state">No reviews yet</div>{% endfor %}
+    {% endif %}
 </section>
 {% endblock profile_content %}
