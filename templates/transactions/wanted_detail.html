@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block meta %}<title>Transaction {{ order.order_id }} | Yelloved</title>{% endblock %}
+{% block content %}
+<main class="matching-page wanted-transaction-page" lang="en">
+    <a class="wanted-back-link" href="{% url 'item_matching:dashboard' %}?tab={% if is_buyer %}offers_received{% else %}offers_sent{% endif %}">Back to Activity</a>
+    <section class="orders-heading"><div><h1>Transaction Detail</h1><p>{{ order.order_id }} · {{ order.get_transaction_status_display }}</p></div></section>
+    <div class="wanted-transaction-grid">
+        <section class="wanted-transaction-card">
+            <h2>{{ order.item_name }}</h2>
+            <dl><dt>Agreed price</dt><dd>{{ price }}</dd><dt>Buyer</dt><dd>{{ order.buyer.username }}</dd><dt>Seller</dt><dd>{{ order.seller.username }}</dd><dt>Payment</dt><dd>Cash on delivery · {{ order.get_payment_status_display }}</dd><dt>Meetup location</dt><dd>{{ order.cod_meeting_location|default:"Not arranged yet" }}</dd><dt>Meetup time</dt><dd>{{ order.cod_meeting_time|date:"j F Y, H:i"|default:"Not arranged yet" }}</dd></dl>
+            {% if is_buyer %}<a class="btn" href="{% url 'chat:with_user' order.seller_id %}">Chat with seller</a>
+            {% else %}<a class="btn" href="{% url 'chat:with_user' order.buyer_id %}">Chat with buyer</a>{% endif %}
+        </section>
+        <section class="wanted-transaction-card">
+            <h2>{% if active %}Arrange the handover{% else %}Transaction {{ order.get_transaction_status_display|lower }}{% endif %}</h2>
+            {{ form.non_field_errors }}
+            {% if active %}
+                <p>Agree on a public meetup spot in Chat. Payment is made directly at the meetup.</p>
+                {% if is_buyer %}
+                <form method="post" class="wanted-transaction-form">{% csrf_token %}
+                    <input type="hidden" name="action" value="meetup">
+                    {% for field in form %}<label for="{{ field.id_for_label }}">{{ field.label }} <span class="wanted-transaction-required">*</span></label>{{ field }}{{ field.errors }}{% endfor %}
+                    <button class="btn" type="submit">Save meetup details</button>
+                </form>
+                {% if order.transaction_status == 'processing' %}
+                <form method="post" class="wanted-transaction-form">{% csrf_token %}
+                    <p>Only confirm after you have received the item and paid the agreed amount.</p>
+                    <label><input type="checkbox" name="confirm_received" required> I have received the item and completed the COD payment.</label>
+                    <button class="btn" name="action" value="complete">Confirm item received</button>
+                </form>
+                {% endif %}
+                {% else %}<p>The buyer will save the meetup details and confirm receipt after the handover.</p>{% endif %}
+                <form method="post" class="wanted-transaction-form">{% csrf_token %}
+                    <label><input type="checkbox" name="confirm_cancel" required> Cancel this agreement and reopen the wanted post.</label>
+                    <button class="btn btn-outline" name="action" value="cancel">Cancel agreement</button>
+                </form>
+            {% else %}<p>{% if order.transaction_status == 'completed' %}The buyer confirmed receipt and payment. The wanted post is fulfilled.{% else %}This agreement was cancelled. Previously rejected offers stay rejected.{% endif %}</p>{% endif %}
+        </section>
+    </div>
+</main>
+{% endblock %}

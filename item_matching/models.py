@@ -104,6 +104,7 @@ class ItemOffer(models.Model):
         ACCEPTED = 'accepted', 'Accepted'
         REJECTED = 'rejected', 'Rejected'
         WITHDRAWN = 'withdrawn', 'Withdrawn'
+        CANCELLED = 'cancelled', 'Cancelled'
 
     wanted_post = models.ForeignKey(WantedPost, on_delete=models.CASCADE, related_name='item_offers')
     item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='wanted_offers', null=True, blank=True)

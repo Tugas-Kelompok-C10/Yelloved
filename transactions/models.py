@@ -18,6 +18,16 @@ class Transaction(models.Model):
         ("cancelled", "Cancelled"),
     ]
 
+    # Nullable so existing catalogue orders keep working unchanged.
+    accepted_offer = models.OneToOneField(
+        "item_matching.ItemOffer", null=True, blank=True, on_delete=models.PROTECT,
+        related_name="matched_transaction",
+    )
+    seller = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT,
+        related_name="wanted_sales",
+    )
+
     order_id = models.CharField(max_length=100, unique=True)
 
     PAYMENT_METHOD_CHOICES = [
