@@ -526,3 +526,23 @@
     outline: 3px solid rgba(75, 21, 79, 0.25);
     outline-offset: 3px;
 }
+
+/* Payment Preview - Centered 1280px Container */
+.payment-page {
+    width: calc(100% - 48px);
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+}
+
+.payment-layout {
+    width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .payment-page {
+        width: calc(100% - 32px);
+    }
+}
