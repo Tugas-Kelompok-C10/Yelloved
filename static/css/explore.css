@@ -711,3 +711,18 @@
     .explore-page.explore-catalog-page .explore-hero { min-height: 0; padding: 16px 0; }
     .explore-page.explore-catalog-page .explore-sell-cta { padding: 20px; }
 }
+
+/* Add/edit item stays a page; field styling follows the Wanted form tokens. */
+.item-form-page .item-form-panel { border-radius: calc(var(--radius) * 1.5); }
+.item-form-page .item-form { gap: 20px; }
+.item-form-page .item-form-field { gap: 8px; }
+.item-form-page .item-form-field > label { color: var(--violet); }
+.item-form-page .item-form-field .required-marker { color: var(--error); }
+.item-form-page .item-form-field :is(input:not([type="checkbox"]):not([type="hidden"]):not([type="file"]), select) {
+    border-color: var(--border);
+    border-radius: var(--radius-pill);
+}
+.item-form-page .item-form-field :is(textarea, input[type="file"]) {
+    border-color: var(--border);
+    border-radius: var(--radius);
+}
