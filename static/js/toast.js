@@ -24,7 +24,8 @@
         const icon = document.createElement("span");
         icon.className = "site-toast-icon";
         icon.setAttribute("aria-hidden", "true");
-        icon.innerHTML = '<svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"></path></svg>';
+        const iconPath = type === 'error' ? 'M6 6l12 12M18 6 6 18' : 'M20 6 9 17l-5-5';
+        icon.innerHTML = `<svg viewBox="0 0 24 24"><path d="${iconPath}"></path></svg>`;
 
         const copy = document.createElement("span");
         copy.className = "site-toast-copy";
