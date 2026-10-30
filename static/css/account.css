@@ -79,21 +79,12 @@
 .biodata-details section + section { margin-top: 26px; padding-top: 24px; }
 .biodata-details .profile-save-button { margin-top: 24px; }
 
-/* Addresses, payments, notifications, and security. */
-.profile-page :is(.address-page-content, .payment-page-content, .notification-page-content, .privacy-page-content) { padding: 28px; }
+/* Addresses, payments and security. */
+.profile-page :is(.address-page-content, .payment-page-content, .privacy-page-content) { padding: 28px; }
 .profile-page :is(.address-intro h2, .address-form-card h2) { font-size: 19px; color: var(--violet); }
-.profile-page :is(.address-intro p, .notification-option-copy p, .security-section-heading p) { font-size: 13px; line-height: 1.7; color: var(--gray); margin-top: 5px; }
-.notification-form { display: grid; gap: 12px; margin-top: 24px; }
-.notification-option { padding: 18px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--light-paper); }
-.notification-option-copy { min-width: 0; }
-.notification-option-copy label { font-size: 13px; color: var(--violet); }
-.profile-page .notification-option input[type="checkbox"] { appearance: none; display: block; width: 42px; height: 24px; min-height: 0; padding: 0; margin: 0; border-radius: var(--radius-pill); background: var(--violet-light-hover); border: 1px solid var(--border); box-shadow: none; }
-.profile-page .notification-option input[type="checkbox"]::after { width: 18px; height: 18px; top: 2px; left: 2px; background: var(--paper); box-shadow: none; }
-.profile-page .notification-option input[type="checkbox"]:checked { background: var(--violet); border-color: var(--violet); }
-.profile-page .notification-option input[type="checkbox"]:checked::after { transform: translateX(18px); }
-.notification-form > .profile-save-button { justify-self: start; margin-top: 12px; }
-.profile-page :is(.notification-mark, .payment-method-icon, .security-card-icon, .security-lock-icon) { width: 40px; height: 40px; border-radius: var(--radius-pill); background: var(--violet-light-hover); }
-.profile-page :is(.notification-mark, .payment-method-icon, .security-lock-icon) svg { width: 21px; height: 21px; }
+.profile-page :is(.address-intro p, .security-section-heading p) { font-size: 13px; line-height: 1.7; color: var(--gray); margin-top: 5px; }
+.profile-page :is(.payment-method-icon, .security-card-icon, .security-lock-icon) { width: 40px; height: 40px; border-radius: var(--radius-pill); background: var(--violet-light-hover); }
+.profile-page :is(.payment-method-icon, .security-card-icon, .security-lock-icon) svg { width: 21px; height: 21px; }
 .address-toolbar { grid-template-columns: minmax(0, 1fr) auto; margin-bottom: 20px; }
 .profile-page .address-search-box { min-height: 46px; border-radius: var(--radius); background: var(--light-paper); }
 .profile-page .address-search-box input { flex: 1; min-width: 0; padding: 8px 0 !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; outline: none !important; box-shadow: none !important; }
@@ -175,10 +166,8 @@ body:has(.profile-page) .profile-page :is(.profile-save-button, .profile-photo-b
     .profile-heading { font-size: 22px; }
     .profile-tabs { overflow-x: auto; gap: 8px; }
     .profile-tabs a { flex: 0 0 auto; min-height: 56px; padding: 12px 10px; }
-    .profile-page :is(.profile-biodata, .address-page-content, .payment-page-content, .notification-page-content, .privacy-page-content) { padding: 20px; }
+    .profile-page :is(.profile-biodata, .address-page-content, .payment-page-content, .privacy-page-content) { padding: 20px; }
     .address-toolbar { grid-template-columns: 1fr; }
-    .notification-option { gap: 12px; padding: 16px; }
-    .notification-option-copy p { font-size: 12px; }
     .profile-page .help-messages-panel { grid-template-columns: 1fr; }
     .help-ticket-list { border-right: 0; border-bottom: 1px solid var(--border); }
     .help-ticket-empty { min-height: 80px; }

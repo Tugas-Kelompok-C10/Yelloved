@@ -35,6 +35,7 @@ DEBUG = not PRODUCTION
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "muhammad-adib51-yelloved.pws.cs.ui.ac.id", "cindy-olivia-yelloved.pws.cs.ui.ac.id",]
 CSRF_TRUSTED_ORIGINS = [
+    "https://muhammad-adib51-yelloved.pws.cs.ui.ac.id",
     "https://cindy-olivia-yelloved.pws.cs.ui.ac.id",
 ]
 
@@ -83,7 +84,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'item_matching.context_processors.matching_notifications',
+                'item_matching.context_processors.activity_summary',
             ],
         },
     },

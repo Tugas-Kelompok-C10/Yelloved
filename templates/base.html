@@ -40,6 +40,9 @@
     {% if request.resolver_match.namespace == 'account_profile' or request.resolver_match.url_name == 'login' %}
         <link rel="stylesheet" href="{% static 'css/account.css' %}?v=account-refresh-3">
     {% endif %}
+    {% if request.resolver_match.namespace == 'account_profile' %}
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    {% endif %}
 </head>
 
 <body>
@@ -288,87 +291,6 @@
                         </section>
                     </div>
 
-                    <div class="nav-notification">
-                        <button
-                            type="button"
-                            class="nav-icon-link nav-notification-trigger"
-                            title="Notifikasi"
-                            aria-label="Notifikasi"
-                            aria-haspopup="dialog"
-                            aria-expanded="false"
-                            aria-controls="notification-popover"
-                        >
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="1.8"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                aria-hidden="true"
-                            >
-                                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
-                                <path d="M10 21h4"/>
-                            </svg>
-                        </button>
-
-                        <section
-                            class="notification-popover"
-                            id="notification-popover"
-                            aria-label="Notifikasi"
-                        >
-                            <header class="notification-popover-header">
-                                <h2>Notifikasi</h2>
-
-                                <a
-                                    href="{% url 'account_profile:notifications' %}"
-                                    aria-label="Pengaturan notifikasi"
-                                    title="Pengaturan notifikasi"
-                                >
-                                    <svg viewBox="0 0 512 512" fill="currentColor" aria-hidden="true">
-                                        <path d="M487.4 315.7 444.8 291c2.9-11.1 4.4-22.9 4.4-35.1s-1.5-24-4.4-35.1l42.6-24.6c7.6-4.4 10.2-14.1 5.8-21.7L454 106.6c-4.4-7.6-14.1-10.2-21.7-5.8l-42.6 24.6c-17.2-14.9-37.5-26.6-59.7-34V42.3c0-8.8-7-15.8-15.8-15.8h-78.4c-8.8 0-15.8 7-15.8 15.8v49.2c-22.2 7.4-42.5 19.1-59.7 34l-42.6-24.6c-7.6-4.4-17.3-1.8-21.7 5.8l-39.2 67.9c-4.4 7.6-1.8 17.3 5.8 21.7L105 221c-2.9 11.1-4.4 22.9-4.4 35.1s1.5 24 4.4 35.1l-42.6 24.6c-7.6 4.4-10.2 14.1-5.8 21.7l39.2 67.9c4.4 7.6 14.1 10.2 21.7 5.8l42.6-24.6c17.2 14.9 37.5 26.6 59.7 34v49.2c0 8.8 7 15.8 15.8 15.8h78.4c8.8 0 15.8-7 15.8-15.8v-49.2c22.2-7.4 42.5-19.1 59.7-34l42.6 24.6c7.6 4.4 17.3 1.8 21.7-5.8l39.2-67.9c4.4-7.6 1.8-17.3-5.8-21.7ZM275 319.1c-34.8 0-63-28.2-63-63s28.2-63 63-63 63 28.2 63 63-28.2 63-63 63Z"/>
-                                    </svg>
-                                </a>
-                            </header>
-
-                            {% if matching_notifications %}
-                                <ul class="matching-notification-list">
-                                    {% for note in matching_notifications %}
-                                        <li>
-                                            <a href="{{ note.url }}">{{ note.text }}</a>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            {% else %}
-                                <div class="notification-empty-state">
-                                    <span aria-hidden="true">
-                                        <svg
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="1.8"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                        >
-                                            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
-                                            <path d="M10 21h4"/>
-                                        </svg>
-                                    </span>
-
-                                    <h3>Belum ada notifikasi</h3>
-                                    <p>Notifikasi terbaru akan muncul di sini.</p>
-                                </div>
-                            {% endif %}
-
-                            <footer class="notification-popover-footer">
-                                <a href="{% url 'account_profile:notifications' %}">
-                                    Pengaturan notifikasi
-                                </a>
-                            </footer>
-                        </section>
-                    </div>
-                </div>
-
                 <div
                     class="nav-notification nav-chat"
                     data-chat-notifications
@@ -508,7 +430,11 @@
             >
                 <span class="site-toast-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24">
-                        <path d="M20 6 9 17l-5-5"></path>
+                        {% if "error" in message.tags %}
+                            <path d="M6 6l12 12M18 6 6 18"></path>
+                        {% else %}
+                            <path d="M20 6 9 17l-5-5"></path>
+                        {% endif %}
                     </svg>
                 </span>
 
@@ -627,7 +553,7 @@
 </footer>
 
 <!-- JavaScript toast yang sudah ada -->
-<script src="{% static 'js/toast.js' %}?v=navigation-2" defer></script>
+<script src="{% static 'js/toast.js' %}?v=error-icon-3" defer></script>
 
 <!-- JavaScript toast transaksi -->
 {% if request.resolver_match.namespace == "transactions" %}
@@ -646,6 +572,10 @@
 
 {% if request.resolver_match.namespace == 'account_profile' or request.resolver_match.url_name == 'login' %}
     <script src="{% static 'js/account.js' %}?v=account-refresh-4" defer></script>
+{% endif %}
+{% if request.resolver_match.namespace == 'account_profile' %}
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
+    <script src="{% static 'js/account_profile/address_map.js' %}?v=2" defer></script>
 {% endif %}
 
 <script src="{% static 'js/wanted_item_offer.js' %}?v=drafts-3" defer></script>

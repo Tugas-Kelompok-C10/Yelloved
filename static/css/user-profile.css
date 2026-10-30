@@ -47,9 +47,11 @@
 .profile-page.public-profile-page .public-profile-stats { display:flex; flex-wrap:wrap; gap:8px 20px; font-size:12px; color:#726f59; }
 .profile-page.public-profile-page .public-profile-stats strong { color:#320c35; }
 .profile-page.public-profile-page .public-profile-actions { display:flex; flex-wrap:wrap; gap:10px; margin:0; width:auto; }
-.profile-page.public-profile-page .public-profile-actions a { min-height:42px; padding:10px 20px; border:1px solid #320c35; border-radius:999px; color:#320c35; background:#fffef9; font-size:12px; font-weight:650; }
-.profile-page.public-profile-page .public-profile-actions a:last-child { background:#320c35; color:#f2eebf; }
+.profile-page.public-profile-page .public-profile-actions a { display:inline-flex; min-height:42px; align-items:center; justify-content:center; padding:10px 20px; border:1px solid #320c35; border-radius:999px; color:#f2eebf; background:#320c35; font-size:12px; font-weight:650; text-decoration:none; }
+.profile-page.public-profile-page .public-profile-actions a.public-profile-add-item { width:42px; min-width:42px; padding:0; }
+.profile-page.public-profile-page .public-profile-actions a.public-profile-add-item svg { width:20px; height:20px; }
 .profile-page.public-profile-page .public-profile-actions a:hover { box-shadow:0 0 0 3px #AEDAE755; transform:none; }
+.profile-page.public-profile-page .public-profile-actions a:focus-visible { outline:3px solid #AEDAE7; outline-offset:3px; }
 
 
 

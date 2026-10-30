@@ -1259,6 +1259,56 @@ body:has(.profile-page) .site-header {
 
 .address-form-actions .profile-save-button { margin-top: 2px; }
 
+.address-map-picker {
+    margin: 0 0 14px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--paper);
+}
+.address-map-heading,
+.address-map-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.address-map-heading { margin-bottom: 10px; }
+.address-map-heading h3 { color: var(--violet); font-size: 10px; font-weight: 700; }
+.address-map-heading p,
+.address-map-footer span,
+.address-map-attribution { color: var(--gray); font-size: 8px; line-height: 1.5; }
+.address-map-heading p { margin-top: 4px; }
+.address-map {
+    z-index: 0;
+    width: 100%;
+    height: 240px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 4px);
+    background: #e8eee9;
+}
+.address-map-footer { margin-top: 9px; }
+.address-map-footer span { min-width: 0; }
+.address-map-attribution { display: block; margin-top: 6px; text-align: right; }
+.address-map-attribution a { color: inherit; }
+.address-location-button,
+.address-map-use-button {
+    min-height: 32px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--paper);
+    color: var(--violet);
+    font: 600 8px "Sora", sans-serif;
+    cursor: pointer;
+}
+.address-location-button:hover,
+.address-map-use-button:hover { background: var(--violet-light-hover); }
+.address-map-picker :focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
+.address-map-picker .leaflet-container { font: 8px "Sora", sans-serif; }
+.address-map-picker .leaflet-control-attribution { font-size: 7px; }
+
 .payment-page { flex: 0 0 auto; }
 .payment-panel { min-height: 480px; }
 .payment-page-content { padding: 20px 22px 24px; }
@@ -1325,79 +1375,6 @@ body:has(.profile-page) .site-header {
     font-size: 7px;
     line-height: 1.5;
 }
-
-.notification-page { flex: 0 0 auto; }
-.notification-panel { min-height: 480px; }
-.notification-page-content { padding: 21px 24px 26px; }
-.notification-mark {
-    width: 34px;
-    height: 34px;
-    display: grid;
-    flex: none;
-    place-items: center;
-    border-radius: var(--radius-pill);
-    background: var(--paper);
-    color: var(--violet);
-}
-.notification-mark svg {
-    width: 18px;
-    height: 18px;
-}
-.notification-form { margin-top: 11px; }
-.notification-option {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    padding: 14px 2px;
-    border-bottom: 1px solid var(--border);
-}
-.notification-option-copy label {
-    color: var(--violet);
-    font-size: 10px;
-    font-weight: 600;
-    cursor: pointer;
-}
-.notification-option-copy p {
-    margin-top: 4px;
-    color: var(--gray);
-    font-size: 8px;
-    line-height: 1.5;
-}
-.notification-option input[type="checkbox"] {
-    position: relative;
-    width: 34px;
-    height: 19px;
-    flex: none;
-    appearance: none;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
-    background: var(--violet-light-hover);
-    cursor: pointer;
-    transition: background-color 160ms ease, border-color 160ms ease;
-}
-.notification-option input[type="checkbox"]::after {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 13px;
-    height: 13px;
-    border-radius: var(--radius-pill);
-    background: var(--paper);
-    box-shadow: 0 1px 3px color-mix(in srgb, var(--violet) 13%, transparent);
-    content: "";
-    transition: transform 160ms ease;
-}
-.notification-option input[type="checkbox"]:checked {
-    border-color: var(--violet);
-    background: var(--violet);
-}
-.notification-option input[type="checkbox"]:checked::after { transform: translateX(15px); }
-.notification-option input[type="checkbox"]:focus-visible {
-    outline: 2px solid var(--gray);
-    outline-offset: 3px;
-}
-.notification-form > .profile-save-button { margin-top: 17px; }
 
 .privacy-page { flex: 0 0 auto; }
 .privacy-panel { min-height: 480px; }
@@ -1609,7 +1586,6 @@ body:has(.profile-page) .site-header {
     .address-page .saved-address-actions { flex-wrap: wrap; }
     .payment-layout { grid-template-columns: 1fr; }
     .payment-page-content { padding: 16px; }
-    .notification-page-content { padding: 16px; }
     .privacy-page-content { padding: 16px; }
     .profile-sidebar { min-height: 0; }
     .profile-menu { display: flex; gap: 28px; padding: 16px; }
@@ -4436,7 +4412,6 @@ body:has(.profile-page) { background: var(--paper); }
 .profile-panel,
 .address-panel,
 .payment-panel,
-.notification-panel,
 .privacy-panel,
 .reviews-panel,
 .help-messages-panel {
@@ -4460,7 +4435,6 @@ body:has(.profile-page) { background: var(--paper); }
 .profile-panel,
 .address-panel,
 .payment-panel,
-.notification-panel,
 .privacy-panel { min-height: 560px; }
 .profile-tabs a,
 .reviews-tabs a { min-height: 54px; font-size: 14px; }
@@ -4481,15 +4455,12 @@ body:has(.profile-page) { background: var(--paper); }
 .profile-edit-form .profile-save-button { border-radius: var(--radius); }
 .address-page-content,
 .payment-page-content,
-.notification-page-content,
 .privacy-page-content { padding: 26px; }
 .address-card-title,
 .payment-method-title,
-.notification-option-title,
 .security-card-title { font-size: 18px; }
 .address-page p,
 .payment-page p,
-.notification-page p,
 .privacy-page p,
 .security-help,
 .privacy-note { font-size: 13px; line-height: 1.55; }
@@ -4525,7 +4496,7 @@ body:has(.profile-page) { background: var(--paper); }
     .profile-menu section { min-width: 130px; }
     .profile-menu section + section { margin-top: 0; }
     .profile-logout { margin: 0 20px 20px auto; }
-    .profile-panel, .address-panel, .payment-panel, .notification-panel, .privacy-panel,
+    .profile-panel, .address-panel, .payment-panel, .privacy-panel,
     .help-messages-panel { min-height: 420px; }
     .profile-biodata { grid-template-columns: minmax(0, 130px) minmax(0, 1fr); gap: 20px; padding: 20px; }
     .biodata-photo-placeholder { width: min(100%, 130px); height: auto; aspect-ratio: 1; }
@@ -4541,7 +4512,7 @@ body:has(.profile-page) { background: var(--paper); }
     .biodata-photo-placeholder { width: min(100%, 120px); height: auto; aspect-ratio: 1; }
     .profile-photo-input { top: 126px; width: 120px; }
     .profile-photo-button, .photo-hint, .photo-error { width: 120px; }
-    .address-page-content, .payment-page-content, .notification-page-content, .privacy-page-content { padding: 16px; }
+    .address-page-content, .payment-page-content, .privacy-page-content { padding: 16px; }
     .help-messages-panel { grid-template-columns: minmax(110px, 35%) minmax(0, 1fr); }
     .help-message-welcome { padding: 12px; }
     .help-message-welcome h2 { font-size: 17px; }
@@ -4555,7 +4526,6 @@ body:has(.profile-page) { background: var(--paper); color: var(--violet); }
 .profile-panel,
 .address-panel,
 .payment-panel,
-.notification-panel,
 .privacy-panel,
 .reviews-panel,
 .help-messages-panel {
@@ -4577,7 +4547,6 @@ body:has(.profile-page) { background: var(--paper); color: var(--violet); }
 .biodata-details h2,
 .address-page h2,
 .payment-page h2,
-.notification-page h2,
 .privacy-page h2,
 .reviews-panel h2,
 .help-message-welcome h2 { color: var(--violet); }
@@ -4589,7 +4558,6 @@ body:has(.profile-page) { background: var(--paper); color: var(--violet); }
 .profile-biodata,
 .address-page-content,
 .payment-page-content,
-.notification-page-content,
 .privacy-page-content { color: var(--violet); }
 .biodata-field,
 .biodata-details section + section { border-color: var(--border); }
@@ -4601,7 +4569,6 @@ body:has(.profile-page) { background: var(--paper); color: var(--violet); }
 .address-form textarea,
 .payment-form input,
 .payment-form select,
-.notification-option,
 .security-field input,
 .reviews-period select,
 .reviews-search { border-color: var(--border); border-radius: var(--radius-pill); background: var(--paper); color: var(--violet); }
@@ -4611,7 +4578,6 @@ body:has(.profile-page) { background: var(--paper); color: var(--violet); }
 .address-add-button,
 .address-form button,
 .payment-form button,
-.notification-form button,
 .security-password-form button,
 .reviews-search button {
     border: 0;
@@ -4625,7 +4591,6 @@ body:has(.profile-page) { background: var(--paper); color: var(--violet); }
 .address-add-button:hover,
 .address-form button:hover,
 .payment-form button:hover,
-.notification-form button:hover,
 .security-password-form button:hover,
 .reviews-search button:hover { background: var(--violet-hover); color: var(--paper); }
 .profile-logout button,

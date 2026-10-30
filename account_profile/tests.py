@@ -29,7 +29,7 @@ class AccountFeedbackTests(TestCase):
         self.payload = {"first_name": "Cindy", "email": "cindy@example.com", "gender": "female", "phone_number": "08123456789", "date_of_birth": "2000-01-02"}
 
     def test_settings_pages_use_shared_account_styles_and_toaster(self):
-        for route in ("profile", "address_list", "payment_methods", "notifications", "privacy_security", "reviews", "help_messages"):
+        for route in ("profile", "address_list", "payment_methods", "privacy_security", "reviews", "help_messages"):
             response = self.client.get(reverse(f"account_profile:{route}"))
             self.assertEqual(response.status_code, 200)
             self.assertContains(response, "css/account.css")
@@ -116,15 +116,26 @@ class AccountFeedbackTests(TestCase):
         response = self.client.post(reverse("login"), {"username": self.user.username, "password": "A-strong-test-password-16", "next": reverse("account_profile:profile")}, follow=True)
         self.assertContains(response, "Welcome back to Yelloved!")
 
+    def test_login_logout_round_trip_uses_post_logout(self):
+        self.client.logout()
+        login_response = self.client.post(reverse("login"), {
+            "username": self.user.username,
+            "password": "A-strong-test-password-16",
+            "next": reverse("account_profile:profile"),
+        })
+        self.assertEqual(login_response.status_code, 302)
+        self.assertTrue(self.client.get(reverse("account_profile:profile")).wsgi_request.user.is_authenticated)
+
+        logout_response = self.client.post(reverse("logout"))
+        self.assertEqual(logout_response.status_code, 302)
+        self.assertFalse(self.client.get(reverse("account_profile:profile")).wsgi_request.user.is_authenticated)
+
     def test_ajax_profile_and_preferences_return_feedback_without_redirect(self):
         headers = {"HTTP_X_REQUESTED_WITH": "XMLHttpRequest"}
         response = self.client.post(reverse("account_profile:profile"), self.payload, **headers)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["url"], reverse("account_profile:profile"))
         self.assertIn("updated", response.json()["message"])
-        response = self.client.post(reverse("account_profile:notifications"), {"promotions": "on"}, **headers)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["url"], reverse("account_profile:notifications"))
 
     def test_ajax_address_actions_and_required_fields(self):
         from .models import Address
@@ -187,6 +198,26 @@ class AccountProfileApiTests(TestCase):
         self.assertEqual(self.user.email, "updated@example.com")
         self.assertEqual(profile.phone_number, "+628123456789")
 
+    def test_profile_api_accepts_validated_multipart_photo_upload(self):
+        from .models import Profile
+        image_data = BytesIO()
+        Image.new("RGB", (32, 32), color="purple").save(image_data, format="PNG")
+        upload = SimpleUploadedFile("avatar.png", image_data.getvalue(), content_type="image/png")
+        payload = {
+            "first_name": self.user.first_name,
+            "email": self.user.email,
+            "date_of_birth": "",
+            "gender": "",
+            "phone_number": "",
+            "photo": upload,
+        }
+        with TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):
+            response = self.client.post(reverse("account_profile:api_profile"), payload)
+            self.assertEqual(response.status_code, 200, response.content)
+            self.assertTrue(response.json()["photo"].endswith(".png"))
+            profile = Profile.objects.get(user=self.user)
+            self.assertTrue(profile.photo.storage.exists(profile.photo.name))
+
     def test_address_api_supports_create_read_update_default_and_delete(self):
         from .models import Address
         endpoint = reverse("account_profile:api_addresses")
@@ -229,15 +260,7 @@ class AccountProfileApiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(PaymentMethod.objects.filter(pk=method_id).exists())
 
-    def test_notification_preferences_and_password_are_updated_by_api(self):
-        from .models import NotificationPreference
-        prefs_url = reverse("account_profile:api_notifications")
-        self.assertEqual(self.client.get(prefs_url).status_code, 200)
-        response = self.client.patch(prefs_url, json.dumps({"order_updates": False, "promotions": True}), **self.json_headers)
-        self.assertEqual(response.status_code, 200, response.content)
-        prefs = NotificationPreference.objects.get(user=self.user)
-        self.assertFalse(prefs.order_updates)
-        self.assertTrue(prefs.promotions)
+    def test_password_is_updated_by_api(self):
         response = self.post_json("api_change_password", {
             "old_password": "A-strong-test-password-16", "new_password1": "Another-strong-password-2026",
             "new_password2": "Another-strong-password-2026",

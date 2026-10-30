@@ -5,7 +5,7 @@
 
 {% block meta %}
 <title>Profile {{ profile_user.username }} | Yelloved</title>
-<link rel="stylesheet" href="{% static 'css/user-profile.css' %}?v=profile-reviews-20261030-1">
+<link rel="stylesheet" href="{% static 'css/user-profile.css' %}?v=profile-actions-20261030-2">
 <script src="{% static 'js/account_profile/favorites.js' %}?v=2" defer></script>
 {% endblock %}
 
@@ -26,14 +26,15 @@
                 <div class="public-profile-details">
                     <div class="public-profile-name-row"><h1>{{ profile_user.username }}</h1><span class="public-profile-rescuer"><span aria-hidden="true">♻</span> Item Saver</span></div>
                     {% if profile_user.get_full_name %}<p class="public-profile-name">{{ profile_user.get_full_name }}</p>{% endif %}
-                    <p class="public-profile-handle">@{{ profile_user.username }} · UI Student</p>
                     <div class="public-profile-stats">{% if profile_stats.review_count %}<span>{{ profile_stats.review_score|floatformat:1 }} ★ ({{ profile_stats.review_count }} review{{ profile_stats.review_count|pluralize }})</span>{% else %}<span>No reviews yet</span>{% endif %}</div>
                 </div>
             </div>
             {% if is_own_profile %}
                 <div class="public-profile-actions">
                     <a href="{% url 'account_profile:profile' %}">Edit profile</a>
-                    <a href="{% url 'items:item_create' %}">Add item</a>
+                    <a class="public-profile-add-item" href="{% url 'items:item_create' %}" aria-label="Add item" title="Add item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                    </a>
                 </div>
             {% endif %}
         </header>

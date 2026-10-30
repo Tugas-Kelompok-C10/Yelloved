@@ -27,6 +27,8 @@ class Address(models.Model):
     city = models.CharField(max_length=100)
     province = models.CharField(max_length=100, blank=True)
     postal_code = models.CharField(max_length=12, blank=True)
+    latitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
     is_default = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -62,16 +64,6 @@ class PaymentMethod(models.Model):
         return f"•••• {self.account_identifier[-4:]}"
 
 
-class NotificationPreference(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notification_preferences")
-    order_updates = models.BooleanField(default=True)
-    wanted_updates = models.BooleanField(default=True)
-    account_updates = models.BooleanField(default=True)
-    promotions = models.BooleanField(default=False)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"Preferensi notifikasi {self.user.username}"
 
 
 class Review(models.Model):

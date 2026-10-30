@@ -15,8 +15,8 @@ from django.views.decorators.http import require_POST
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import JsonResponse
 from django.urls import reverse
-from .forms import AddressForm, NotificationPreferenceForm, PaymentMethodForm, ProfileForm, ReviewForm
-from .models import Address, NotificationPreference, PaymentMethod, Profile, Review
+from .forms import AddressForm, PaymentMethodForm, ProfileForm, ReviewForm
+from .models import Address, PaymentMethod, Profile, Review
 from .review_data import review_summary, received_reviews
 from items.models import Item
 from wanted_board.models import WantedPost
@@ -239,19 +239,6 @@ def delete_payment_method(request, method_id):
     return redirect("account_profile:payment_methods")
 
 
-@login_required
-def notification_settings(request):
-    profile, _ = Profile.objects.get_or_create(user=request.user)
-    preferences, _ = NotificationPreference.objects.get_or_create(user=request.user)
-    form = NotificationPreferenceForm(request.POST if request.method == "POST" else None, instance=preferences)
-    if request.method == "POST" and form.is_valid():
-        form.save()
-        return _saved(request, "Notification preferences saved.", "account_profile:notifications")
-    return render(request, "account_profile/notifications.html", {
-        "name": "Yelloved",
-        "profile": profile,
-        "form": form,
-    })
 
 
 @login_required
