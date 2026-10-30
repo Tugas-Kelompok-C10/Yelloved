@@ -35,6 +35,7 @@ class WantedPost(models.Model):
 
     class Status(models.TextChoices):
         OPEN = "open", "Open"
+        MATCHED = "matched", "Matched"
         FULFILLED = "fulfilled", "Fulfilled"
         CLOSED = "closed", "Closed"
 

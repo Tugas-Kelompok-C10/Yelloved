@@ -4900,3 +4900,19 @@ body:has(.profile-page) .profile-page :is(
 @media (prefers-reduced-motion: reduce) {
     :is(.matching-page, .wanted-page, .wanted-detail-page, .chat-app) *, .wanted-modal * { scroll-behavior: auto; animation: none; transition: none; }
 }
+
+/* Wanted offer transaction: shared colours, responsive handover details. */
+.wanted-transaction-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; }
+.wanted-transaction-card { padding:28px; background:var(--paper); color:var(--violet); border:1px solid var(--border); border-radius:var(--radius); min-width:0; overflow-wrap:anywhere; }
+.wanted-transaction-card h2 { margin:0 0 20px; }
+.wanted-transaction-card dl { display:grid; gap:8px; margin-bottom:28px; }
+.wanted-transaction-card dd { margin:0 0 12px; font-weight:600; }
+.wanted-transaction-form { display:flex; flex-direction:column; gap:14px; margin-top:24px; }
+.wanted-transaction-form input:not([type=checkbox]) { width:100%; box-sizing:border-box; padding:12px 16px; color:var(--violet); background:var(--paper); border:1px solid var(--border); border-radius:var(--radius); }
+.wanted-transaction-card .btn { background:var(--violet); color:var(--paper); }
+.wanted-transaction-card .btn-outline { background:transparent; color:var(--violet); border:1px solid var(--violet); }
+.wanted-transaction-required, .wanted-transaction-card .errorlist { color:var(--error); }
+@media (max-width:760px) { .wanted-transaction-grid {grid-template-columns:1fr;} .wanted-transaction-card {padding:20px;} }
+
+.wanted-transaction-card .btn { display:inline-flex; justify-content:center; align-items:center; padding:12px 20px; border:1px solid var(--violet); border-radius:var(--radius-pill); text-decoration:none; font:inherit; cursor:pointer; }
+.wanted-transaction-card input:focus-visible, .wanted-transaction-card .btn:focus-visible {outline:2px solid var(--violet); outline-offset:3px;}

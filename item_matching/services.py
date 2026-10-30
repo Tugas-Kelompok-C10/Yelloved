@@ -4,6 +4,8 @@ from django.utils import timezone
 
 from items.models import Item
 from wanted_board.models import WantedPost
+from wanted_board.locking import locked_wanted_post
+from transactions.models import Transaction, TransactionItem
 
 from .models import ItemOffer, ItemRequest
 
@@ -88,25 +90,40 @@ def cancel_request(request_id, user):
 
 @transaction.atomic
 def accept_offer(offer_id, user):
-    offer = _lock(ItemOffer, offer_id)
-    post = _lock(WantedPost, offer.wanted_post_id)
-    item = _lock(Item, offer.item_id) if offer.item_id else None
-    if post.requester_id != user.pk:
-        raise MatchingError('Only the wanted post owner can accept this offer.')
-    if offer.status != ItemOffer.Status.PENDING:
-        raise MatchingError('This offer has already been processed.')
-    if post.status != WantedPost.Status.OPEN:
-        raise MatchingError('This wanted post is no longer open.')
-    if item and item.status != Item.Status.AVAILABLE:
-        raise MatchingError('The offered item is no longer available.')
-    offer.status = ItemOffer.Status.ACCEPTED
-    offer.save(update_fields=['status', 'updated_at'])
-    ItemOffer.objects.filter(wanted_post=post, status=ItemOffer.Status.PENDING).exclude(
-        pk=offer.pk).update(status=ItemOffer.Status.REJECTED)
-    post.status = WantedPost.Status.FULFILLED
-    post.save(update_fields=['status', 'updated_at'])
-    _reserve(item)
-    return offer
+    # Always lock the wanted post first, like offer creation and transaction actions.
+    post_id = ItemOffer.objects.values_list('wanted_post_id', flat=True).get(pk=offer_id)
+    with locked_wanted_post(post_id) as post:
+        offer = _lock(ItemOffer, offer_id)
+        if post.requester_id != user.pk:
+            raise MatchingError('Only the wanted post owner can accept this offer.')
+        if offer.status == ItemOffer.Status.ACCEPTED and Transaction.objects.filter(accepted_offer=offer).exists():
+            return offer  # A retry must never create a second order.
+        if offer.status != ItemOffer.Status.PENDING:
+            raise MatchingError('This offer has already been processed.')
+        if post.status != WantedPost.Status.OPEN:
+            raise MatchingError('This wanted post is no longer open.')
+        item = _lock(Item, offer.item_id) if offer.item_id else None
+        if item and item.status != Item.Status.AVAILABLE:
+            raise MatchingError('The offered item is no longer available.')
+        price = offer.offered_price if offer.offered_price is not None else ((item.price or 0) if item else None)
+        if price is None or price < 0:
+            raise MatchingError('This offer needs a valid price before it can be accepted.')
+        order = Transaction.objects.create(
+            order_id=f'WANTED-{offer.pk}', accepted_offer=offer,
+            buyer=post.requester, seller=offer.offerer,
+            item_name=offer.display_title, quantity=1, total_amount=price,
+            shipping_address=post.location, payment_method='cod',
+        )
+        if item:
+            TransactionItem.objects.create(transaction=order, item=item, seller=offer.offerer)
+        offer.status = ItemOffer.Status.ACCEPTED
+        offer.save(update_fields=['status', 'updated_at'])
+        ItemOffer.objects.filter(wanted_post=post, status=ItemOffer.Status.PENDING).exclude(
+            pk=offer.pk).update(status=ItemOffer.Status.REJECTED, updated_at=timezone.now())
+        post.status = WantedPost.Status.MATCHED
+        post.save(update_fields=['status', 'updated_at'])
+        _reserve(item)
+        return offer
 
 
 @transaction.atomic
