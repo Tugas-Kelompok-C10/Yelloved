@@ -47,7 +47,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
+    "cloudinary_storage",
+    "django.contrib.staticfiles",
+    "cloudinary",
     "home.apps.HomeConfig",
     "account_profile.apps.AccountProfileConfig",
     "chat.apps.ChatConfig",
@@ -160,6 +162,18 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 WHITENOISE_USE_FINDERS = True
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
+
+CLOUDINARY_STORAGE = {
+    "SECURE": True,
+}
 
 # A dedicated disk cache shares sample API results across Django workers.
 # This directory is disposable: uploaded media and user posts do not live here.
