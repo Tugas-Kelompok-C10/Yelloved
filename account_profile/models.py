@@ -27,6 +27,8 @@ class Address(models.Model):
     city = models.CharField(max_length=100)
     province = models.CharField(max_length=100, blank=True)
     postal_code = models.CharField(max_length=12, blank=True)
+    latitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
     is_default = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

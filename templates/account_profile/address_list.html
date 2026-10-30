@@ -58,7 +58,23 @@
                                   data-api-method="{% if editing %}PATCH{% else %}POST{% endif %}"
                                   data-success-url="{% url 'account_profile:address_list' %}">
                                 {% csrf_token %}
+                                <section class="address-map-picker" aria-labelledby="address-map-title"
+                                         data-latitude="{{ form.latitude.value|default_if_none:'' }}"
+                                         data-longitude="{{ form.longitude.value|default_if_none:'' }}">
+                                    <div class="address-map-heading">
+                                        <div><h3 id="address-map-title">Pin your location</h3>
+                                            <p>Allow location access to find your current position, or select a point on the map.</p></div>
+                                        <button type="button" class="address-location-button" data-address-locate>Use my location</button>
+                                    </div>
+                                    <div id="address-map" class="address-map" role="application" aria-label="Map to select the address location"></div>
+                                    <div class="address-map-footer">
+                                        <span data-address-map-status aria-live="polite">Select a point on the map.</span>
+                                        <button type="button" class="address-map-use-button" data-address-map-use>Fill address from selected point</button>
+                                    </div>
+                                    <small class="address-map-attribution">Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a></small>
+                                </section>
                                 {% for field in form %}
+                                {% if field.is_hidden %}{{ field }}{% else %}
                                 <div class="address-form-field{% if field.name == 'is_default' %} address-default-field{% endif %}">
                                     {% if field.name == 'is_default' %}
                                         {{ field }}<label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="profile-required" aria-hidden="true">*</span>{% endif %}</label>
@@ -68,6 +84,7 @@
                                     {% endif %}
                                     {% for error in field.errors %}<small class="form-error">{{ error }}</small>{% endfor %}
                                 </div>
+                                {% endif %}
                                 {% endfor %}
                                 <div class="address-form-actions">
                                     <button class="profile-save-button" type="submit">{% if editing %}Save changes{% else %}Save address{% endif %}</button>
@@ -121,5 +138,4 @@
         </div>
     </section>
 </main>
-
 {% endblock content %}
