@@ -21,7 +21,7 @@ TABS = [
         'key': 'offers_received', 'label': 'Incoming Offers', 'actionable': True,
         'short': 'Items offered for your wanted posts',
         'description': 'Items other people offered for your wanted posts. Accept the best match and your '
-                       'wanted post is marked as fulfilled automatically, while the '
+                       'wanted post becomes matched. Continue to Transaction to arrange the handover, while the '
                        'other offers are rejected.',
         'empty': 'Item offers for your wanted posts will appear here.',
     },

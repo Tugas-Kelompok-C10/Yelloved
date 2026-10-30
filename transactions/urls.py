@@ -1,10 +1,12 @@
 from django.urls import path
 from django.views.generic import RedirectView
 from . import views
+from .wanted import wanted_detail
 
 app_name = "transactions"
 
 urlpatterns = [
+    path("wanted/<str:order_id>/", wanted_detail, name="wanted_detail"),
     path(
         "",
         views.transaction_home,
