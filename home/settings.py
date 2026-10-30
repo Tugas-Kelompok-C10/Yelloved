@@ -83,7 +83,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'item_matching.context_processors.matching_notifications',
+                'item_matching.context_processors.activity_summary',
             ],
         },
     },

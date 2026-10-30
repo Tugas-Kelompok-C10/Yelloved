@@ -116,8 +116,8 @@ def photo_offer_create(request, wanted_id):
 def activity_preview(request):
     if not request.user.is_authenticated:
         return JsonResponse({'message': 'Please sign in again.'}, status=401)
-    from .context_processors import matching_notifications
-    data = matching_notifications(request)
+    from .context_processors import activity_summary
+    data = activity_summary(request)
     response = JsonResponse({'html': render_to_string('item_matching/_preview.html', data, request=request),
                              'pending': data['matching_pending_count']})
     response['Cache-Control'] = 'private, no-store'

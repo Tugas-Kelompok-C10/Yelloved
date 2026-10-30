@@ -10,8 +10,8 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
 
-from .forms import AddressForm, NotificationPreferenceForm, PaymentMethodForm, ProfileForm
-from .models import Address, NotificationPreference, PaymentMethod, Profile
+from .forms import AddressForm, PaymentMethodForm, ProfileForm
+from .models import Address, PaymentMethod, Profile
 
 
 def api_login_required(view):
@@ -79,13 +79,6 @@ def payment_data(method):
     }
 
 
-def preference_data(preferences):
-    return {
-        "order_updates": preferences.order_updates,
-        "wanted_updates": preferences.wanted_updates,
-        "account_updates": preferences.account_updates,
-        "promotions": preferences.promotions,
-    }
 
 
 @api_login_required
@@ -259,21 +252,6 @@ def payment_method_detail_api(request, method_id):
     return JsonResponse(payment_data(updated))
 
 
-@api_login_required
-@require_http_methods(["GET", "PATCH"])
-def notifications_api(request):
-    preferences, _ = NotificationPreference.objects.get_or_create(user=request.user)
-    if request.method == "GET":
-        return JsonResponse(preference_data(preferences))
-    payload = read_payload(request)
-    if payload is None:
-        return JsonResponse({"error": "Body must be a JSON object."}, status=400)
-    data = preference_data(preferences)
-    data.update(payload)
-    form = NotificationPreferenceForm(data, instance=preferences)
-    if not form.is_valid():
-        return JsonResponse({"errors": form_errors(form)}, status=400)
-    return JsonResponse(preference_data(form.save()))
 
 
 @api_login_required

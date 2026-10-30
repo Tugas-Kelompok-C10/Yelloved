@@ -3,7 +3,7 @@ from django.core.files.uploadedfile import UploadedFile
 from PIL import Image, UnidentifiedImageError
 import warnings
 
-from .models import Address, NotificationPreference, PaymentMethod, Profile, Review
+from .models import Address, PaymentMethod, Profile, Review
 
 
 class ProfileForm(forms.ModelForm):
@@ -127,16 +127,6 @@ class PaymentMethodForm(forms.ModelForm):
         }
 
 
-class NotificationPreferenceForm(forms.ModelForm):
-    class Meta:
-        model = NotificationPreference
-        fields = ("order_updates", "wanted_updates", "account_updates", "promotions")
-        labels = {
-            "order_updates": "Order updates",
-            "wanted_updates": "Wanted Board activity",
-            "account_updates": "Account security and activity",
-            "promotions": "Offers and recommendations",
-        }
 
 
 class ReviewForm(forms.ModelForm):
