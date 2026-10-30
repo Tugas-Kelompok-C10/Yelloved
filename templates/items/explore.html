@@ -2,8 +2,8 @@
 {% load static items_ui %}
 {% block meta %}<script src="{% static 'js/items/favorites.js' %}?v=1" defer></script><script src="{% static 'js/items/ui.js' %}" defer></script><script src="{% static 'js/items/images.js' %}?v=explore-20261026-4" defer></script>
 <title>Catalogue | Yelloved</title>
-<link rel="stylesheet" href="{% static 'css/explore.css' %}?v=catalogue-tokens-20261030-1">
-<script src="{% static 'js/items/explore.js' %}?v=explore-20261026-4" defer></script>
+<link rel="stylesheet" href="{% static 'css/explore.css' %}?v=catalogue-open-20261030-2">
+<script src="{% static 'js/items/explore.js' %}?v=catalogue-open-20261030-2" defer></script>
 {% endblock %}
 {% block content %}
 <main class="explore-page explore-catalog-page" lang="en">
@@ -64,13 +64,7 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6"/></svg>
                 </button>
             </div>
-            <details class="explore-advanced-filters"{% if filter_form.status.value %} open{% endif %}>
-                <summary>More filters</summary>
-                <div class="explore-more-filters">
-                    <div class="explore-field"><label for="{{ filter_form.status.id_for_label }}">Status</label>{{ filter_form.status|english_widget }}</div>
-                    <div class="explore-filter-actions"><button class="explore-button" type="submit">Search items</button></div>
-                </div>
-            </details>
+
         </form>
         {% if filter_form.errors %}<p class="explore-feedback">Invalid filters. Please reset your filters.</p>{% endif %}
         <p id="explore-loading" role="status" hidden>Loading items…</p>

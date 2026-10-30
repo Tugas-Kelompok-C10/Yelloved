@@ -666,3 +666,56 @@
     .item-detail-page .item-reviews-layout[data-review-count="1"] { grid-template-columns:minmax(220px,1fr) minmax(0,2fr); }
     .item-detail-page .item-reviews-layout[data-review-count="2"] { grid-template-columns:1.2fr repeat(2,minmax(0,1fr)); }
 }
+
+/* Open Catalogue introduction and lightweight listing banner; no shared chrome changes. */
+.explore-page.explore-catalog-page .explore-hero {
+    min-height: 180px;
+    padding: 20px 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--violet);
+    box-shadow: none;
+}
+.explore-page.explore-catalog-page .explore-hero p {
+    color: color-mix(in srgb, var(--violet) 75%, var(--paper));
+}
+.explore-page.explore-catalog-page .explore-sell-cta {
+    padding: 24px;
+    border: 0;
+    border-radius: calc(var(--radius) / 2);
+    background: linear-gradient(115deg, var(--ligh-blue), color-mix(in srgb, var(--text) 30%, var(--paper)));
+    box-shadow: none;
+}
+.explore-page.explore-catalog-page .explore-sell-art { max-width: 320px; }
+.explore-page.explore-catalog-page .explore-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 24px;
+    font-size: 12px;
+}
+.explore-page.explore-catalog-page .explore-pagination .explore-page-label {
+    width: auto;
+    height: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+.explore-page.explore-catalog-page .explore-pagination .explore-button {
+    width: auto;
+    min-width: 0;
+    min-height: 40px;
+    padding: 9px 20px;
+    border-radius: var(--radius-pill);
+    background: var(--violet);
+    color: var(--text);
+}
+.explore-page.explore-catalog-page .explore-pagination .explore-button:hover { background: var(--violet-hover); }
+@media (max-width: 540px) {
+    .explore-page.explore-catalog-page .explore-hero { min-height: 0; padding: 16px 0; }
+    .explore-page.explore-catalog-page .explore-sell-cta { padding: 20px; }
+}
