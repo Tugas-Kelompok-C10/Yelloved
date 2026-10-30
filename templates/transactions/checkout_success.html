@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block meta %}
-<title>Pesanan Berhasil | Yelloved</title>
+<title>Order Details | Yelloved</title>
 <link rel="stylesheet" href="{% static 'css/checkout_success.css' %}">
 {% endblock meta %}
 
@@ -13,109 +13,109 @@
         {% if order.transaction_status == "cancelled" %}
             <div class="success-icon success-icon-cancelled">×</div>
             <p class="success-eyebrow">YELLOVED MARKETPLACE</p>
-            <h1>Pesanan Dibatalkan</h1>
+            <h1>Order Cancelled</h1>
             <p class="success-description">
-                Pesanan ini sudah dibatalkan. Kamu bisa kembali berbelanja
-                untuk menemukan barang lainnya.
+                This order has been cancelled. You can continue shopping
+                to discover other items.
             </p>
         {% else %}
             <div class="success-icon">✓</div>
             <p class="success-eyebrow">YELLOVED MARKETPLACE</p>
-            <h1>Pesanan Berhasil Dibuat!</h1>
+            <h1>Order Successfully Placed!</h1>
             <p class="success-description">
-                Terima kasih sudah berbelanja di Yelloved.
-                Berikut adalah detail pesananmu.
+                Thank you for shopping with Yelloved.
+                Here are your order details.
             </p>
         {% endif %}
 
-        <!-- NOMOR PESANAN ASLI -->
+        <!-- ORDER ID -->
         <div class="success-order-number">
-            <span>Nomor Pesanan</span>
+            <span>Order ID</span>
             <strong>{{ order.order_id }}</strong>
         </div>
 
-        <!-- DETAIL PESANAN -->
+        <!-- ORDER DETAILS -->
         <div class="success-details">
-            <h2>Ringkasan Pesanan</h2>
+            <h2>Order Summary</h2>
 
             <div class="success-row">
-                <span>Produk</span>
+                <span>Product</span>
                 <strong>{{ order.item_name }}</strong>
             </div>
 
             <div class="success-row">
-                <span>Jumlah</span>
-                <strong>{{ order.quantity }} barang</strong>
+                <span>Quantity</span>
+                <strong>{{ order.quantity }} items</strong>
             </div>
 
             <div class="success-row">
-                <span>Metode Pembayaran</span>
+                <span>Payment Method</span>
                 <strong>Cash on Delivery (COD)</strong>
             </div>
 
             <div class="success-row">
-                <span>Status Pesanan</span>
+                <span>Order Status</span>
                 <strong>
                     {% if order.transaction_status == "cancelled" %}
                         <span class="success-status success-status-cancelled">
-                            Dibatalkan
+                            Cancelled
                         </span>
                     {% elif order.transaction_status == "completed" %}
                         <span class="success-status success-status-completed">
-                            Selesai
+                            Completed
                         </span>
                     {% elif order.transaction_status == "processing" %}
                         <span class="success-status">
-                            Diproses
+                            Processing
                         </span>
                     {% elif order.payment_status == "paid" %}
                         <span class="success-status success-status-completed">
-                            Lunas
+                            Paid
                         </span>
                     {% else %}
                         <span class="success-status">
-                            Menunggu Pembayaran
+                            Awaiting Payment
                         </span>
                     {% endif %}
                 </strong>
             </div>
 
             <div class="success-row">
-                <span>Lokasi Pertemuan</span>
+                <span>Meeting Location</span>
                 <strong>
-                    {{ order.cod_meeting_location|default:"Belum ditentukan" }}
+                    {{ order.cod_meeting_location|default:"Not specified" }}
                 </strong>
             </div>
 
             <div class="success-row">
-                <span>Waktu Pertemuan</span>
+                <span>Meeting Time</span>
                 <strong>
                     {% if order.cod_meeting_time %}
                         {{ order.cod_meeting_time|date:"d M Y, H:i" }} WIB
                     {% else %}
-                        Belum ditentukan
+                        Not specified
                     {% endif %}
                 </strong>
             </div>
 
             <div class="success-total">
-                <span>Total Pembayaran</span>
-                <strong>Rp{{ order.total_amount|floatformat:0 }}</strong>
+                <span>Total Payment</span>
+                <strong>Rp{{ order.total_amount_display }}</strong>
             </div>
         </div>
 
-        <!-- PEMBERITAHUAN -->
+        <!-- NOTICE -->
         {% if order.transaction_status != "cancelled" %}
         <div class="success-notice">
-            <strong>Jangan lupa!</strong>
+            <strong>Important!</strong>
             <p>
-                Pastikan lokasi dan waktu pertemuan sudah disepakati
-                dengan penjual. Pembayaran dilakukan saat bertemu.
+                Make sure the meeting location and time have been agreed upon
+                with the seller. Payment will be made in person.
             </p>
         </div>
         {% endif %}
 
-        <!-- TOMBOL AKSI -->
+        <!-- ACTION BUTTONS -->
         <div class="success-actions">
 
             {% if order.transaction_status == "pending" %}
@@ -123,14 +123,14 @@
                 method="post"
                 action="{% url 'transactions:cancel_order' order.order_id %}"
                 class="success-cancel-form"
-                onsubmit="return confirm('Yakin ingin membatalkan pesanan ini?');"
+                onsubmit="return confirm('Are you sure you want to cancel this order?');"
             >
                 {% csrf_token %}
                 <button
                     type="submit"
                     class="success-button success-button-danger"
                 >
-                    Batalkan Pesanan
+                    Cancel Order
                 </button>
             </form>
             {% endif %}
@@ -139,11 +139,11 @@
                 href="{% url 'transactions:transaction_history' %}"
                 class="success-button success-button-primary"
             >
-                Lihat Pesanan Saya
+                View My Orders
             </a>
 
             <a href="/" class="success-button success-button-secondary">
-                Kembali ke Beranda
+                Back to Home
             </a>
         </div>
 

@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block meta %}
-<title>Pembayaran | Yelloved</title>
+<title>Payment | Yelloved</title>
 <link rel="stylesheet" href="{% static 'css/payment_instructions.css' %}">
 {% endblock meta %}
 
@@ -11,18 +11,18 @@
 
     <header class="payment-page-header">
         <a href="{% url 'transactions:checkout' %}" class="payment-back-link">
-            &larr; Kembali ke Checkout
+            Back to Checkout
         </a>
 
         {% if order %}
-            <span class="payment-preview-label">INSTRUKSI PEMBAYARAN</span>
+            <span class="payment-preview-label">PAYMENT INSTRUCTIONS</span>
         {% else %}
             <span class="payment-preview-label">PAYMENT PAGE PREVIEW</span>
         {% endif %}
 
-        <h1>Selesaikan Pembayaran</h1>
+        <h1>Complete Your Payment</h1>
         <p>
-            Selesaikan pembayaran pesananmu melalui
+            Complete your order payment using
             {% if payment_method == "qris" %}
                 QRIS.
             {% else %}
@@ -35,15 +35,16 @@
         <div class="payment-demo-notice">
             <span class="payment-demo-icon">i</span>
             <p>
-                <strong>Mode Preview</strong>
-                Halaman ini menggunakan data contoh. QRIS dan nomor Virtual
-                Account asli tersedia setelah transaksi dibuat melalui Midtrans.
+                <strong>Preview Mode</strong>
+                This page uses sample data. Actual QRIS codes and Virtual
+                Account numbers will be available after a transaction
+                is created through Midtrans.
             </p>
         </div>
     {% endif %}
 
     {% if not order %}
-        <nav class="payment-method-tabs" aria-label="Metode pembayaran">
+        <nav class="payment-method-tabs" aria-label="Payment methods">
             <a
                 href="?method=qris"
                 class="{% if payment_method == 'qris' %}active{% endif %}"
@@ -69,8 +70,8 @@
                 <div class="payment-method-heading">
                     <div class="payment-method-symbol">QR</div>
                     <div>
-                        <h2>Pembayaran QRIS</h2>
-                        <p>Bayar dengan aplikasi yang mendukung QRIS.</p>
+                        <h2>QRIS Payment</h2>
+                        <p>Pay using an app that supports QRIS.</p>
                     </div>
                 </div>
 
@@ -80,12 +81,12 @@
                             <img
                                 class="payment-qr-image"
                                 src="{{ order.midtrans_qr_code_url }}"
-                                alt="Kode QR pembayaran Midtrans"
+                                alt="Midtrans payment QR code"
                                 style="display: block; width: min(100%, 280px); height: auto; margin: 0 auto;"
                             >
                             <p>
-                                Scan kode QR ini menggunakan aplikasi
-                                pembayaran yang mendukung QRIS.
+                                Scan this QR code using a payment app
+                                that supports QRIS.
                             </p>
                         </div>
                     {% else %}
@@ -93,19 +94,19 @@
                             <span class="qr-placeholder-icon">▦</span>
                             <strong>
                                 {% if order %}
-                                    Kode QR belum tersedia
+                                    QR Code Unavailable
                                 {% else %}
-                                    Kode QR preview
+                                    QR Code Preview
                                 {% endif %}
                             </strong>
                             <p>
                                 {% if order %}
-                                    Kode QR belum tersimpan untuk pesanan ini.
-                                    Periksa status transaksi atau hubungi
-                                    pengelola apabila masalah berlanjut.
+                                    The QR code has not been saved for this order.
+                                    Please check the transaction status or contact
+                                    the administrator if the issue persists.
                                 {% else %}
-                                    Kode QR asli akan muncul setelah transaksi
-                                    dibuat melalui checkout.
+                                    The actual QR code will appear after
+                                    the transaction is created through checkout.
                                 {% endif %}
                             </p>
                         </div>
@@ -113,28 +114,29 @@
                 </div>
 
                 <div class="payment-instructions">
-                    <h3>Cara Pembayaran</h3>
+                    <h3>How to Pay</h3>
 
                     <div class="payment-step">
                         <span>1</span>
                         <p>
-                            Buka aplikasi mobile banking atau dompet digital
-                            yang mendukung QRIS.
+                            Open a mobile banking or digital wallet app
+                            that supports QRIS.
                         </p>
                     </div>
 
                     <div class="payment-step">
                         <span>2</span>
                         <p>
-                            Pilih menu scan QRIS dan pindai kode yang diberikan.
+                            Select the QRIS scanning menu and scan
+                            the provided QR code.
                         </p>
                     </div>
 
                     <div class="payment-step">
                         <span>3</span>
                         <p>
-                            Periksa nominal dan selesaikan pembayaran
-                            pada aplikasi.
+                            Check the payment amount and complete
+                            the payment in the app.
                         </p>
                     </div>
                 </div>
@@ -145,7 +147,7 @@
                     <div class="payment-method-symbol">VA</div>
                     <div>
                         <h2>Virtual Account</h2>
-                        <p>Transfer melalui bank pilihanmu.</p>
+                        <p>Transfer using your preferred bank.</p>
                     </div>
                 </div>
 
@@ -153,7 +155,7 @@
                     <form method="get" class="payment-bank-selection">
                         <input type="hidden" name="method" value="va">
 
-                        <label for="preview-bank">Bank Tujuan</label>
+                        <label for="preview-bank">Select Bank</label>
 
                         <select
                             id="preview-bank"
@@ -183,7 +185,7 @@
 
                     {% if order and order.virtual_account_bank == "mandiri" and order.virtual_account_bill_key and order.virtual_account_biller_code %}
 
-                        <span>Kode Pembayaran Mandiri</span>
+                        <span>Mandiri Payment Code</span>
 
                         <p>Biller Code</p>
                         <strong>{{ order.virtual_account_biller_code }}</strong>
@@ -193,30 +195,30 @@
 
                     {% elif order and order.virtual_account_number %}
 
-                        <span>Nomor Virtual Account</span>
+                        <span>Virtual Account Number</span>
 
                         <strong>{{ order.virtual_account_number }}</strong>
 
                         <p>
-                            Lakukan transfer melalui bank
-                            {{ order.virtual_account_bank|upper }}.
+                            Make a transfer through
+                            {{ order.virtual_account_bank|upper }} Bank.
                         </p>
 
                     {% else %}
 
-                        <span>Nomor Virtual Account</span>
-                        <strong>Belum tersedia</strong>
+                        <span>Virtual Account Number</span>
+                        <strong>Not Available</strong>
 
                         <p>
-                            Nomor pembayaran akan ditampilkan setelah
-                            Midtrans berhasil membuat transaksi.
+                            The payment number will appear after
+                            Midtrans successfully creates the transaction.
                         </p>
 
                     {% endif %}
 
                     {% if order and order.midtrans_expiry_time %}
                         <p>
-                            Batas pembayaran:
+                            Payment Deadline:
                             {{ order.midtrans_expiry_time|date:"d M Y, H:i" }} WIB
                         </p>
                     {% endif %}
@@ -224,29 +226,29 @@
                 </div>
 
                 <div class="payment-instructions">
-                    <h3>Cara Pembayaran</h3>
+                    <h3>How to Pay</h3>
 
                     <div class="payment-step">
                         <span>1</span>
                         <p>
-                            Buka aplikasi atau layanan perbankan yang sesuai
-                            dengan bank tujuan.
+                            Open your banking app or banking service
+                            for the selected bank.
                         </p>
                     </div>
 
                     <div class="payment-step">
                         <span>2</span>
                         <p>
-                            Pilih menu Virtual Account dan masukkan nomor VA
-                            dari transaksi.
+                            Select the Virtual Account menu and enter
+                            the VA number from your transaction.
                         </p>
                     </div>
 
                     <div class="payment-step">
                         <span>3</span>
                         <p>
-                            Periksa nominal serta detail transaksi sebelum
-                            mengonfirmasi transfer.
+                            Check the payment amount and transaction details
+                            before confirming the transfer.
                         </p>
                     </div>
                 </div>
@@ -256,8 +258,8 @@
             <div class="payment-status-note">
                 <span class="payment-status-dot"></span>
                 <p>
-                    Status pembayaran diperbarui setelah ada konfirmasi
-                    pembayaran dari Midtrans.
+                    Your payment status will be updated after
+                    confirmation from Midtrans.
                 </p>
             </div>
 
@@ -265,10 +267,10 @@
 
         <aside class="payment-summary-card">
             <span class="payment-summary-eyebrow">YELLOVED MARKETPLACE</span>
-            <h2>Ringkasan Pesanan</h2>
+            <h2>Order Summary</h2>
 
             <div class="payment-order-number">
-                <span>Nomor Pesanan</span>
+                <span>Order ID</span>
                 <strong>
                     {% if order %}
                         {{ order.order_id }}
@@ -279,7 +281,17 @@
             </div>
 
             <div class="payment-product">
-                <div class="payment-product-image">♧</div>
+                <div class="payment-product-image">
+                    {% if order and order.payment_item and order.payment_item.display_image_url %}
+                        <img
+                            src="{{ order.payment_item.display_image_url }}"
+                            alt="{{ order.payment_item.title }}"
+                            loading="lazy"
+                        >
+                    {% else %}
+                        <span aria-hidden="true">♧</span>
+                    {% endif %}
+                </div>
 
                 <div class="payment-product-info">
                     <strong>
@@ -292,16 +304,16 @@
 
                     <span>
                         {% if order %}
-                            {{ order.quantity }} barang
+                            {{ order.quantity }} items
                         {% else %}
-                            1 barang
+                            1 item
                         {% endif %}
                     </span>
                 </div>
             </div>
 
             <div class="payment-summary-row">
-                <span>Metode Pembayaran</span>
+                <span>Payment Method</span>
                 <strong>
                     {% if payment_method == "qris" %}
                         QRIS
@@ -315,21 +327,21 @@
                 <span>Status</span>
                 <strong class="payment-pending-label">
                     {% if order and order.payment_status == "paid" %}
-                        Sudah Dibayar
+                        Paid
                     {% elif order and order.payment_status == "failed" %}
-                        Gagal
+                        Failed
                     {% elif order and order.payment_status == "expired" %}
-                        Kedaluwarsa
+                        Expired
                     {% elif order and order.payment_status == "pending" %}
-                        Menunggu Pembayaran
+                        Awaiting Payment
                     {% else %}
-                        Belum tersedia
+                        Not Available
                     {% endif %}
                 </strong>
             </div>
 
             <div class="payment-summary-total">
-                <span>Total Pembayaran</span>
+                <span>Total Payment</span>
                 <strong>
                     {% if order %}
                         Rp{{ order.total_amount_display }}
@@ -341,11 +353,11 @@
 
             <p class="payment-summary-disclaimer">
                 {% if order %}
-                    Detail pesanan diambil dari transaksi yang tersimpan.
-                    Status pembayaran menunggu konfirmasi Midtrans.
+                    Order details are retrieved from the saved transaction.
+                    Payment status is awaiting confirmation from Midtrans.
                 {% else %}
-                    Nominal dan detail produk di atas hanya data contoh
-                    untuk melihat desain halaman.
+                    The amount and product details above are sample data
+                    for previewing the page design.
                 {% endif %}
             </p>
 
@@ -353,7 +365,7 @@
                 href="{% url 'transactions:transaction_history' %}"
                 class="payment-back-button"
             >
-                Kembali ke Pesanan Saya
+                Back to My Orders
             </a>
         </aside>
 

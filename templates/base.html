@@ -36,6 +36,7 @@
 
     {% block meta %}
     {% endblock meta %}
+    <link rel="stylesheet" href="{% static 'css/footer_mobile.css' %}?v=1">
 
     {% if request.resolver_match.namespace == 'account_profile' or request.resolver_match.url_name == 'login' %}
         <link rel="stylesheet" href="{% static 'css/account.css' %}?v=account-refresh-3">
@@ -485,13 +486,13 @@
                 <span class="transaction-toast-copy">
                     <strong>
                         {% if "success" in message.tags %}
-                            Berhasil
+                            Success
                         {% elif "error" in message.tags %}
-                            Gagal
+                            Failed
                         {% elif "warning" in message.tags %}
-                            Perhatian
+                            Warning
                         {% else %}
-                            Informasi
+                            Information
                         {% endif %}
                     </strong>
 
@@ -501,7 +502,7 @@
                 <button
                     type="button"
                     class="transaction-toast-close"
-                    aria-label="Tutup notifikasi"
+                    aria-label="Close Notification"
                 >&times;</button>
             </article>
         {% endfor %}

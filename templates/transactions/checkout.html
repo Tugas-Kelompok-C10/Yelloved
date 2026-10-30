@@ -14,7 +14,7 @@
     <header class="checkout-heading">
         <span class="checkout-eyebrow">YELLOVED MARKETPLACE</span>
         <h1>Checkout</h1>
-        <p>Pastikan alamat pengiriman dan pesananmu sudah benar.</p>
+        <p>Please make sure your shipping address and order details are correct.</p>
     </header>
 
     {% if errors %}
@@ -44,7 +44,7 @@
 
                     <div class="checkout-card-heading">
                         <span class="checkout-section-icon">01</span>
-                        <h2>Alamat Pengiriman</h2>
+                        <h2>Shiping Address</h2>
                     </div>
 
                     {% if selected_address %}
@@ -66,13 +66,14 @@
                         </p>
 
                         {% if selected_address.is_default %}
-                        <span class="address-label">UTAMA</span>
+                        <span class="address-label">DEFAULT</span>
                         {% endif %}
                     </div>
                     {% else %}
                     <p class="address-empty">
-                        Kamu belum memiliki alamat pengiriman.
-                        Tambahkan alamat terlebih dahulu.
+                        You haven't added a shipping address yet.
+                        Please add an address first.
+
                     </p>
                     {% endif %}
 
@@ -82,7 +83,7 @@
                         data-open-address-modal
                     >
                         {% if selected_address %}
-                            Ubah alamat
+                            Change Address
                         {% else %}
                             Tambah alamat
                         {% endif %}
@@ -94,17 +95,16 @@
 
                     <div class="checkout-card-heading">
                         <span class="checkout-section-icon">01</span>
-                        <h2>Jadwal Pertemuan</h2>
+                        <h2>Meeting Schedule</h2>
                     </div>
 
                     <p class="payment-description">
-                        Tentukan lokasi dan waktu untuk bertemu langsung
-                        dengan penjual di kampus.
+                        Choose a location and time to meet the seller in person
                     </p>
 
                     <div class="checkout-field">
                         <label for="cod-meeting-location">
-                            Lokasi Ketemuan di Kampus
+                            Meeting Location
                         </label>
 
                         <input
@@ -112,13 +112,13 @@
                             id="cod-meeting-location"
                             name="cod_meeting_location"
                             form="payment-method-form"
-                            placeholder="Contoh: Perpustakaan Pusat UI"
+                            placeholder="Contoh: UI Central Library"
                         >
                     </div>
 
                     <div class="checkout-field">
                         <label for="cod-meeting-time">
-                            Tanggal dan Jam Pertemuan
+                            Meeting Date and Time
                         </label>
 
                         <input
@@ -130,9 +130,8 @@
                     </div>
 
                     <p class="payment-description">
-                        Pastikan jadwal disepakati bersama penjual.
-                        Lakukan pembayaran langsung saat bertemu
-                        di tempat umum kampus.
+                        Please agree on the meeting schedule with the seller.
+                        Complete the payment in person when you meet at location.
                     </p>
                 </div>
             </section>
@@ -150,7 +149,7 @@
                     aria-labelledby="address-modal-title"
                 >
                     <header class="address-modal-header">
-                        <h2 id="address-modal-title">Alamat Saya</h2>
+                        <h2 id="address-modal-title">My Addresses</h2>
 
                         <button
                             type="button"
@@ -209,7 +208,7 @@
 
                                         <span class="address-pick-badges">
                                             {% if address.is_default %}
-                                            <span class="address-label">UTAMA</span>
+                                            <span class="address-label">DEFAULT</span>
                                             {% endif %}
 
                                             <span class="address-label address-label-category">
@@ -226,7 +225,7 @@
                                     class="address-action-button"
                                     data-edit-address="{{ address.id }}"
                                 >
-                                    Ubah
+                                    Edit
                                 </button>
 
                                 {% if not address.is_default %}
@@ -247,7 +246,7 @@
                                         type="submit"
                                         class="address-action-button"
                                     >
-                                        Jadikan Utama
+                                        Set as Default
                                     </button>
                                 </form>
                                 {% endif %}
@@ -255,7 +254,7 @@
                         </div>
                         {% empty %}
                         <p class="address-empty">
-                            Belum ada alamat tersimpan.
+                            No saved addresses yet.
                         </p>
                         {% endfor %}
                     </div>
@@ -267,7 +266,7 @@
                             data-open-new-address-modal
                             data-reset-address-form
                         >
-                            + Tambah Alamat Baru
+                            + Add New Address
                         </button>
                     </footer>
                 </section>
@@ -286,7 +285,7 @@
                     aria-labelledby="new-address-title"
                 >
                     <header class="address-modal-header">
-                        <h2 id="new-address-title">Alamat Baru</h2>
+                        <h2 id="new-address-title">New Address</h2>
 
                         <button
                             type="button"
@@ -318,7 +317,7 @@
                         <div class="new-address-grid">
                             <div class="checkout-field">
                                 <label for="recipient-name">
-                                    Nama Lengkap
+                                    Full Name
                                 </label>
 
                                 <input
@@ -333,7 +332,7 @@
                             </div>
 
                             <div class="checkout-field">
-                                <label for="phone">Nomor Telepon</label>
+                                <label for="phone">Phone Number</label>
 
                                 <input
                                     id="phone"
@@ -348,16 +347,16 @@
                         </div>
 
                         <div class="checkout-field">
-                            <label for="province">Provinsi</label>
+                            <label for="province">Province</label>
 
                             <select id="province" name="province" required>
-                                <option value="">Pilih Provinsi</option>
+                                <option value="">Select a Province</option>
                             </select>
                         </div>
 
                         <div class="new-address-grid">
                             <div class="checkout-field">
-                                <label for="regency">Kota/Kabupaten</label>
+                                <label for="regency">City/Regency</label>
 
                                 <select
                                     id="regency"
@@ -365,12 +364,12 @@
                                     disabled
                                     required
                                 >
-                                    <option value="">Pilih Kota/Kabupaten</option>
+                                    <option value="">Select a city/regency</option>
                                 </select>
                             </div>
 
                             <div class="checkout-field">
-                                <label for="district">Kecamatan</label>
+                                <label for="district">Disctrict</label>
 
                                 <select
                                     id="district"
@@ -378,14 +377,14 @@
                                     disabled
                                     required
                                 >
-                                    <option value="">Pilih Kecamatan</option>
+                                    <option value="">Select a district</option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="new-address-grid">
                             <div class="checkout-field">
-                                <label for="village">Kelurahan/Desa</label>
+                                <label for="village">Subsdistrict/Village</label>
 
                                 <select
                                     id="village"
@@ -393,12 +392,12 @@
                                     disabled
                                     required
                                 >
-                                    <option value="">Pilih Kelurahan/Desa</option>
+                                    <option value="">Select a subdistrict/village</option>
                                 </select>
                             </div>
 
                             <div class="checkout-field">
-                                <label for="postal-code">Kode Pos</label>
+                                <label for="postal-code">Postal Code</label>
 
                                 <input
                                     id="postal-code"
@@ -417,7 +416,7 @@
 
                         <div class="checkout-field">
                             <label for="address">
-                                Nama Jalan, Gedung, No. Rumah
+                                Street, Building, House Number
                             </label>
 
                             <textarea
@@ -425,18 +424,18 @@
                                 name="address"
                                 rows="3"
                                 autocomplete="street-address"
-                                placeholder="Nama jalan, nomor rumah, RT/RW, dan patokan"
+                                placeholder="Street name, house number, RT/RW, and nearby landmark"
                                 required
                             >{{ request.POST.address|default:'' }}</textarea>
                         </div>
 
                         <div class="checkout-field">
-                            <label for="address-label">Tandai Sebagai</label>
+                            <label for="address-label">Mark As</label>
 
                             <select id="address-label" name="label">
-                                <option value="Rumah">Rumah</option>
-                                <option value="Kantor">Kantor</option>
-                                <option value="Lainnya">Lainnya</option>
+                                <option value="Rumah">Home</option>
+                                <option value="Kantor">Office</option>
+                                <option value="Lainnya">Other</option>
                             </select>
                         </div>
 
@@ -447,7 +446,7 @@
                                 value="on"
                                 {% if not addresses %}checked{% endif %}
                             >
-                            Jadikan alamat utama
+                            Set as default address
                         </label>
 
                         <footer class="address-modal-footer">
@@ -456,14 +455,14 @@
                                 class="checkout-secondary-button"
                                 data-close-new-address-modal
                             >
-                                Batal
+                                Cancel
                             </button>
 
                             <button
                                 type="submit"
                                 class="checkout-primary-button"
                             >
-                                Simpan Alamat
+                                Save Address
                             </button>
                         </footer>
                     </form>
@@ -475,11 +474,11 @@
 
                 <div class="checkout-card-heading">
                     <span class="checkout-section-icon">02</span>
-                    <h2>Metode Pembayaran</h2>
+                    <h2>Payment Method</h2>
                 </div>
 
                 <p class="payment-description">
-                    Pilih metode pembayaran yang paling nyaman untukmu.
+                    Choose the payment method that works best for you.
                 </p>
 
                 <form method="post" id="payment-method-form">
@@ -505,8 +504,8 @@
                             <span class="payment-option-content">
                                 <strong>COD</strong>
                                 <small>
-                                    Bayar langsung kepada penjual
-                                    saat bertemu di kampus.
+                                    Pay the seller in person
+                                    when you meet on location.
                                 </small>
                             </span>
                         </label>
@@ -524,7 +523,7 @@
                             <span class="payment-option-content">
                                 <strong>QRIS</strong>
                                 <small>
-                                    Bayar melalui aplikasi yang mendukung QRIS.
+                                    Pay using an app that supports QRIS.
                                 </small>
                             </span>
                         </label>
@@ -541,7 +540,7 @@
 
                             <span class="payment-option-content">
                                 <strong>Virtual Account</strong>
-                                <small>Transfer melalui rekening bank.</small>
+                                <small>Transfer using your bank account.</small>
                             </span>
                         </label>
                     </div>
@@ -552,10 +551,10 @@
                         id="payment-bank-selection"
                         {% if selected_payment_method != "bank_transfer" %}hidden{% endif %}
                     >
-                        <label for="payment-bank">Pilih Bank</label>
+                        <label for="payment-bank">Select Bank</label>
 
                         <select name="bank" id="payment-bank">
-                            <option value="">Pilih bank</option>
+                            <option value="">Select a bank</option>
                             <option value="bca" {% if selected_bank == "bca" %}selected{% endif %}>BCA</option>
                             <option value="bni" {% if selected_bank == "bni" %}selected{% endif %}>BNI</option>
                             <option value="bri" {% if selected_bank == "bri" %}selected{% endif %}>BRI</option>
@@ -568,7 +567,7 @@
                         type="submit"
                         class="checkout-primary-button"
                     >
-                        Bayar Sekarang
+                        Pay Now
                     </button>
                 </form>
             </section>
@@ -582,7 +581,7 @@
         <aside class="checkout-summary-card">
 
             <h2 class="checkout-summary-heading">
-                Ringkasan Pesanan
+                Order Summary
             </h2>
 
             {% if cart_items %}
@@ -620,17 +619,17 @@
                 {% endfor %}
 
                 <div class="checkout-summary-total">
-                    <span>Total belanja</span>
+                    <span>Total Amout</span>
                     <strong>Rp{{ total_display }}</strong>
                 </div>
 
             {% else %}
                 <p class="checkout-summary-empty">
-                    Keranjangmu masih kosong. Tambahkan barang terlebih dahulu.
+                    Your cart is empty. Add an item to continue.
                 </p>
 
                 <a href="{% url 'transactions:cart' %}">
-                    Kembali ke keranjang
+                    Back to Cart
                 </a>
             {% endif %}
         </aside>
@@ -638,5 +637,5 @@
     </div>
 </main>
 
-<script src="{% static 'js/checkout.js' %}" defer></script>
+<script src="{% static 'js/checkout.js' %}?v=2" defer></script>
 {% endblock content %}
