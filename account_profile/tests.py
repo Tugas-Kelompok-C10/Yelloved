@@ -116,6 +116,20 @@ class AccountFeedbackTests(TestCase):
         response = self.client.post(reverse("login"), {"username": self.user.username, "password": "A-strong-test-password-16", "next": reverse("account_profile:profile")}, follow=True)
         self.assertContains(response, "Welcome back to Yelloved!")
 
+    def test_login_logout_round_trip_uses_post_logout(self):
+        self.client.logout()
+        login_response = self.client.post(reverse("login"), {
+            "username": self.user.username,
+            "password": "A-strong-test-password-16",
+            "next": reverse("account_profile:profile"),
+        })
+        self.assertEqual(login_response.status_code, 302)
+        self.assertTrue(self.client.get(reverse("account_profile:profile")).wsgi_request.user.is_authenticated)
+
+        logout_response = self.client.post(reverse("logout"))
+        self.assertEqual(logout_response.status_code, 302)
+        self.assertFalse(self.client.get(reverse("account_profile:profile")).wsgi_request.user.is_authenticated)
+
     def test_ajax_profile_and_preferences_return_feedback_without_redirect(self):
         headers = {"HTTP_X_REQUESTED_WITH": "XMLHttpRequest"}
         response = self.client.post(reverse("account_profile:profile"), self.payload, **headers)
@@ -186,6 +200,26 @@ class AccountProfileApiTests(TestCase):
         self.assertEqual(self.user.first_name, "Updated")
         self.assertEqual(self.user.email, "updated@example.com")
         self.assertEqual(profile.phone_number, "+628123456789")
+
+    def test_profile_api_accepts_validated_multipart_photo_upload(self):
+        from .models import Profile
+        image_data = BytesIO()
+        Image.new("RGB", (32, 32), color="purple").save(image_data, format="PNG")
+        upload = SimpleUploadedFile("avatar.png", image_data.getvalue(), content_type="image/png")
+        payload = {
+            "first_name": self.user.first_name,
+            "email": self.user.email,
+            "date_of_birth": "",
+            "gender": "",
+            "phone_number": "",
+            "photo": upload,
+        }
+        with TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):
+            response = self.client.post(reverse("account_profile:api_profile"), payload)
+            self.assertEqual(response.status_code, 200, response.content)
+            self.assertTrue(response.json()["photo"].endswith(".png"))
+            profile = Profile.objects.get(user=self.user)
+            self.assertTrue(profile.photo.storage.exists(profile.photo.name))
 
     def test_address_api_supports_create_read_update_default_and_delete(self):
         from .models import Address
