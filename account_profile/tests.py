@@ -1,3 +1,5 @@
+import json
+
 from django.test import TestCase
 
 from io import BytesIO
@@ -158,3 +160,101 @@ class AccountFeedbackTests(TestCase):
             "old_password": "A-strong-test-password-16", "new_password1": "Another-test-password-2026", "new_password2": "Another-test-password-2026"}, **headers)
         self.assertEqual(response.json()["url"], reverse("account_profile:privacy_security"))
         self.assertEqual(self.client.get(reverse("account_profile:profile")).status_code, 200)
+
+
+class AccountProfileApiTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="api-profile-test", password="A-strong-test-password-16", email="before@example.com")
+        self.client.force_login(self.user)
+        self.json_headers = {"content_type": "application/json"}
+
+    def post_json(self, route, payload):
+        return self.client.post(reverse(f"account_profile:{route}"), json.dumps(payload), **self.json_headers)
+
+    def test_profile_api_reads_and_updates_user_and_profile_fields(self):
+        from .models import Profile
+        response = self.client.get(reverse("account_profile:api_profile"))
+        self.assertEqual(response.status_code, 200)
+        response = self.post_json("api_profile", {
+            "first_name": "Updated", "email": "updated@example.com", "date_of_birth": "2001-02-03",
+            "gender": "female", "phone_number": "+628123456789",
+        })
+        self.assertEqual(response.status_code, 200, response.content)
+        self.user.refresh_from_db()
+        profile = Profile.objects.get(user=self.user)
+        self.assertEqual(self.user.first_name, "Updated")
+        self.assertEqual(self.user.email, "updated@example.com")
+        self.assertEqual(profile.phone_number, "+628123456789")
+
+    def test_address_api_supports_create_read_update_default_and_delete(self):
+        from .models import Address
+        endpoint = reverse("account_profile:api_addresses")
+        payload = {"label": "Home", "recipient_name": "API User", "phone_number": "08123456789",
+                   "street_address": "Main street 1", "city": "Depok", "province": "West Java",
+                   "postal_code": "16424", "is_default": True}
+        response = self.client.post(endpoint, json.dumps(payload), **self.json_headers)
+        self.assertEqual(response.status_code, 201, response.content)
+        address_id = response.json()["id"]
+        self.assertEqual(self.client.get(endpoint).json()["results"][0]["id"], address_id)
+        response = self.client.patch(reverse("account_profile:api_address_detail", args=[address_id]),
+                                     json.dumps({"city": "Bandung"}), **self.json_headers)
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(response.json()["city"], "Bandung")
+        second = {**payload, "label": "Office", "is_default": False}
+        second_response = self.client.post(endpoint, json.dumps(second), **self.json_headers)
+        second_id = second_response.json()["id"]
+        self.assertFalse(Address.objects.get(pk=second_id).is_default)
+        response = self.client.post(reverse("account_profile:api_address_default", args=[second_id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(Address.objects.get(pk=second_id).is_default)
+        response = self.client.delete(reverse("account_profile:api_address_detail", args=[address_id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Address.objects.filter(pk=address_id).exists())
+
+    def test_payment_method_api_supports_create_read_update_and_delete(self):
+        from .models import PaymentMethod
+        endpoint = reverse("account_profile:api_payment_methods")
+        payload = {"method_type": "bank", "provider": "Demo bank", "account_name": "API User",
+                   "account_identifier": "123456789", "is_default": True}
+        response = self.client.post(endpoint, json.dumps(payload), **self.json_headers)
+        self.assertEqual(response.status_code, 201, response.content)
+        method_id = response.json()["id"]
+        self.assertEqual(self.client.get(endpoint).json()["results"][0]["id"], method_id)
+        response = self.client.patch(reverse("account_profile:api_payment_method_detail", args=[method_id]),
+                                     json.dumps({"provider": "Updated bank"}), **self.json_headers)
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(response.json()["provider"], "Updated bank")
+        response = self.client.delete(reverse("account_profile:api_payment_method_detail", args=[method_id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(PaymentMethod.objects.filter(pk=method_id).exists())
+
+    def test_notification_preferences_and_password_are_updated_by_api(self):
+        from .models import NotificationPreference
+        prefs_url = reverse("account_profile:api_notifications")
+        self.assertEqual(self.client.get(prefs_url).status_code, 200)
+        response = self.client.patch(prefs_url, json.dumps({"order_updates": False, "promotions": True}), **self.json_headers)
+        self.assertEqual(response.status_code, 200, response.content)
+        prefs = NotificationPreference.objects.get(user=self.user)
+        self.assertFalse(prefs.order_updates)
+        self.assertTrue(prefs.promotions)
+        response = self.post_json("api_change_password", {
+            "old_password": "A-strong-test-password-16", "new_password1": "Another-strong-password-2026",
+            "new_password2": "Another-strong-password-2026",
+        })
+        self.assertEqual(response.status_code, 200, response.content)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("Another-strong-password-2026"))
+
+    def test_api_mutations_require_authentication_and_validate_owner(self):
+        from .models import Address
+        payload = {"label": "Home", "recipient_name": "Other", "phone_number": "08123456789",
+                   "street_address": "Other street", "city": "Depok", "province": "West Java", "postal_code": "16424"}
+        other = get_user_model().objects.create_user(username="other-api-user")
+        address = Address.objects.create(user=other, **payload)
+        self.client.logout()
+        self.assertEqual(self.client.get(reverse("account_profile:api_profile")).status_code, 401)
+        self.client.force_login(self.user)
+        response = self.client.delete(reverse("account_profile:api_address_detail", args=[address.pk]))
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(Address.objects.filter(pk=address.pk).exists())

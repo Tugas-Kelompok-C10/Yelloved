@@ -1,26 +1,29 @@
 from urllib.parse import urlencode
+from functools import wraps
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db import transaction
-from django.db.models import Q
+from django.db.models import F, Q
 from django.http import Http404, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from django.utils import timezone
+from django.views.decorators.vary import vary_on_headers
 
 from .creation import creation_uid, issue_creation_token
 from .forms import OfferForm, WantedCreateForm, WantedEditForm
-from .models import Offer, WantedPost
-from .sample_data import SAMPLE_WANTED_POSTS
+from .locking import locked_wanted_post
+from .models import Offer, WantedPost, WantedCreationReceipt
+from .rate_limits import CreationRateLimited, create_with_quota
+from .sample_data import get_sample_wanted_posts
 
 
 def _sample_posts_for(query, category):
-    sample_posts = SAMPLE_WANTED_POSTS
+    sample_posts = get_sample_wanted_posts()
     if query:
         normalized_query = query.casefold()
         sample_posts = tuple(
@@ -57,6 +60,7 @@ def _wanted_cards(wanted_posts, sample_posts, user_id=None):
             "detail_url": reverse("wanted_board:wanted_detail", args=[post.pk]),
             "is_sample": False,
             "is_owner": post.requester_id == user_id,
+            "chat_url": reverse("chat:with_user", args=[post.requester_id]),
         }
         for post in wanted_posts
     ]
@@ -68,6 +72,7 @@ def _wanted_cards(wanted_posts, sample_posts, user_id=None):
                 args=[post["slug"]],
             ),
             "is_sample": True,
+            "chat_url": reverse("chat:inbox"),
         }
         for post in sample_posts
     )
@@ -88,13 +93,25 @@ def _page_numbers(current, total):
     return result
 
 
-def _wanted_page(wanted_posts, sample_posts, number, per_page=12, user_id=None):
+def _wanted_page(wanted_posts, sample_posts, number, per_page=12, user_id=None, sort=""):
     """Slice database matches before building cards, then fill with demo posts."""
     post_count = wanted_posts.count()
     paginator = Paginator(range(post_count + len(sample_posts)), per_page)
     page = paginator.get_page(number)
     start = (page.number - 1) * per_page
     end = start + per_page
+    if sort in ("budget_asc", "budget_desc"):
+        ascending = sort == "budget_asc"
+        order = F("budget").asc(nulls_last=True) if ascending else F("budget").desc(nulls_last=True)
+        wanted_posts = wanted_posts.order_by(order, "-created_at", "-pk")
+        # At most len(sample_posts) demo cards can shift a database row onto
+        # this page. Fetch only that overlap plus the page, not every DB row.
+        offset = max(0, start - len(sample_posts))
+        cards = _wanted_cards(wanted_posts[offset:min(end, post_count)], sample_posts, user_id=user_id)
+        cards.sort(key=lambda card: (card["budget"] is None,
+                                    (card["budget"] or 0) * (1 if ascending else -1)))
+        page.object_list = cards[start - offset:end - offset]
+        return page
     page.object_list = _wanted_cards(
         wanted_posts[min(start, post_count):min(end, post_count)],
         sample_posts[max(0, start - post_count):max(0, end - post_count)],
@@ -104,8 +121,11 @@ def _wanted_page(wanted_posts, sample_posts, number, per_page=12, user_id=None):
 
 
 def _board_context(request, creation_form=None, open_create_modal=False):
-    query = request.GET.get("q", "").strip()
+    query = request.GET.get("q", "").strip()[:70]
     category = request.GET.get("category", "").strip()
+    sort = request.GET.get("sort", "")
+    if sort not in ("budget_asc", "budget_desc"):
+        sort = ""
 
     wanted_posts = WantedPost.objects.filter(status=WantedPost.Status.OPEN).select_related("requester").order_by("-created_at", "-pk")
     if query:
@@ -123,6 +143,7 @@ def _board_context(request, creation_form=None, open_create_modal=False):
     page = _wanted_page(
         wanted_posts, sample_posts, request.GET.get("page"),
         user_id=request.user.pk if request.user.is_authenticated else None,
+        sort=sort,
     )
     paginator = page.paginator
     wanted_cards = page.object_list
@@ -133,6 +154,8 @@ def _board_context(request, creation_form=None, open_create_modal=False):
             params["q"] = query
         if category:
             params["category"] = category
+        if sort:
+            params["sort"] = sort
         return f"{reverse('wanted_board:show_wanted')}?{urlencode(params)}"
 
     return {
@@ -140,6 +163,7 @@ def _board_context(request, creation_form=None, open_create_modal=False):
         "wanted_posts": wanted_posts,
         "query": query,
         "selected_category": category,
+        "selected_sort": sort,
         "categories": WantedPost.Category.choices,
         "sample_posts": sample_posts,
         "wanted_cards": wanted_cards,
@@ -151,6 +175,7 @@ def _board_context(request, creation_form=None, open_create_modal=False):
         ],
         "previous_page_url": page_url(page.previous_page_number()) if page.has_previous() else None,
         "next_page_url": page_url(page.next_page_number()) if page.has_next() else None,
+        "results_url": page_url(page.number),
         "creation_form": (
             creation_form if creation_form is not None else WantedCreateForm(
                 initial={"creation_token": issue_creation_token(request.user),
@@ -161,11 +186,14 @@ def _board_context(request, creation_form=None, open_create_modal=False):
     }
 
 
+@vary_on_headers('HX-Request', 'X-Requested-With')
 def show_wanted(request):
     context = _board_context(
         request,
         open_create_modal=request.GET.get("create") == "1",
     )
+    if request.headers.get("HX-Request") == "true":
+        return render(request, "wanted_board/_results.html", context)
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         total_count = context["total_count"]
         return JsonResponse(
@@ -180,6 +208,7 @@ def show_wanted(request):
                     f"{'s' if total_count != 1 else ''} found"
                 ),
                 "selected_category": context["selected_category"],
+                "selected_sort": context["selected_sort"],
                 "page_number": context["page_obj"].number,
                 "pagination_html": render_to_string(
                     "wanted_board/_pagination.html", context, request=request,
@@ -218,7 +247,7 @@ def wanted_detail(request, pk):
 
 def sample_wanted_detail(request, slug):
     sample_post = next(
-        (post for post in SAMPLE_WANTED_POSTS if post["slug"] == slug),
+        (post for post in get_sample_wanted_posts() if post["slug"] == slug),
         None,
     )
     if sample_post is None:
@@ -235,11 +264,34 @@ def _is_ajax(request):
     return request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
 
+def _clear_access_errors(view):
+    """Keep normal 404s, but let Wanted AJAX forms explain rejected access."""
+    @wraps(view)
+    def wrapped(request, *args, **kwargs):
+        try:
+            return view(request, *args, **kwargs)
+        except Http404:
+            if not _is_ajax(request):
+                raise
+            return JsonResponse({"message": (
+                "This wanted post is no longer available, or you do not have permission "
+                "to change it. Return to the board and refresh before trying again."
+            )}, status=404)
+    return wrapped
+
+
 def _saved_response(request, wanted_post, message):
-    messages.success(request, message)
     url = reverse("wanted_board:wanted_detail", args=[wanted_post.pk])
     if _is_ajax(request):
-        return JsonResponse({"redirect_url": url, "uid": str(wanted_post.pk)})
+        data = {"redirect_url": url, "uid": str(wanted_post.pk), "message": message,
+                "board_url": reverse("wanted_board:show_wanted")}
+        if request.resolver_match.url_name == "edit_wanted":
+            wanted_post.refresh_from_db()
+            data.update(title=wanted_post.title, revision=wanted_post.updated_at.isoformat(),
+                        detail_html=render_to_string("wanted_board/_detail_body.html",
+                                                    {"wanted_post": wanted_post}, request=request))
+        return JsonResponse(data)
+    messages.success(request, message)
     return redirect(url)
 
 
@@ -255,6 +307,7 @@ def create_wanted(request):
         return HttpResponseNotAllowed(["GET", "POST"])
 
     form = WantedCreateForm(request.POST, user=request.user)
+    rate_error = None
     try:
         uid = creation_uid(request.POST.get("creation_token", ""), request.user)
     except ValidationError as error:
@@ -269,16 +322,23 @@ def create_wanted(request):
                 key: value for key, value in form.cleaned_data.items()
                 if key != "creation_token"
             }
-            # The signed UID makes concurrent retries return the same post.
-            with transaction.atomic():
-                wanted_post, _ = WantedPost.objects.get_or_create(
-                    pk=uid, defaults={**defaults, "requester": request.user}
-                )
-                if wanted_post.requester_id != request.user.pk:
-                    raise Http404("Wanted post not found")
-            return _saved_response(request, wanted_post, "Your wanted post has been created.")
+            try:
+                wanted_post = create_with_quota(request.user, uid, defaults)
+            except CreationRateLimited as error:
+                rate_error = error
+                form.add_error(None, error.message)
+            except ValidationError as error:
+                form.add_error(None, error)
+            else:
+                return _saved_response(request, wanted_post, "Your wanted post has been created.")
 
     if _is_ajax(request):
+        if rate_error:
+            response = JsonResponse({"message": rate_error.message,
+                                     "errors": form.errors.get_json_data(),
+                                     "retry_after": rate_error.retry_after}, status=429)
+            response["Retry-After"] = str(rate_error.retry_after)
+            return response
         return _form_errors_response(form)
 
     context = _board_context(
@@ -286,10 +346,14 @@ def create_wanted(request):
         creation_form=form,
         open_create_modal=True,
     )
-    return render(request, "wanted_post.html", context)
+    response = render(request, "wanted_post.html", context, status=429 if rate_error else 200)
+    if rate_error:
+        response["Retry-After"] = str(rate_error.retry_after)
+    return response
 
 
 @login_required
+@_clear_access_errors
 def edit_wanted(request, pk):
     wanted_post = get_object_or_404(WantedPost, pk=pk, requester=request.user)
     if request.method == "GET":
@@ -335,58 +399,80 @@ def edit_wanted(request, pk):
 
 
 @login_required
+@_clear_access_errors
 def delete_wanted(request, pk):
-    wanted_post = get_object_or_404(WantedPost, pk=pk, requester=request.user)
     if request.method == "POST":
-        wanted_post.delete()
+        try:
+            with locked_wanted_post(pk, requester=request.user) as wanted_post:
+                wanted_post.delete()
+        except Http404:
+            if not WantedCreationReceipt.objects.filter(pk=pk, requester=request.user, deleted_at__isnull=False).exists():
+                raise
+        if _is_ajax(request):
+            return JsonResponse({"message": "Your wanted post has been deleted.",
+                                 "board_url": reverse("wanted_board:show_wanted")})
         messages.success(request, "Your wanted post has been deleted.")
         return redirect("wanted_board:show_wanted")
     if request.method != "GET":
         return HttpResponseNotAllowed(["GET", "POST"])
+    wanted_post = get_object_or_404(WantedPost, pk=pk, requester=request.user)
     return redirect(
         f"{reverse('wanted_board:wanted_detail', args=[wanted_post.pk])}?delete=1"
     )
 
 
 @login_required
+@require_GET
+def deletion_state(request, pk):
+    if WantedPost.objects.filter(pk=pk, requester=request.user).exists():
+        return JsonResponse({"state": "present"})
+    if WantedCreationReceipt.objects.filter(pk=pk, requester=request.user, deleted_at__isnull=False).exists():
+        return JsonResponse({"state": "deleted"})
+    return JsonResponse({"state": "unavailable"}, status=404)
+
+
+@login_required
 @require_POST
+@_clear_access_errors
 def update_status(request, pk):
-    wanted_post = get_object_or_404(WantedPost, pk=pk, requester=request.user)
-    status = request.POST.get("status")
-    if status not in WantedPost.Status.values:
-        messages.error(request, "That wanted post status is not valid.")
-    else:
-        wanted_post.status = status
-        wanted_post.save(update_fields=["status", "updated_at"])
-        messages.success(request, "The wanted post status has been updated.")
+    with locked_wanted_post(pk, requester=request.user) as wanted_post:
+        status = request.POST.get("status")
+        if status not in WantedPost.Status.values:
+            messages.error(request, "That wanted post status is not valid.")
+        else:
+            wanted_post.status = status
+            wanted_post.save(update_fields=["status", "updated_at"])
+            messages.success(request, "The wanted post status has been updated.")
     return redirect("wanted_board:wanted_detail", pk=wanted_post.pk)
 
 
 @login_required
 @require_POST
+@_clear_access_errors
 def create_offer(request, pk):
-    wanted_post = get_object_or_404(WantedPost, pk=pk)
-    if wanted_post.requester == request.user:
-        messages.error(request, "You cannot make an offer on your own post.")
-    elif wanted_post.status != WantedPost.Status.OPEN:
-        messages.error(request, "This wanted post is no longer accepting offers.")
-    elif Offer.objects.filter(
-        wanted_post=wanted_post,
-        offerer=request.user,
-    ).exists():
-        messages.error(request, "You have already made an offer on this post.")
-    else:
-        form = OfferForm(request.POST)
-        if form.is_valid():
-            offer = form.save(commit=False)
-            offer.wanted_post = wanted_post
-            offer.offerer = request.user
-            offer.message = ""
-            offer.save()
-            messages.success(request, "Your offer has been sent.")
+    # Status inspection and insertion share one lock/transaction. Closing a post
+    # must finish before this check, or wait until this offer has committed.
+    with locked_wanted_post(pk) as wanted_post:
+        if wanted_post.requester == request.user:
+            messages.error(request, "You cannot make an offer on your own post.")
+        elif wanted_post.status != WantedPost.Status.OPEN:
+            messages.error(request, "This wanted post is no longer accepting offers.")
         else:
-            for errors in form.errors.values():
-                for error in errors:
-                    messages.error(request, error)
+            form = OfferForm(request.POST)
+            if form.is_valid():
+                # Keep the database constraint as a second guard against duplicates.
+                _, created = Offer.objects.get_or_create(
+                    wanted_post=wanted_post,
+                    offerer=request.user,
+                    defaults={"offered_price": form.cleaned_data["offered_price"], "message": ""},
+                )
+                if created:
+                    messages.success(request, "Your offer has been sent.")
+                else:
+                    messages.error(request, "You have already made an offer on this post.")
+            else:
+                for errors in form.errors.values():
+                    for error in errors:
+                        messages.error(request, error)
 
     return redirect("wanted_board:wanted_detail", pk=wanted_post.pk)

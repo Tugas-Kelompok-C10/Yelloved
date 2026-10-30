@@ -1,19 +1,17 @@
 {% extends "base.html" %}
 {% load static %}
-{% block meta %}<title>Item Matching | {{ name }}</title><link rel="stylesheet" href="{% static 'css/item_matching.css' %}">{% endblock %}
+{% block meta %}<title>Activity | {{ name }}</title>{% endblock %}
 {% block content %}
-<main class="container orders-page matching-page" lang="en">
+<main class="matching-page" lang="en">
     <section class="orders-heading">
         <div>
             <h1>Activity</h1>
             <p>Manage item requests and offers for wanted posts in one place.</p>
         </div>
-        <a href="{% url 'items:explore_items' %}" class="orders-explore">
-            <span aria-hidden="true">＋</span> Explore Items
-        </a>
+
     </section>
 
-    <nav class="orders-tabs" aria-label="Matching sections">
+    <nav class="orders-tabs" aria-label="Activity sections">
         {% for t in tabs %}
             <a href="?tab={{ t.key }}" class="{% if t.key == tab %}active{% endif %}"{% if t.key == tab %} aria-current="page"{% endif %}>
                 {{ t.label }}{% if t.pending %} <span class="matching-badge">{{ t.pending }}</span>{% endif %}
@@ -35,7 +33,7 @@
                 <article class="order-card">
                     <div class="order-card-top">
                         <div class="order-reference">
-                            <span class="order-icon" aria-hidden="true">{% if is_request_tab %}♡{% else %}⇄{% endif %}</span>
+                            <span class="order-icon" aria-hidden="true">{% include "item_matching/_icon.html" %}</span>
                             <div>
                                 <span class="order-label">{% if is_request_tab %}Request ID{% else %}Offer ID{% endif %}</span>
                                 <strong>{% if is_request_tab %}RQ{% else %}OF{% endif %}-{{ row.pk|stringformat:"04d" }}</strong>
@@ -45,22 +43,22 @@
                     </div>
 
                     <div class="order-card-body">
-                        <div class="order-product-placeholder{% if row.item.display_image_url %} has-image{% endif %}">
-                            {% if row.item.display_image_url %}
-                                <img src="{{ row.item.display_image_url }}" alt="" loading="lazy"
+                        <div class="order-product-placeholder{% if row.activity_image %} has-image{% endif %}">
+                            {% if row.activity_image %}
+                                <img src="{{ row.activity_image }}" alt="" loading="lazy"
                                      onerror="this.hidden = true; this.parentElement.classList.remove('has-image'); this.nextElementSibling.hidden = false;">
-                                <span aria-hidden="true" hidden>♧</span>
-                            {% else %}<span aria-hidden="true">♧</span>{% endif %}
+                                <span aria-hidden="true" hidden>{% include "item_matching/_icon.html" with image=True %}</span>
+                            {% else %}<span aria-hidden="true">{% include "item_matching/_icon.html" with image=True %}</span>{% endif %}
                         </div>
 
                         <div class="order-product-info">
-                            <h2><a href="{{ row.item.get_absolute_url }}">{{ row.item.title }}</a></h2>
+                            <h2><a href="{{ row.activity_url }}">{{ row.activity_title }}</a></h2>
                             <p class="matching-meta">
                                 {% if tab == 'incoming' %}Requested by <strong>{{ row.requester.username }}</strong>
                                 {% elif tab == 'sent' %}Owner: <strong>{{ row.item.owner.username }}</strong>
                                 {% elif tab == 'offers_received' %}Offered by <strong>{{ row.offerer.username }}</strong>
                                 {% else %}For <strong>{{ row.wanted_post.requester.username }}</strong>{% endif %}
-                                · {{ row.item.get_listing_type_display }}
+                                {% if row.item %}· {{ row.item.get_listing_type_display }}{% endif %}
                             </p>
                             {% if row.offered_item %}<p class="matching-note">Swapped for: <a href="{{ row.offered_item.get_absolute_url }}">{{ row.offered_item.title }}</a></p>{% endif %}
                             {% if not is_request_tab %}<p class="matching-note">For wanted post: <a href="{% url 'wanted_board:wanted_detail' row.wanted_post.pk %}">{{ row.wanted_post.title }}</a></p>{% endif %}
@@ -72,7 +70,7 @@
 
                         <div class="order-total">
                             <span>Price</span>
-                            <strong>{{ row.item.price_display }}</strong>
+                            <strong>{{ row.activity_price }}</strong>
                             {% if is_request_tab and row.offer_price_display %}
                                 <span>Offer</span>
                                 <strong>{{ row.offer_price_display }}</strong>
@@ -115,10 +113,10 @@
         </section>
     {% else %}
         <section class="orders-empty">
-            <div class="empty-illustration" aria-hidden="true">🤝</div>
+            <div class="empty-illustration" aria-hidden="true">{% include "item_matching/_icon.html" %}</div>
             <h2>Nothing here yet.</h2>
             <p>{{ active.empty }}</p>
-            <a href="{% url 'items:explore_items' %}" class="orders-explore">Explore Items</a>
+
         </section>
     {% endif %}
 </main>

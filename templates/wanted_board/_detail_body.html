@@ -1,4 +1,5 @@
 {% load wanted_board_tags %}
+{% wanted_chat_url wanted_post as poster_chat_url %}
 <div class="wanted-detail-content">
     <h1>{{ wanted_post.title }}</h1>
     <dl class="wanted-detail-facts">
@@ -12,7 +13,7 @@
         <p>{{ wanted_post.description|linebreaksbr }}</p>
     </section>
     <div class="wanted-detail-poster">
-        <a class="wanted-detail-poster-link" href="{% url 'transactions:pesan' %}">
+        <a class="wanted-detail-poster-link" href="{{ poster_chat_url }}">
             <span class="wanted-detail-avatar">{% if sample %}{{ wanted_post.poster_initials }}{% elif wanted_post.requester.account_profile.photo %}<img src="{{ wanted_post.requester.account_profile.photo.url }}" alt="Profile picture of {{ wanted_post.requester.username }}">{% else %}{{ wanted_post.requester.username|first|upper }}{% endif %}</span>
             <span><small>Posted by</small><strong>@{% if sample %}{{ wanted_post.poster }}{% else %}{{ wanted_post.requester.username }}{% endif %}</strong></span>
         </a>

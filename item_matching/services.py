@@ -90,14 +90,14 @@ def cancel_request(request_id, user):
 def accept_offer(offer_id, user):
     offer = _lock(ItemOffer, offer_id)
     post = _lock(WantedPost, offer.wanted_post_id)
-    item = _lock(Item, offer.item_id)
+    item = _lock(Item, offer.item_id) if offer.item_id else None
     if post.requester_id != user.pk:
         raise MatchingError('Only the wanted post owner can accept this offer.')
     if offer.status != ItemOffer.Status.PENDING:
         raise MatchingError('This offer has already been processed.')
     if post.status != WantedPost.Status.OPEN:
         raise MatchingError('This wanted post is no longer open.')
-    if item.status != Item.Status.AVAILABLE:
+    if item and item.status != Item.Status.AVAILABLE:
         raise MatchingError('The offered item is no longer available.')
     offer.status = ItemOffer.Status.ACCEPTED
     offer.save(update_fields=['status', 'updated_at'])

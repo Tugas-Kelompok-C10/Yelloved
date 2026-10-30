@@ -56,7 +56,9 @@
                     </span>
                 </div>
 
-                <form method="post" class="notification-form">
+                <form method="post" class="notification-form"
+                      data-api-url="{% url 'account_profile:api_notifications' %}" data-api-method="PATCH"
+                      data-success-url="{% url 'account_profile:notifications' %}">
                     {% csrf_token %}
                     {% for field in form %}
                     <div class="notification-option">

@@ -17,6 +17,41 @@
     const show = (message, type = 'error') => window.YellovedToast?.show({
         title: type === 'error' ? 'Please check your details' : 'Success', message, type,
     });
+    const csrfToken = form => form.elements.namedItem('csrfmiddlewaretoken')?.value ||
+        decodeURIComponent(document.cookie.split('; ').find(value => value.startsWith('csrftoken='))?.split('=').slice(1).join('=') || '');
+    const payloadFromForm = form => {
+        const payload = {};
+        for (const field of form.elements) {
+            if (!field.name || field.name === 'csrfmiddlewaretoken' || field.disabled ||
+                ['submit', 'button', 'reset', 'file'].includes(field.type)) continue;
+            if (field.type === 'checkbox') payload[field.name] = field.checked;
+            else if (field.type === 'radio') { if (field.checked) payload[field.name] = field.value; }
+            else payload[field.name] = field.value;
+        }
+        return payload;
+    };
+    const showApiErrors = (form, errors = {}) => {
+        const summaries = [];
+        for (const [name, values] of Object.entries(errors)) {
+            const messages = Array.isArray(values) ? values : [String(values)];
+            const field = form.elements.namedItem(name);
+            const target = field?.length && !field.tagName ? field[0] : field;
+            const wrapper = target?.closest('.biodata-field, .address-form-field, .security-field, .notification-option');
+            messages.forEach(message => {
+                summaries.push(`${wrapper?.querySelector('label')?.textContent.trim() || ''}${wrapper ? ': ' : ''}${message}`);
+                if (wrapper) {
+                    const error = document.createElement('small');
+                    error.className = 'form-error';
+                    error.dataset.accountError = '';
+                    error.textContent = message;
+                    wrapper.append(error);
+                    target.setAttribute('aria-invalid', 'true');
+                }
+            });
+        }
+        if (summaries.length) show([...new Set(summaries)].slice(0, 3).join(' '));
+        return summaries.length > 0;
+    };
     const formErrors = (doc, form) => {
         const errors = [...doc.querySelectorAll('.form-error')].filter(node => !node.hidden && node.textContent.trim());
         const summaries = [];
@@ -135,6 +170,31 @@
         form.setAttribute('aria-busy', 'true');
         let saved = false;
         try {
+            if (form.dataset.apiUrl) {
+                const method = (form.dataset.apiMethod || 'POST').toUpperCase();
+                const hasFile = [...form.elements].some(field => field.type === 'file' && field.files?.length);
+                const headers = {Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken(form)};
+                const options = {method, credentials: 'same-origin', headers};
+                if (!['GET', 'HEAD', 'DELETE'].includes(method)) {
+                    if (hasFile) options.body = new FormData(form);
+                    else {
+                        headers['Content-Type'] = 'application/json';
+                        options.body = JSON.stringify(payloadFromForm(form));
+                    }
+                }
+                const response = await fetch(form.dataset.apiUrl, options);
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    if (data.errors && showApiErrors(form, data.errors)) return;
+                    throw new Error(data.error || 'Unable to save. Please try again.');
+                }
+                saved = true;
+                if (form.dataset.successUrl && form.isConnected && navigation === navigationAtSubmit) {
+                    await load(form.dataset.successUrl);
+                }
+                show(data.message || 'Changes saved successfully.', 'success');
+                return;
+            }
             const response = await fetch(form.action, {method: 'POST', body, credentials: 'same-origin',
                 headers: {Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest'}});
             if (response.redirected) throw new Error('Your session may have expired. Please sign in again; your details have been kept.');

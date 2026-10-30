@@ -14,7 +14,11 @@
             &larr; Kembali ke Checkout
         </a>
 
-        <span class="payment-preview-label">PAYMENT PAGE PREVIEW</span>
+        {% if order %}
+            <span class="payment-preview-label">INSTRUKSI PEMBAYARAN</span>
+        {% else %}
+            <span class="payment-preview-label">PAYMENT PAGE PREVIEW</span>
+        {% endif %}
 
         <h1>Selesaikan Pembayaran</h1>
         <p>
@@ -27,34 +31,34 @@
         </p>
     </header>
 
-    <div class="payment-demo-notice">
-        <span class="payment-demo-icon">i</span>
-        <p>
-            <strong>Mode Preview</strong>
-            {% if order %}
-                Detail pesanan sudah diambil dari checkout.
-            {% else %}
-                Halaman ini masih menggunakan data contoh.
-            {% endif %}
-            QR pembayaran dan nomor Virtual Account belum terhubung ke Midtrans.
-        </p>
-    </div>
+    {% if not order %}
+        <div class="payment-demo-notice">
+            <span class="payment-demo-icon">i</span>
+            <p>
+                <strong>Mode Preview</strong>
+                Halaman ini menggunakan data contoh. QRIS dan nomor Virtual
+                Account asli tersedia setelah transaksi dibuat melalui Midtrans.
+            </p>
+        </div>
+    {% endif %}
 
-    <nav class="payment-method-tabs" aria-label="Metode pembayaran">
-        <a
-            href="?method=qris{% if order %}&amp;order_id={{ order.order_id }}{% endif %}"
-            class="{% if payment_method == 'qris' %}active{% endif %}"
-        >
-            QRIS
-        </a>
+    {% if not order %}
+        <nav class="payment-method-tabs" aria-label="Metode pembayaran">
+            <a
+                href="?method=qris"
+                class="{% if payment_method == 'qris' %}active{% endif %}"
+            >
+                QRIS
+            </a>
 
-        <a
-            href="?method=va&amp;bank={{ bank_code }}{% if order %}&amp;order_id={{ order.order_id }}{% endif %}"
-            class="{% if payment_method == 'va' %}active{% endif %}"
-        >
-            Virtual Account
-        </a>
-    </nav>
+            <a
+                href="?method=va&amp;bank={{ bank_code }}"
+                class="{% if payment_method == 'va' %}active{% endif %}"
+            >
+                Virtual Account
+            </a>
+        </nav>
+    {% endif %}
 
     <div class="payment-layout">
 
@@ -71,14 +75,41 @@
                 </div>
 
                 <div class="payment-qr-area">
-                    <div class="payment-qr-placeholder">
-                        <span class="qr-placeholder-icon">▦</span>
-                        <strong>Kode QR akan muncul di sini</strong>
-                        <p>
-                            Kode QR asli akan ditampilkan setelah transaksi
-                            berhasil dibuat melalui Midtrans.
-                        </p>
-                    </div>
+                    {% if order and order.midtrans_qr_code_url %}
+                        <div class="payment-qr-placeholder">
+                            <img
+                                class="payment-qr-image"
+                                src="{{ order.midtrans_qr_code_url }}"
+                                alt="Kode QR pembayaran Midtrans"
+                                style="display: block; width: min(100%, 280px); height: auto; margin: 0 auto;"
+                            >
+                            <p>
+                                Scan kode QR ini menggunakan aplikasi
+                                pembayaran yang mendukung QRIS.
+                            </p>
+                        </div>
+                    {% else %}
+                        <div class="payment-qr-placeholder">
+                            <span class="qr-placeholder-icon">▦</span>
+                            <strong>
+                                {% if order %}
+                                    Kode QR belum tersedia
+                                {% else %}
+                                    Kode QR preview
+                                {% endif %}
+                            </strong>
+                            <p>
+                                {% if order %}
+                                    Kode QR belum tersimpan untuk pesanan ini.
+                                    Periksa status transaksi atau hubungi
+                                    pengelola apabila masalah berlanjut.
+                                {% else %}
+                                    Kode QR asli akan muncul setelah transaksi
+                                    dibuat melalui checkout.
+                                {% endif %}
+                            </p>
+                        </div>
+                    {% endif %}
                 </div>
 
                 <div class="payment-instructions">
@@ -86,17 +117,25 @@
 
                     <div class="payment-step">
                         <span>1</span>
-                        <p>Buka aplikasi mobile banking atau dompet digital yang mendukung QRIS.</p>
+                        <p>
+                            Buka aplikasi mobile banking atau dompet digital
+                            yang mendukung QRIS.
+                        </p>
                     </div>
 
                     <div class="payment-step">
                         <span>2</span>
-                        <p>Pilih menu scan QRIS dan pindai kode yang diberikan.</p>
+                        <p>
+                            Pilih menu scan QRIS dan pindai kode yang diberikan.
+                        </p>
                     </div>
 
                     <div class="payment-step">
                         <span>3</span>
-                        <p>Periksa nominal dan selesaikan pembayaran pada aplikasi.</p>
+                        <p>
+                            Periksa nominal dan selesaikan pembayaran
+                            pada aplikasi.
+                        </p>
                     </div>
                 </div>
 
@@ -110,41 +149,35 @@
                     </div>
                 </div>
 
-                <form method="get" class="payment-bank-selection">
-                    <input type="hidden" name="method" value="va">
+                {% if not order %}
+                    <form method="get" class="payment-bank-selection">
+                        <input type="hidden" name="method" value="va">
 
-                    {% if order %}
-                        <input
-                            type="hidden"
-                            name="order_id"
-                            value="{{ order.order_id }}"
+                        <label for="preview-bank">Bank Tujuan</label>
+
+                        <select
+                            id="preview-bank"
+                            name="bank"
+                            onchange="this.form.submit()"
                         >
-                    {% endif %}
-
-                    <label for="preview-bank">Bank Tujuan</label>
-
-                    <select
-                        id="preview-bank"
-                        name="bank"
-                        onchange="this.form.submit()"
-                    >
-                        <option value="bca" {% if bank_code == "bca" %}selected{% endif %}>
-                            BCA
-                        </option>
-                        <option value="bni" {% if bank_code == "bni" %}selected{% endif %}>
-                            BNI
-                        </option>
-                        <option value="bri" {% if bank_code == "bri" %}selected{% endif %}>
-                            BRI
-                        </option>
-                        <option value="mandiri" {% if bank_code == "mandiri" %}selected{% endif %}>
-                            Mandiri
-                        </option>
-                        <option value="permata" {% if bank_code == "permata" %}selected{% endif %}>
-                            Permata
-                        </option>
-                    </select>
-                </form>
+                            <option value="bca" {% if bank_code == "bca" %}selected{% endif %}>
+                                BCA
+                            </option>
+                            <option value="bni" {% if bank_code == "bni" %}selected{% endif %}>
+                                BNI
+                            </option>
+                            <option value="bri" {% if bank_code == "bri" %}selected{% endif %}>
+                                BRI
+                            </option>
+                            <option value="mandiri" {% if bank_code == "mandiri" %}selected{% endif %}>
+                                Mandiri
+                            </option>
+                            <option value="permata" {% if bank_code == "permata" %}selected{% endif %}>
+                                Permata
+                            </option>
+                        </select>
+                    </form>
+                {% endif %}
 
                 <div class="payment-va-box">
 
@@ -172,7 +205,6 @@
                     {% else %}
 
                         <span>Nomor Virtual Account</span>
-
                         <strong>Belum tersedia</strong>
 
                         <p>
@@ -196,17 +228,26 @@
 
                     <div class="payment-step">
                         <span>1</span>
-                        <p>Buka aplikasi atau layanan perbankan yang sesuai dengan bank tujuan.</p>
+                        <p>
+                            Buka aplikasi atau layanan perbankan yang sesuai
+                            dengan bank tujuan.
+                        </p>
                     </div>
 
                     <div class="payment-step">
                         <span>2</span>
-                        <p>Pilih menu Virtual Account dan masukkan nomor VA dari transaksi.</p>
+                        <p>
+                            Pilih menu Virtual Account dan masukkan nomor VA
+                            dari transaksi.
+                        </p>
                     </div>
 
                     <div class="payment-step">
                         <span>3</span>
-                        <p>Periksa nominal serta detail transaksi sebelum mengonfirmasi transfer.</p>
+                        <p>
+                            Periksa nominal serta detail transaksi sebelum
+                            mengonfirmasi transfer.
+                        </p>
                     </div>
                 </div>
 
@@ -215,8 +256,8 @@
             <div class="payment-status-note">
                 <span class="payment-status-dot"></span>
                 <p>
-                    Status pembayaran nantinya diperbarui setelah
-                    ada konfirmasi pembayaran dari Midtrans.
+                    Status pembayaran diperbarui setelah ada konfirmasi
+                    pembayaran dari Midtrans.
                 </p>
             </div>
 
@@ -279,8 +320,10 @@
                         Gagal
                     {% elif order and order.payment_status == "expired" %}
                         Kedaluwarsa
-                    {% else %}
+                    {% elif order and order.payment_status == "pending" %}
                         Menunggu Pembayaran
+                    {% else %}
+                        Belum tersedia
                     {% endif %}
                 </strong>
             </div>
@@ -289,7 +332,7 @@
                 <span>Total Pembayaran</span>
                 <strong>
                     {% if order %}
-                        Rp{{ order.total_amount|floatformat:0 }}
+                        Rp{{ order.total_amount_display }}
                     {% else %}
                         Rp1.600.000
                     {% endif %}
@@ -299,7 +342,7 @@
             <p class="payment-summary-disclaimer">
                 {% if order %}
                     Detail pesanan diambil dari transaksi yang tersimpan.
-                    Pembayaran belum terhubung ke Midtrans.
+                    Status pembayaran menunggu konfirmasi Midtrans.
                 {% else %}
                     Nominal dan detail produk di atas hanya data contoh
                     untuk melihat desain halaman.
@@ -307,10 +350,10 @@
             </p>
 
             <a
-                href="{% url 'transactions:checkout' %}"
+                href="{% url 'transactions:transaction_history' %}"
                 class="payment-back-button"
             >
-                Kembali ke Checkout
+                Kembali ke Pesanan Saya
             </a>
         </aside>
 

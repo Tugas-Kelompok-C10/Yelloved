@@ -4,7 +4,7 @@
 
 {% block meta %}
 <title>Pesanan Saya | Yelloved</title>
-<link rel="stylesheet" href="{% static 'css/transaction_history.css' %}?v=5">
+<link rel="stylesheet" href="{% static 'css/transaction_history.css' %}?v=6">
 {% endblock meta %}
 
 {% block content %}
@@ -69,21 +69,20 @@
                 </nav>
             </header>
 
-            {% if messages %}
-                <div class="order-messages" role="status">
-                    {% for message in messages %}
-                        <p class="order-message order-message-{{ message.tags }}">
-                            {{ message }}
-                        </p>
-                    {% endfor %}
-                </div>
-            {% endif %}
 
             {% if transactions %}
                 <section class="orders-list">
                     {% for transaction in transactions %}
                         <article class="order-card">
-
+                            {% if active_type != 'sold' and transaction.transaction_status == 'pending' and transaction.payment_status == 'pending' %}
+                                {% if transaction.payment_method == 'qris' or transaction.payment_method == 'va' %}
+                                    <a
+                                        href="{% url 'transactions:payment_preview' %}?method={{ transaction.payment_method }}&amp;order_id={{ transaction.order_id }}{% if transaction.payment_method == 'va' %}&amp;bank={{ transaction.virtual_account_bank|default:'bca' }}{% endif %}"
+                                        class="order-card-payment-link"
+                                        aria-label="Lanjutkan pembayaran pesanan {{ transaction.order_id }}"
+                                    >
+                                {% endif %}
+                            {% endif %}
                             <!-- Header pesanan -->
                             <div class="order-card-top">
                                 <div class="order-reference">
@@ -102,8 +101,19 @@
 
                             <!-- Informasi pesanan -->
                             <div class="order-card-body">
-                                <div class="order-product-placeholder"
-                                     aria-hidden="true">♧</div>
+                                
+                            {% if transaction.history_item %}
+                                <div class="order-product-placeholder order-product-photo">
+                                    <img
+                                        src="{{ transaction.history_item.display_image_url }}"
+                                        alt="{{ transaction.item_name }}"
+                                        loading="lazy"
+                                    >
+                                </div>
+                            {% else %}
+                                <div class="order-product-placeholder" aria-hidden="true">♧</div>
+                            {% endif %}
+
 
                                 <div class="order-product-info">
                                     <h2>{{ transaction.item_name }}</h2>
@@ -121,35 +131,56 @@
                                         </span>
                                     </div>
                                 </div>
-
+                                {% if active_type != 'sold' and transaction.transaction_status == 'pending' and transaction.payment_status == 'pending' %}
+                                    {% if transaction.payment_method == 'qris' or transaction.payment_method == 'va' %}
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
                                 <div class="order-total">
                                     <span>Total Belanja</span>
                                     <strong>
-                                        Rp {{ transaction.total_amount|floatformat:0 }}
+                                        Rp {{ transaction.total_amount_display }}
                                     </strong>
                                 </div>
                             </div>
 
+                            
+                            
                             <!-- Footer dan aksi pesanan -->
                             <div class="order-card-footer">
                                 <span>Terima kasih telah memilih preloved.</span>
                                 {% if transaction.review_submitted %}<span class="order-review-status">Review submitted</span>{% elif transaction.can_review %}<a class="order-cancel-button" href="{% url 'account_profile:reviews' %}?order={{ transaction.pk }}">Leave a review</a>{% endif %}
 
-                                {% if active_type != 'sold' and transaction.payment_method == 'cod' and transaction.transaction_status == 'pending' and transaction.payment_status == 'pending' %}
-                                    <form
-                                        method="post"
-                                        action="{% url 'transactions:cancel_order' transaction.order_id %}"
-                                        class="order-cancel-form"
-                                        onsubmit="return confirm('Yakin ingin membatalkan pesanan ini?');"
-                                    >
-                                        {% csrf_token %}
+                                <div class="order-card-actions">
+                                    {% if active_type != 'sold' and transaction.transaction_status == 'pending' and transaction.payment_status == 'pending' %}
 
-                                        <button type="submit" class="order-cancel-button">
-                                            Batalkan Pesanan
-                                        </button>
-                                    </form>
-                                {% endif %}
+                                        {% if transaction.payment_method == 'qris' or transaction.payment_method == 'va' %}
+                                            <a
+                                                href="{% url 'transactions:payment_preview' %}?method={{ transaction.payment_method }}&amp;order_id={{ transaction.order_id }}{% if transaction.payment_method == 'va' %}&amp;bank={{ transaction.virtual_account_bank|default:'bca' }}{% endif %}"
+                                                class="order-continue-payment"
+                                            >
+                                                Lanjutkan Pembayaran
+                                            </a>
+                                        {% endif %}
+
+                                        <form
+                                            method="post"
+                                            action="{% url 'transactions:cancel_order' transaction.order_id %}"
+                                            class="order-cancel-form"
+                                            onsubmit="return confirm('Yakin ingin membatalkan pesanan ini?');"
+                                        >
+                                            {% csrf_token %}
+
+                                            <button type="submit" class="order-cancel-button">
+                                                Batalkan Pesanan
+                                            </button>
+                                        </form>
+
+                                    {% endif %}
+                                </div>
                             </div>
+
+
 
                         </article>
                     {% endfor %}

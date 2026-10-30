@@ -493,3 +493,95 @@ main.container.orders-page {
         width: 100%;
     }
 }
+
+
+.order-card-payment-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.order-card-payment-link:hover {
+    text-decoration: none;
+}
+
+.order-card-payment-link:focus-visible {
+    outline: 2px solid #531653;
+    outline-offset: 3px;
+    border-radius: 8px;
+}
+
+
+.order-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.order-card-actions .order-cancel-form {
+    margin: 0;
+}
+
+.order-continue-payment {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 11px 16px;
+    border: 1px solid #50124f;
+    border-radius: 10px;
+    background: #50124f;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.order-continue-payment:hover {
+    background: #681b65;
+    color: #fff;
+    text-decoration: none;
+}
+
+.order-continue-payment:focus-visible {
+    outline: 2px solid #50124f;
+    outline-offset: 3px;
+}
+
+@media (max-width: 576px) {
+    .order-card-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
+
+/* Foto produk di Riwayat Transaksi */
+.order-product-placeholder.order-product-photo {
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.order-product-photo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+}
+
+
+
+/* Paksa status pembayaran Paid menjadi hijau */
+.orders-page .order-card .order-status.status-paid {
+    background: #e4f5e9 !important;
+    color: #21804b !important;
+    border: 1px solid #b8e4c7 !important;
+}
+

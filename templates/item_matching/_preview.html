@@ -1,0 +1,9 @@
+<header class="notification-popover-header"><h2>Activity</h2><a href="{% url 'item_matching:dashboard' %}">View all</a></header>
+<div class="matching-summary">
+    <p class="matching-summary-lead">{% if matching_summary.action_needed %}<strong>{{ matching_summary.action_needed }}</strong> need your action{% else %}Nothing needs your action{% endif %}</p>
+    <ul class="matching-summary-list">
+        {% for tab in matching_summary.tabs %}
+        <li><a href="{{ tab.url }}"><span class="matching-summary-text"><strong>{{ tab.label }}</strong><small>{{ tab.short }}</small></span><span class="matching-pill{% if tab.actionable and tab.pending %} is-action{% endif %}">{{ tab.pending }} pending · {{ tab.total }} total</span></a></li>
+        {% endfor %}
+    </ul>
+</div>

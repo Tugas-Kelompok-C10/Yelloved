@@ -9,7 +9,7 @@ from django.core.paginator import Paginator
 
 from items.models import Item
 from wanted_board.models import WantedPost
-from wanted_board.sample_data import SAMPLE_WANTED_POSTS
+from wanted_board.sample_data import get_sample_wanted_posts
 from wanted_board.views import _wanted_cards, _sample_posts_for, _wanted_page
 
 
@@ -35,7 +35,7 @@ def show_main(request):
         "name": "Yelloved",
         "heart_count": request.session.get("landing_hearts", 0),
         "preview_items": PREVIEW_ITEMS,
-        "wanted_cards": _wanted_cards(posts, SAMPLE_WANTED_POSTS[:4 - len(posts)],
+        "wanted_cards": _wanted_cards(posts, get_sample_wanted_posts()[:4 - len(posts)],
                                       user_id=request.user.pk if request.user.is_authenticated else None),
     }
     return render(request, "index.html", context)

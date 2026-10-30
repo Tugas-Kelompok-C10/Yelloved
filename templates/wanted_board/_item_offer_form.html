@@ -1,5 +1,9 @@
-<!-- Shared by the board modal and the inline detail panel. Sending remains a prototype. -->
-<form class="wanted-form wanted-item-offer-form" data-item-offer-form data-draft-user="{{ user.pk|default:'guest' }}" enctype="multipart/form-data">
+<!-- Shared by the board modal and the inline detail panel. -->
+{% load wanted_board_tags %}
+{% wanted_chat_url wanted_post as offer_chat_url %}
+<form class="wanted-form wanted-item-offer-form" data-item-offer-form data-draft-user="{{ user.pk|default:'guest' }}" data-offer-url-template="{% url 'item_matching:photo_offer_create' wanted_id='00000000-0000-0000-0000-000000000000' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="submission_id">
     <input type="hidden" name="wanted_post" value="{% if wanted_post.pk %}{{ wanted_post.pk }}{% else %}{{ wanted_post.slug }}{% endif %}">
     <fieldset{% if wanted_post and wanted_post.status != "open" %} disabled{% endif %}>
         <div class="wanted-form-field">
@@ -18,6 +22,6 @@
         <button class="wanted-button wanted-action-offer" type="submit" data-send-item-offer disabled>Send offer</button>
     </fieldset>
     {% if wanted_post and wanted_post.status != "open" %}<p class="wanted-form-help">This post is no longer accepting offers.</p>{% endif %}
-    <a class="wanted-button wanted-action-secondary" href="{% url 'transactions:pesan' %}">Chat</a>
+    <a class="wanted-button wanted-action-secondary" data-offer-chat href="{{ offer_chat_url }}">Chat</a>
     <p class="wanted-form-help" data-offer-feedback role="status"></p>
 </form>
