@@ -33,7 +33,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-local-development-only')
 # Development serves MEDIA_URL through home/urls.py; production needs its own media storage/server.
 DEBUG = not PRODUCTION
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "192.168.1.6", "muhammad-adib51-yelloved.pws.cs.ui.ac.id", "cindy-olivia-yelloved.pws.cs.ui.ac.id",]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "muhammad-adib51-yelloved.pws.cs.ui.ac.id", "cindy-olivia-yelloved.pws.cs.ui.ac.id",]
 CSRF_TRUSTED_ORIGINS = [
     "https://muhammad-adib51-yelloved.pws.cs.ui.ac.id",
     "https://cindy-olivia-yelloved.pws.cs.ui.ac.id",

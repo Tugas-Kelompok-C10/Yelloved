@@ -1439,7 +1439,7 @@ def midtrans_notification(request):
             status=400,
         )
 
-    # Apply the verified Midtrans payment status.
+    # Apply the verified Midtrans payment.
     apply_midtrans_status(order, verified)
 
     return JsonResponse({"status": "ok"}, status=200)
