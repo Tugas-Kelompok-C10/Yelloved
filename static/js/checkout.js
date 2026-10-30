@@ -1,7 +1,6 @@
-
 document.addEventListener("DOMContentLoaded", () => {
     // ==========================================
-    // 1. REFERENSI ELEMEN
+    // 1. ELEMENT REFERENCES
     // ==========================================
     const addressModal = document.getElementById("address-modal");
     const newAddressModal = document.getElementById("new-address-modal");
@@ -13,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const villageSelect = document.getElementById("village");
 
     // ==========================================
-    // 2. FUNGSI MODAL ALAMAT
+    // 2. ADDRESS MODAL FUNCTIONS
     // ==========================================
     function openModal(modal) {
         if (!modal) return;
@@ -75,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // ==========================================
-    // 3. DROPDOWN WILAYAH INDONESIA
+    // 3. INDONESIAN REGION DROPDOWNS
     // ==========================================
     function resetSelect(select, placeholder) {
         if (!select) return;
@@ -116,7 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const response = await fetch(url);
 
         if (!response.ok) {
-            throw new Error("Gagal mengambil data wilayah.");
+            throw new Error("Failed to fetch regional data.");
         }
 
         return response.json();
@@ -128,23 +127,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
         fetchRegions(`${apiBase}/provinces.json`)
             .then((data) => {
-                populateSelect(provinceSelect, data, "Pilih Provinsi");
+                populateSelect(provinceSelect, data, "Select a province");
             })
             .catch((error) => {
                 console.error(error);
-                resetSelect(provinceSelect, "Gagal memuat provinsi");
+                resetSelect(provinceSelect, "Failed to load provinces");
             });
 
         provinceSelect.addEventListener("change", async () => {
-            resetSelect(regencySelect, "Memuat kota/kabupaten...");
-            resetSelect(districtSelect, "Pilih Kecamatan");
-            resetSelect(villageSelect, "Pilih Kelurahan/Desa");
+            resetSelect(regencySelect, "Loading cities/regencies...");
+            resetSelect(districtSelect, "Select a district");
+            resetSelect(villageSelect, "Select a subdistrict/village");
 
             const provinceId =
                 provinceSelect.selectedOptions[0]?.dataset.regionId;
 
             if (!provinceId) {
-                resetSelect(regencySelect, "Pilih Kota/Kabupaten");
+                resetSelect(regencySelect, "Select a city/regency");
                 return;
             }
 
@@ -156,23 +155,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 populateSelect(
                     regencySelect,
                     data,
-                    "Pilih Kota/Kabupaten"
+                    "Select a city/regency"
                 );
             } catch (error) {
                 console.error(error);
-                resetSelect(regencySelect, "Gagal memuat kota/kabupaten");
+                resetSelect(regencySelect, "Failed to load cities/regencies");
             }
         });
 
         regencySelect.addEventListener("change", async () => {
-            resetSelect(districtSelect, "Memuat kecamatan...");
-            resetSelect(villageSelect, "Pilih Kelurahan/Desa");
+            resetSelect(districtSelect, "Loading districts...");
+            resetSelect(villageSelect, "Select a subdistrict/village");
 
             const regencyId =
                 regencySelect.selectedOptions[0]?.dataset.regionId;
 
             if (!regencyId) {
-                resetSelect(districtSelect, "Pilih Kecamatan");
+                resetSelect(districtSelect, "Select a district");
                 return;
             }
 
@@ -181,21 +180,21 @@ document.addEventListener("DOMContentLoaded", () => {
                     `${apiBase}/districts/${regencyId}.json`
                 );
 
-                populateSelect(districtSelect, data, "Pilih Kecamatan");
+                populateSelect(districtSelect, data, "Select a district");
             } catch (error) {
                 console.error(error);
-                resetSelect(districtSelect, "Gagal memuat kecamatan");
+                resetSelect(districtSelect, "Failed to load districts");
             }
         });
 
         districtSelect.addEventListener("change", async () => {
-            resetSelect(villageSelect, "Memuat kelurahan/desa...");
+            resetSelect(villageSelect, "Loading subdistricts/villages...");
 
             const districtId =
                 districtSelect.selectedOptions[0]?.dataset.regionId;
 
             if (!districtId) {
-                resetSelect(villageSelect, "Pilih Kelurahan/Desa");
+                resetSelect(villageSelect, "Select a subdistrict/village");
                 return;
             }
 
@@ -207,17 +206,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 populateSelect(
                     villageSelect,
                     data,
-                    "Pilih Kelurahan/Desa"
+                    "Select a subdistrict/village"
                 );
             } catch (error) {
                 console.error(error);
-                resetSelect(villageSelect, "Gagal memuat kelurahan/desa");
+                resetSelect(villageSelect, "Failed to load subdistricts/villages");
             }
         });
     }
 
     // ==========================================
-    // 4. RESET FORM ALAMAT
+    // 4. RESET ADDRESS FORM
     // ==========================================
     function resetAddressForm() {
         if (!newAddressForm) return;
@@ -227,19 +226,21 @@ document.addEventListener("DOMContentLoaded", () => {
         const idInput = newAddressForm.querySelector(
             'input[name="address_id"]'
         );
+
         if (idInput) idInput.value = "";
 
         const title = document.getElementById("new-address-title");
-        if (title) title.textContent = "Alamat Baru";
+        if (title) title.textContent = "New Address";
 
         const submitButton = newAddressForm.querySelector(
             'button[type="submit"]'
         );
-        if (submitButton) submitButton.textContent = "Simpan Alamat";
 
-        resetSelect(regencySelect, "Pilih Kota/Kabupaten");
-        resetSelect(districtSelect, "Pilih Kecamatan");
-        resetSelect(villageSelect, "Pilih Kelurahan/Desa");
+        if (submitButton) submitButton.textContent = "Save Address";
+
+        resetSelect(regencySelect, "Select a city/regency");
+        resetSelect(districtSelect, "Select a district");
+        resetSelect(villageSelect, "Select a subdistrict/village");
     }
 
     document.querySelectorAll("[data-reset-address-form]").forEach((button) => {
@@ -253,9 +254,8 @@ document.addEventListener("DOMContentLoaded", () => {
         openModal(newAddressModal);
     }
 
-    
     // ==========================================
-    // 5. METODE PEMBAYARAN
+    // 5. PAYMENT METHOD
     // ==========================================
     const paymentRadios = document.querySelectorAll(
         'input[name="payment_method"]'
@@ -264,11 +264,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const bankSelection = document.getElementById(
         "payment-bank-selection"
     );
+
     const bankSelect = document.getElementById("payment-bank");
 
     const shippingAddressFields = document.getElementById(
         "shipping-address-fields"
     );
+
     const codMeetingSection = document.getElementById(
         "cod-meeting-section"
     );
@@ -276,6 +278,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const codMeetingLocation = document.getElementById(
         "cod-meeting-location"
     );
+
     const codMeetingTime = document.getElementById(
         "cod-meeting-time"
     );
@@ -292,7 +295,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const isCOD = paymentMethod === "cod";
         const isBankTransfer = paymentMethod === "bank_transfer";
 
-        // Ganti alamat pengiriman dengan jadwal pertemuan untuk COD.
+        // Replace the shipping address section with the meeting schedule for COD.
         if (shippingAddressFields) {
             shippingAddressFields.hidden = isCOD;
         }
@@ -301,7 +304,7 @@ document.addEventListener("DOMContentLoaded", () => {
             codMeetingSection.hidden = !isCOD;
         }
 
-        // Tampilkan pilihan bank hanya untuk Virtual Account.
+        // Show bank selection only for Virtual Account payments.
         if (bankSelection) {
             bankSelection.hidden = !isBankTransfer;
         }
@@ -310,7 +313,7 @@ document.addEventListener("DOMContentLoaded", () => {
             bankSelect.required = isBankTransfer;
         }
 
-        // Jadwal wajib diisi jika COD dipilih.
+        // Meeting details are required when COD is selected.
         if (codMeetingLocation) {
             codMeetingLocation.required = isCOD;
         }
@@ -326,9 +329,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     updatePaymentFields();
 
-
     // ==========================================
-    // 6. TOMBOL EDIT ALAMAT
+    // 6. EDIT ADDRESS BUTTON
     // ==========================================
     document.querySelectorAll("[data-edit-address]").forEach((button) => {
         button.addEventListener("click", () => {
@@ -343,14 +345,14 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const title = document.getElementById("new-address-title");
-            if (title) title.textContent = "Ubah Alamat";
+            if (title) title.textContent = "Edit Address";
 
             const submitButton = newAddressForm.querySelector(
                 'button[type="submit"]'
             );
 
             if (submitButton) {
-                submitButton.textContent = "Simpan Perubahan";
+                submitButton.textContent = "Save Changes";
             }
 
             closeModal(addressModal);

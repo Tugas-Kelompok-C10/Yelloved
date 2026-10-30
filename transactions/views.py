@@ -48,7 +48,7 @@ def checkout(request):
 
     if not request.user.is_authenticated:
         context["errors"].append(
-            "Silakan login terlebih dahulu untuk melanjutkan checkout."
+            "Please log in before proceeding to checkout."
         )
         return render(request, "transactions/checkout.html", context)
 
@@ -77,7 +77,7 @@ def checkout(request):
         action = request.POST.get("action", "select_address")
 
         # ==========================================
-        # SIMPAN / EDIT ALAMAT
+        # SAVE / EDIT ADDRESS
         # ==========================================
         if action == "save_address":
             address_id = request.POST.get("address_id", "").strip()
@@ -89,7 +89,7 @@ def checkout(request):
             village = request.POST.get("village", "").strip()
             postal_code = request.POST.get("postal_code", "").strip()
             street = request.POST.get("address", "").strip()
-            label = request.POST.get("label", "Rumah").strip()
+            label = request.POST.get("label", "Home").strip()
             is_default = request.POST.get("is_default") == "on"
 
             address = None
@@ -99,7 +99,7 @@ def checkout(request):
 
                 if not address:
                     context["errors"].append(
-                        "Alamat yang ingin diubah tidak ditemukan."
+                        "The address you want to edit could not be found."
                     )
                     context["show_address_form"] = True
 
@@ -114,12 +114,12 @@ def checkout(request):
                 street,
             ]):
                 context["errors"].append(
-                    "Lengkapi semua kolom alamat pengiriman."
+                    "Please complete all shipping address fields."
                 )
                 context["show_address_form"] = True
 
             if not context["errors"]:
-                full_street = f"{street}, Kel. {village}, Kec. {district}"
+                full_street = f"{street}, Subdistrict/Village {village}, District {district}"
 
                 with db_transaction.atomic():
                     if is_default:
@@ -134,13 +134,13 @@ def checkout(request):
                         address.city = city
                         address.postal_code = postal_code
                         address.street_address = full_street
-                        address.label = label or "Rumah"
+                        address.label = label or "Home"
                         address.is_default = is_default
                         address.save()
                     else:
                         address = Address.objects.create(
                             user=request.user,
-                            label=label or "Rumah",
+                            label=label or "Home",
                             recipient_name=recipient_name,
                             phone_number=phone,
                             street_address=full_street,
@@ -150,7 +150,7 @@ def checkout(request):
                             is_default=is_default or not get_addresses().exists(),
                         )
 
-                    # Jika belum ada alamat utama, tetapkan alamat pertama.
+                    # If no default address exists yet, set the first address as default.
                     if not get_addresses().filter(is_default=True).exists():
                         address.is_default = True
                         address.save(update_fields=["is_default"])
@@ -159,7 +159,7 @@ def checkout(request):
                 return redirect(request.path)
 
         # ==========================================
-        # PILIH ALAMAT CHECKOUT
+        # SELECT CHECKOUT ADDRESS
         # ==========================================
         elif action == "select_address":
             address_id = request.POST.get("address_id", "").strip()
@@ -170,11 +170,11 @@ def checkout(request):
                 return redirect(request.path)
 
             context["errors"].append(
-                "Pilih alamat pengiriman yang valid."
+                "Please select a valid shipping address."
             )
 
         # ==========================================
-        # JADIKAN ALAMAT UTAMA
+        # SET AS DEFAULT ADDRESS
         # ==========================================
         elif action == "set_default":
             address_id = request.POST.get("address_id", "").strip()
@@ -193,12 +193,12 @@ def checkout(request):
                 return redirect(request.path)
 
             context["errors"].append(
-                "Alamat yang ingin dijadikan utama tidak ditemukan."
+                "The address you want to set as default could not be found."
             )
 
         
         # ==========================================
-        # PROSES METODE PEMBAYARAN
+        # PROCESS PAYMENT METHOD
         # ==========================================
         elif action == "select_payment":
             payment_method = request.POST.get(
@@ -210,7 +210,7 @@ def checkout(request):
 
             if payment_method not in allowed_payment_methods:
                 context["errors"].append(
-                    "Pilih metode pembayaran yang valid."
+                    "Please select a valid payment method."
                 )
 
             elif (
@@ -218,7 +218,7 @@ def checkout(request):
                 and bank not in allowed_banks
             ):
                 context["errors"].append(
-                    "Pilih bank untuk pembayaran Virtual Account."
+                    "Please select a bank for Virtual Account payment."
                 )
 
             elif payment_method == "cod":
@@ -234,7 +234,7 @@ def checkout(request):
 
                 if not meeting_location or not meeting_time:
                     context["errors"].append(
-                        "Lengkapi lokasi dan waktu pertemuan COD."
+                        "Please provide the COD meeting location and time."
                     )
                 else:
                     if timezone.is_naive(meeting_time):
@@ -243,7 +243,7 @@ def checkout(request):
                             timezone.get_current_timezone(),
                         )
 
-                    # Ambil barang yang akan dibeli.
+                    # Get the items to be purchased.
                     if selected_item:
                         order_items = [{
                             "item": selected_item,
@@ -265,7 +265,7 @@ def checkout(request):
 
                     if not order_items:
                         context["errors"].append(
-                            "Keranjang belanjamu masih kosong."
+                            "Your cart is empty."
                         )
                     else:
                         total = sum(
@@ -296,7 +296,7 @@ def checkout(request):
                                     cod_meeting_location=meeting_location,
                                     cod_meeting_time=meeting_time,
                                     shipping_address=(
-                                        f"COD - Pertemuan di kampus: "
+                                        f"COD - Campus meeting: "
                                         f"{meeting_location}"
                                     ),
                                     payment_status="pending",
@@ -305,8 +305,8 @@ def checkout(request):
 
                                 snapshot_review_sellers(order, order_items)
 
-                                # Kosongkan keranjang hanya jika
-                                # checkout berasal dari keranjang.
+                                # Clear the cart only if
+                                # checkout was initiated from the cart.
                                 if not selected_item:
                                     CartItem.objects.filter(
                                         user=request.user
@@ -315,7 +315,7 @@ def checkout(request):
                         except Exception as e:
                             print("ERROR CHECKOUT COD:", repr(e))
                             context["errors"].append(
-                                f"Pesanan gagal dibuat: {e}"
+                                f"Failed to create the order: {e}"
                             )
                         
                         else:
@@ -327,8 +327,8 @@ def checkout(request):
 
                             messages.success(
                                 request,
-                                f"Pesanan {order.order_id} berhasil dibuat! "
-                                "Pembayaran dilakukan saat bertemu dengan penjual."
+                                f"Order {order.order_id} has been created successfully! "
+                                "Payment will be made when you meet the seller."
                             )
 
                             return redirect(
@@ -339,8 +339,8 @@ def checkout(request):
             
             
             else:
-                # Buat pesanan sementara di database untuk preview QRIS/VA.
-                # Belum membuat pembayaran melalui Midtrans.
+                # Create a temporary order in the database for the QRIS/VA preview.
+                # Do not create a Midtrans payment yet.
 
                 request.session["checkout_payment_method"] = payment_method
 
@@ -355,7 +355,7 @@ def checkout(request):
 
                 if not selected_address:
                     context["errors"].append(
-                        "Tambahkan alamat pengiriman sebelum melanjutkan."
+                        "Please add a shipping address before proceeding."
                     )
                 else:
                     if selected_item:
@@ -380,7 +380,7 @@ def checkout(request):
 
                     if not order_items:
                         context["errors"].append(
-                            "Keranjang belanjamu masih kosong."
+                            "Your cart is empty."
                         )
                     else:
                         total = sum(
@@ -401,7 +401,7 @@ def checkout(request):
 
                         if total <= 0:
                             context["errors"].append(
-                                "Total pembayaran tidak valid."
+                                "The payment total is invalid."
                             )
                         else:
                             order_id = (
@@ -445,7 +445,7 @@ def checkout(request):
                             except Exception as e:
                                 print("ERROR CHECKOUT:", repr(e))
                                 context["errors"].append(
-                                    "Pesanan gagal disimpan. Periksa terminal Django."
+                                    "Failed to save the order. Please check the Django terminal for details."
                                 )
 
                             else:
@@ -466,9 +466,9 @@ def checkout(request):
 
                                 except Exception as e:
                                     print("\n========== ERROR MIDTRANS ==========")
-                                    print("Tipe error:", type(e).__name__)
+                                    print("Error type:", type(e).__name__)
                                     print(
-                                        "Pesan:",
+                                        "Message:",
                                         getattr(e, "message", None) or str(e)
                                     )
                                     print(
@@ -476,20 +476,20 @@ def checkout(request):
                                         getattr(e, "http_status_code", None)
                                     )
                                     print(
-                                        "Respons API:",
+                                        "API response:",
                                         getattr(e, "api_response_dict", None)
                                     )
                                     print("====================================\n")
 
                                     context["errors"].append(
-                                        "Pembayaran belum berhasil dibuat oleh Midtrans. "
-                                        "Keranjangmu tidak dikosongkan. "
-                                        "Periksa terminal Django untuk detail error."
+                                        "Midtrans could not create the payment. "
+                                        "Your cart has not been cleared. "
+                                        "Please check the Django terminal for details."
                                     )
 
                                 else:
-                                    # Kosongkan keranjang hanya jika Midtrans berhasil
-                                    # menerima permintaan pembuatan pembayaran.
+                                    # Clear the cart only if Midtrans successfully
+                                    # accepts the payment creation request.
                                     if not selected_item:
                                         CartItem.objects.filter(
                                             user=request.user
@@ -514,8 +514,8 @@ def checkout(request):
 
                                     messages.success(
                                         request,
-                                        f"Pesanan {order.order_id} berhasil dibuat! "
-                                        "Silakan lanjutkan pembayaran."
+                                        f"Order {order.order_id} has been created successfully! "
+                                        "Please proceed with your payment."
                                     )
 
                                     return redirect(
@@ -525,7 +525,7 @@ def checkout(request):
 
 
     # ==========================================
-    # DATA UNTUK TEMPLATE
+    # DATA FOR THE TEMPLATE
     # ==========================================
     context["addresses"] = get_addresses()
     context["selected_address"] = get_selected_address()
@@ -562,7 +562,7 @@ def checkout(request):
         context["cart_items"] = cart_items
         context["total"] = sum((entry.item.price or 0) for entry in cart_items)
 
-    # Format nominal untuk pembelian langsung maupun dari keranjang.
+    # Format the amount for direct purchases and cart purchases.
     context["total_display"] = (
         f"{context['total']:,.0f}".replace(",", ".")
     )
@@ -578,6 +578,10 @@ def checkout_success(request, order_id):
         order_id=order_id,
         buyer=request.user,
         payment_method="cod",
+    )
+
+    order.total_amount_display = (
+        f"{order.total_amount:,.0f}".replace(",", ".")
     )
 
     return render(
@@ -596,18 +600,18 @@ def cancel_order(request, order_id):
         buyer=request.user,
     )
 
-    # Hanya pesanan yang masih pending yang bisa dibatalkan.
+    # Only pending orders can be cancelled.
     if (
         order.transaction_status != "pending"
         or order.payment_status != "pending"
     ):
         messages.error(
             request,
-            "Pesanan ini tidak dapat dibatalkan lagi.",
+            "This order can no longer be cancelled.",
         )
         return redirect("transactions:transaction_history")
 
-    # COD tidak menggunakan Midtrans, jadi cukup perbarui database.
+    # COD does not use Midtrans, so only the database needs to be updated.
     if order.payment_method == "cod":
         order.transaction_status = "cancelled"
         order.save(
@@ -615,15 +619,15 @@ def cancel_order(request, order_id):
         )
         messages.success(
             request,
-            f"Pesanan {order.order_id} berhasil dibatalkan.",
+            f"Order {order.order_id} has been cancelled successfully."
         )
         return redirect("transactions:transaction_history")
 
-    # Metode pembayaran yang terhubung ke Midtrans.
+    # Payment methods connected to Midtrans.
     if order.payment_method not in {"qris", "va"}:
         messages.error(
             request,
-            "Metode pembayaran ini belum mendukung pembatalan.",
+            "This payment method does not support cancellation yet.",
         )
         return redirect("transactions:transaction_history")
 
@@ -633,7 +637,7 @@ def cancel_order(request, order_id):
             or not settings.MIDTRANS_CLIENT_KEY
         ):
             raise ValueError(
-                "Konfigurasi kunci Midtrans belum lengkap."
+                "Midtrans API key configuration is incomplete."
             )
 
         core_api = midtransclient.CoreApi(
@@ -642,14 +646,14 @@ def cancel_order(request, order_id):
             client_key=settings.MIDTRANS_CLIENT_KEY,
         )
 
-        # Periksa status transaksi yang sebenarnya di Midtrans.
+        # Check the actual transaction status in Midtrans.
         status_response = core_api.transactions.status(order.order_id)
         midtrans_status = (
             status_response.get("transaction_status") or ""
         ).lower()
 
-        # Transaksi masih menunggu pembayaran, jadi minta Midtrans
-        # membatalkannya terlebih dahulu.
+        # The transaction is still awaiting payment, so ask Midtrans
+        # to cancel it first.
         if midtrans_status == "pending":
             cancel_response = core_api.transactions.cancel(order.order_id)
             cancel_status = (
@@ -660,8 +664,8 @@ def cancel_order(request, order_id):
             if cancel_status != "cancel" and status_code != "200":
                 messages.error(
                     request,
-                    "Midtrans belum mengonfirmasi pembatalan. "
-                    "Status pesanan tidak diubah.",
+                    "Midtrans has not confirmed the cancellation. "
+                    "The order status has not been changed.",
                 )
                 return redirect("transactions:transaction_history")
 
@@ -676,11 +680,11 @@ def cancel_order(request, order_id):
             )
             messages.success(
                 request,
-                f"Pesanan {order.order_id} berhasil dibatalkan.",
+                f"Order {order.order_id} has been cancelled successfully.",
             )
 
-        # Midtrans sudah menyatakan transaksi dibatalkan, kedaluwarsa,
-        # ditolak, atau gagal. Sinkronkan status lokal.
+        # Midtrans has already marked the transaction as cancelled, expired,
+        # denied, or failed. Synchronize the local status.
         elif midtrans_status in {"cancel", "expire", "deny", "failure"}:
             order.transaction_status = "cancelled"
             order.payment_status = (
@@ -695,11 +699,11 @@ def cancel_order(request, order_id):
             )
             messages.info(
                 request,
-                "Status transaksi di Midtrans sudah "
-                f"{midtrans_status}. Status pesanan telah disinkronkan.",
+                "The Midtrans transaction status is already "
+                f"{midtrans_status}. The order status has been synchronized.",
             )
 
-        # Jika sudah dibayar, jangan menandainya sebagai dibatalkan.
+        # If it has already been paid, do not mark it as cancelled.
         elif midtrans_status in {"settlement", "capture"}:
             order.payment_status = "paid"
             order.transaction_status = "processing"
@@ -712,16 +716,16 @@ def cancel_order(request, order_id):
             )
             messages.error(
                 request,
-                "Transaksi ternyata sudah dibayar. Pesanan tidak "
-                "dibatalkan dan statusnya telah diperbarui.",
+                "This transaction has already been paid. "
+                "The order was not cancelled, and its status has been updated.",
             )
 
         else:
             messages.error(
                 request,
-                "Status transaksi Midtrans saat ini "
-                f"({midtrans_status or 'tidak diketahui'}) "
-                "belum dapat dibatalkan otomatis.",
+                "The current Midtrans transaction status "
+                f"({midtrans_status or 'unknown'}) "
+                "cannot be cancelled automatically yet.",
             )
 
     except Exception as e:
@@ -738,9 +742,9 @@ def cancel_order(request, order_id):
         if not error_code and "API status code: `404`" in str(e):
             error_code = "404"
 
-        # Pesanan lokal kadang tersimpan sebelum pembuatan transaksi
-        # Midtrans berhasil. Jika Midtrans mengembalikan 404 dan tidak
-        # ada ID transaksi yang tersimpan, batalkan hanya pesanan lokal.
+        # A local order may sometimes be saved before the Midtrans transaction
+        # is successfully created. If Midtrans returns 404 and no
+        # transaction ID has been stored, cancel only the local order.
         if error_code == "404" and not order.midtrans_transaction_id:
             order.transaction_status = "cancelled"
             order.payment_status = "failed"
@@ -753,14 +757,14 @@ def cancel_order(request, order_id):
             )
             messages.success(
                 request,
-                f"Pesanan {order.order_id} berhasil dibatalkan. "
-                "Transaksi pembayaran tidak ditemukan di Midtrans.",
+                f"Order {order.order_id} has been cancelled successfully. "
+                "The payment transaction was not found in Midtrans.",
             )
         else:
             messages.error(
                 request,
-                "Pembatalan gagal diperiksa di Midtrans. "
-                "Status pesanan tidak diubah.",
+                "Failed to verify the cancellation with Midtrans. "
+                "The order status has not been changed.",
             )
 
     return redirect("transactions:transaction_history")
@@ -777,6 +781,17 @@ def transaction_history(request):
                 "active_status": "all",
             },
         )
+
+    # Synchronize pending online payments with Midtrans.
+    pending_orders = Transaction.objects.filter(
+        buyer=request.user,
+        payment_status="pending",
+        transaction_status="pending",
+        payment_method__in=["qris", "va"],
+    ).order_by("-created_at")[:10]
+
+    for pending_order in pending_orders:
+        sync_midtrans_status(pending_order)
 
     transactions = Transaction.objects.filter(
         buyer=request.user
@@ -809,10 +824,10 @@ def transaction_history(request):
                             and order.buyer_id == request.user.pk
                             and order.review_items.exclude(seller_id=request.user.pk).filter(seller__isnull=False).exists())
     
-    # Siapkan gambar produk untuk kartu riwayat transaksi.
+    # Prepare product images for transaction history cards.
     history_transactions = list(transactions)
 
-    # Cari nama produk yang mungkin cocok dengan transaksi.
+    # Find product names that may match the transaction.
     product_names = set()
 
     for transaction in history_transactions:
@@ -821,12 +836,12 @@ def transaction_history(request):
         if item_name:
             product_names.add(item_name)
 
-            # Jika transaksi berisi beberapa produk,
-            # gunakan nama produk pertama sebagai alternatif.
+            # If a transaction contains multiple products,
+            # use the first product name as a fallback.
             if ", " in item_name:
                 product_names.add(item_name.split(", ", 1)[0].strip())
 
-    # Ambil produk sekaligus foto tambahannya.
+    # Retrieve products together with their additional images.
     products_by_title = {}
 
     if product_names:
@@ -837,7 +852,7 @@ def transaction_history(request):
         for item in products:
             products_by_title.setdefault(item.title, item)
 
-    # Pasangkan produk dan format harga untuk setiap transaksi.
+    # Match products and format prices for each transaction.
     for transaction in history_transactions:
         item_name = (transaction.item_name or "").strip()
 
@@ -956,7 +971,7 @@ def add_to_cart(request, item_id):
     if item.owner_id == request.user.id:
         if wants_json:
             return JsonResponse({'error': 'You cannot add your own item to the cart.'}, status=403)
-        messages.error(request, "Kamu tidak bisa membeli barang milik sendiri.")
+        messages.error(request, "You cannot purchase your own item.")
         return redirect("items:explore_items")
 
     cart_item, created = CartItem.objects.get_or_create(
@@ -1017,8 +1032,10 @@ def payment_preview(request):
 
     
     if order:
-        # Jangan izinkan membuka instruksi pembayaran
-        # jika pesanan bukan lagi pending.
+        sync_midtrans_status(order)
+
+        # Do not allow payment instructions to be opened
+        # if the order is no longer pending.
         if (
             order.payment_status != "pending"
             or order.transaction_status != "pending"
@@ -1026,7 +1043,7 @@ def payment_preview(request):
             if order.payment_status == "paid":
                 messages.info(
                     request,
-                    f"Pesanan {order.order_id} sudah dibayar."
+                    f"Order {order.order_id} has already been paid."
                 )
             elif (
                 order.payment_status in {"failed", "expired"}
@@ -1034,14 +1051,14 @@ def payment_preview(request):
             ):
                 messages.error(
                     request,
-                    "Pesanan ini sudah gagal, kedaluwarsa, "
-                    "atau dibatalkan. Buat pesanan baru jika "
-                    "ingin melakukan pembelian kembali."
+                    "This order has failed, expired, "
+                    "or been cancelled. Please create a new order "
+                    "to make another purchase."
                 )
             else:
                 messages.info(
                     request,
-                    "Pesanan ini tidak lagi menunggu pembayaran."
+                    "This order is no longer awaiting payment."
                 )
 
             return redirect("transactions:transaction_history")
@@ -1049,6 +1066,29 @@ def payment_preview(request):
         order.total_amount_display = (
             f"{order.total_amount:,.0f}".replace(",", ".")
         )
+
+        # Retrieve the actual product image for the payment summary.
+    review_item = (
+        order.review_items
+        .select_related("item")
+        .filter(item__isnull=False)
+        .first()
+    )
+
+    payment_item = review_item.item if review_item else None
+
+    # Fallback for older transactions without purchase provenance.
+    if payment_item is None:
+        item_name = (order.item_name or "").strip()
+        payment_item = Item.objects.filter(title=item_name).first()
+
+        if payment_item is None and ", " in item_name:
+            first_item_name = item_name.split(", ", 1)[0].strip()
+            payment_item = Item.objects.filter(
+                title=first_item_name
+            ).first()
+
+    order.payment_item = payment_item
 
         
     return render(
@@ -1064,13 +1104,13 @@ def payment_preview(request):
 
 def create_midtrans_payment(order, payment_method, bank_code="bca"):
     """
-    Membuat transaksi pembayaran melalui Midtrans Core API.
-    Hanya menggunakan kredensial Sandbox pada tahap pengujian.
+    Create a payment transaction through the Midtrans Core API.
+    Use Sandbox credentials only during testing.
     """
 
     if not settings.MIDTRANS_SERVER_KEY or not settings.MIDTRANS_CLIENT_KEY:
         raise ValueError(
-            "Konfigurasi kunci Midtrans belum lengkap."
+            "Midtrans API key configuration is incomplete."
         )
 
     core_api = midtransclient.CoreApi(
@@ -1118,23 +1158,23 @@ def create_midtrans_payment(order, payment_method, bank_code="bca"):
 
         else:
             raise ValueError(
-                "Bank Virtual Account tidak didukung."
+                "This Virtual Account bank is not supported."
             )
 
     else:
         raise ValueError(
-            "Metode pembayaran tidak valid."
+            "Invalid payment method."
         )
 
-    # Kirim permintaan pembayaran ke Midtrans.
+    # Send the payment request to Midtrans.
     response = core_api.charge(params)
 
-    # Simpan ID transaksi dari Midtrans.
+    # Save the transaction ID from Midtrans.
     order.midtrans_transaction_id = (
         response.get("transaction_id") or ""
     )
 
-    # Simpan informasi kedaluwarsa jika tersedia.
+    # Save the expiry information if available.
     expiry_time = response.get("expiry_time")
 
     if expiry_time:
@@ -1145,7 +1185,7 @@ def create_midtrans_payment(order, payment_method, bank_code="bca"):
 
         order.midtrans_expiry_time = parsed_expiry
 
-    # Simpan URL kode QR jika respons menyediakannya.
+    # Save the QR code URL if it is provided in the response.
     if payment_method == "qris":
         actions = response.get("actions", [])
 
@@ -1172,7 +1212,7 @@ def create_midtrans_payment(order, payment_method, bank_code="bca"):
             qr_action.get("url", "") if qr_action else ""
         )
 
-    # Simpan detail Virtual Account.
+    # Save the Virtual Account details.
     if payment_method == "va":
         order.virtual_account_bank = bank_code
 
@@ -1200,6 +1240,119 @@ def create_midtrans_payment(order, payment_method, bank_code="bca"):
 
     return response
 
+def apply_midtrans_status(order, data):
+    """
+    Apply a verified Midtrans transaction status to a local order.
+    """
+
+    # Verify the order ID.
+    if data.get("order_id") != order.order_id:
+        raise ValueError("Midtrans order ID mismatch.")
+
+    # Verify the transaction amount.
+    try:
+        notified_amount = Decimal(str(data["gross_amount"]))
+    except (KeyError, InvalidOperation, TypeError, ValueError):
+        raise ValueError("Invalid Midtrans transaction amount.")
+
+    if notified_amount != order.total_amount:
+        raise ValueError("Midtrans transaction amount mismatch.")
+
+    status = (data.get("transaction_status") or "").lower()
+    fraud_status = (data.get("fraud_status") or "").lower()
+
+    update_fields = {"updated_at"}
+
+    # Save the Midtrans transaction ID.
+    transaction_id = data.get("transaction_id")
+
+    if transaction_id:
+        order.midtrans_transaction_id = transaction_id
+        update_fields.add("midtrans_transaction_id")
+
+    # Successful payment.
+    if (
+        (status == "settlement" and fraud_status in {"", "accept"})
+        or (status == "capture" and fraud_status == "accept")
+    ):
+        order.payment_status = "paid"
+
+        if order.transaction_status != "completed":
+            order.transaction_status = "processing"
+
+        update_fields.update({
+            "payment_status",
+            "transaction_status",
+        })
+
+    # Expired payment.
+    elif status == "expire":
+        if (
+            order.payment_status != "paid"
+            and order.transaction_status != "completed"
+        ):
+            order.payment_status = "expired"
+            order.transaction_status = "cancelled"
+
+            update_fields.update({
+                "payment_status",
+                "transaction_status",
+            })
+
+    # Cancelled or failed payment.
+    elif status in {"cancel", "deny", "failure"}:
+        if (
+            order.payment_status != "paid"
+            and order.transaction_status != "completed"
+        ):
+            order.payment_status = "failed"
+            order.transaction_status = "cancelled"
+
+            update_fields.update({
+                "payment_status",
+                "transaction_status",
+            })
+
+    order.save(update_fields=list(update_fields))
+
+
+def sync_midtrans_status(order):
+    """
+    Retrieve the latest payment status directly from Midtrans.
+    """
+
+    # Only synchronize QRIS and Virtual Account transactions.
+    if order.payment_method not in {"qris", "va"}:
+        return
+
+    # Only check transactions that are still pending.
+    if order.payment_status != "pending":
+        return
+
+    if order.transaction_status != "pending":
+        return
+
+    if (
+        not settings.MIDTRANS_SERVER_KEY
+        or not settings.MIDTRANS_CLIENT_KEY
+    ):
+        return
+
+    try:
+        core_api = midtransclient.CoreApi(
+            is_production=False,
+            server_key=settings.MIDTRANS_SERVER_KEY,
+            client_key=settings.MIDTRANS_CLIENT_KEY,
+        )
+
+        response = core_api.transactions.status(order.order_id)
+
+        apply_midtrans_status(order, response)
+
+    except Exception as e:
+        print("ERROR SYNC MIDTRANS STATUS:", repr(e))
+
+
 def snapshot_review_sellers(order, entries):
     TransactionItem.objects.bulk_create([
         TransactionItem(transaction=order, item=entry['item'], seller_id=entry['item'].owner_id)
@@ -1209,12 +1362,12 @@ def snapshot_review_sellers(order, entries):
 @require_POST
 def midtrans_notification(request):
     """
-    Menerima notifikasi pembayaran dari Midtrans,
-    memverifikasi status transaksi, lalu memperbarui
-    status pesanan di database Yelloved.
+    Receive payment notifications from Midtrans,
+    verify the transaction status, and then update
+    the order status in the Yelloved database.
     """
 
-    # Baca payload notifikasi.
+    # Read the notification payload.
     try:
         payload = json.loads(request.body.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError):
@@ -1237,8 +1390,8 @@ def midtrans_notification(request):
             status=500,
         )
 
-    # Minta SDK Midtrans memverifikasi notifikasi
-    # dan mengambil status transaksi yang terverifikasi.
+    # Ask the Midtrans SDK to verify the notification
+    # and retrieve the verified transaction status.
     try:
         core_api = midtransclient.CoreApi(
             is_production=False,
@@ -1261,7 +1414,7 @@ def midtrans_notification(request):
             status=400,
         )
 
-    # Cari pesanan yang terdaftar di Yelloved.
+    # Find the order registered in Yelloved.
     try:
         order = Transaction.objects.get(order_id=order_id)
     except Transaction.DoesNotExist:
@@ -1270,8 +1423,8 @@ def midtrans_notification(request):
             status=404,
         )
 
-    # Pastikan nominal dari transaksi terverifikasi
-    # sesuai dengan nominal pesanan lokal.
+    # Make sure the amount from the verified transaction
+    # matches the amount of the local order.
     try:
         notified_amount = Decimal(str(verified["gross_amount"]))
     except (KeyError, InvalidOperation, TypeError, ValueError):
@@ -1286,55 +1439,9 @@ def midtrans_notification(request):
             status=400,
         )
 
-    status = (verified.get("transaction_status") or "").lower()
-    fraud_status = (verified.get("fraud_status") or "").lower()
+    # Apply the verified Midtrans payment status.
+    apply_midtrans_status(order, verified)
 
-    # Simpan ID transaksi Midtrans jika tersedia.
-    transaction_id = verified.get("transaction_id")
-    if transaction_id:
-        order.midtrans_transaction_id = transaction_id
-
-    update_fields = ["midtrans_transaction_id", "updated_at"]
-
-    # Pembayaran berhasil.
-    if status == "settlement" and fraud_status in {"", "accept"}:
-        order.payment_status = "paid"
-
-        if order.transaction_status != "completed":
-            order.transaction_status = "processing"
-
-        update_fields.extend(["payment_status", "transaction_status"])
-
-    elif status == "capture" and fraud_status == "accept":
-        order.payment_status = "paid"
-
-        if order.transaction_status != "completed":
-            order.transaction_status = "processing"
-
-        update_fields.extend(["payment_status", "transaction_status"])
-
-    # Pembayaran masih menunggu; jangan menghidupkan kembali
-    # pesanan yang sudah dibatalkan atau selesai.
-    elif status == "pending":
-        if (
-            order.payment_status == "pending"
-            and order.transaction_status == "pending"
-        ):
-            update_fields = ["midtrans_transaction_id", "updated_at"]
-
-    # Pembayaran kedaluwarsa, dibatalkan, atau ditolak.
-    elif status == "expire":
-        if order.payment_status != "paid":
-            order.payment_status = "expired"
-            order.transaction_status = "cancelled"
-            update_fields.extend(["payment_status", "transaction_status"])
-
-    elif status in {"cancel", "deny", "failure"}:
-        if order.payment_status != "paid":
-            order.payment_status = "failed"
-            order.transaction_status = "cancelled"
-            update_fields.extend(["payment_status", "transaction_status"])
-
-    order.save(update_fields=list(dict.fromkeys(update_fields)))
+    return JsonResponse({"status": "ok"}, status=200)
 
     return JsonResponse({"status": "ok"}, status=200)
