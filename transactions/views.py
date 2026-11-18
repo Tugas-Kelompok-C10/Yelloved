@@ -18,6 +18,8 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from decimal import Decimal, InvalidOperation
 from account_profile.models import Address
+from rest_framework import generics, permissions
+from .serializers import TransactionSerializer
 
 
 def transaction_home(request):
@@ -573,6 +575,28 @@ def checkout(request):
 
 @login_required
 def checkout_success(request, order_id):
+
+    if request.method == "POST":
+        orders = Transaction.objects.filter(
+            order_id=order_id,
+            buyer=request.user,
+            payment_method="cod",
+            accepted_offer__isnull=True,
+            transaction_status="pending",
+        )
+
+        orders.update(
+            transaction_status="completed",
+            payment_status="paid",
+            updated_at= timezone.now(),    
+        )
+        
+        if orders == 0:
+            raise Http404("")
+
+        return redirect("transactions:transaction_history")
+
+
     order = get_object_or_404(
         Transaction,
         order_id=order_id,
@@ -1477,3 +1501,12 @@ def midtrans_notification(request):
     return JsonResponse({"status": "ok"}, status=200)
 
     return JsonResponse({"status": "ok"}, status=200)
+
+class TransactionListAPIView(generics.ListAPIView):
+    serializer_class = TransactionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Transaction.objects.filter(
+            buyer=self.request.user
+        ).order_by("-created_at")

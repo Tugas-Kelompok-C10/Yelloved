@@ -84,4 +84,10 @@ urlpatterns = [
         views.midtrans_notification,
         name="midtrans_notification",
     ),
+
+    path(
+        "api/",
+        views.TransactionListAPIView.as_view(),
+        name="transaction_api",
+    ),
 ]
