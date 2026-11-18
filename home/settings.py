@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'rest_framework',
     *(["cloudinary_storage"] if USE_CLOUDINARY else []),
     "django.contrib.staticfiles",
     *(["cloudinary"] if USE_CLOUDINARY else []),

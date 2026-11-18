@@ -42,6 +42,12 @@ class WantedListApiTests(APITestCase):
         }])
         self.assertNotIn(self.user.email, response.content.decode())
 
+    def test_browsable_api_renders_in_browser(self):
+        response = self.client.get(self.url, HTTP_ACCEPT="text/html")
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "rest_framework/api.html")
+        self.assertContains(response, self.post.title)
+
     def test_only_open_posts_are_listed(self):
         for status in (WantedPost.Status.MATCHED, WantedPost.Status.FULFILLED, WantedPost.Status.CLOSED):
             WantedPost.objects.create(requester=self.user, title=status, budget=10000, status=status)
