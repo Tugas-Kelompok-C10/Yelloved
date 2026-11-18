@@ -1,0 +1,24 @@
+/* Make footer stay at the bottom of short pages */
+
+@media (pointer: coarse), (any-pointer: coarse) {
+    html,
+    body {
+        min-height: 100%;
+    }
+
+    body {
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    body > .site-header {
+        flex-shrink: 0;
+    }
+
+    body > .site-footer {
+        margin-top: auto !important;
+        flex-shrink: 0;
+    }
+}

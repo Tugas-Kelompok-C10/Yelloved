@@ -14,6 +14,7 @@
         controller = new AbortController();
         const active = controller;
         const params = new URLSearchParams(new FormData(form));
+        params.delete('status');
         params.set('page', page);
         loading.hidden = false;
         error.hidden = true;
@@ -54,8 +55,15 @@
     document.getElementById('explore-retry').addEventListener('click', () => load(requestedPage));
     results.addEventListener('click', event => {
         const link = event.target.closest('a[data-page]');
-        if (link && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+        if (link && event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
             event.preventDefault(); load(Number(link.dataset.page));
         }
     });
+    // Retire old bookmarked status filters from both results and the visible URL.
+    if (new URLSearchParams(location.search).has('status')) {
+        const url = new URL(location.href);
+        url.searchParams.delete('status');
+        history.replaceState(null, '', url);
+        load(1);
+    }
 })();
