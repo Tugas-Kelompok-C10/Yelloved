@@ -73,9 +73,7 @@ def _wanted_category(source_category):
 
 
 def _rupiah_budget(price):
-    return (
-        Decimal(str(price)) * USD_TO_IDR / Decimal("1000")
-    ).quantize(Decimal("1"), rounding=ROUND_HALF_UP) * Decimal("1000")
+    return (Decimal(str(price)) * USD_TO_IDR / Decimal("1000")).quantize(Decimal("1"), rounding=ROUND_HALF_UP) * Decimal("1000")
 
 
 def _posted_on(value):

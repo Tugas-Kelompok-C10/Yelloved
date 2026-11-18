@@ -367,6 +367,9 @@ def edit_wanted(request, pk):
         request.POST,
         instance=wanted_post,
     )
+
+    if wanted_post.status != wanted_post.Status.OPEN : form.add_error(None, "Only open wanted post can be edited.")
+
     if form.is_valid():
         # Compare and write atomically so a second tab cannot overwrite newer edits.
         if form.cleaned_data["revision"] == wanted_post.updated_at.isoformat():
