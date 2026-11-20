@@ -11,6 +11,7 @@ urlpatterns = [
     path('accounts/login/', AccountLoginView.as_view(), name='login'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('explore/', include('items.urls')),
+    path('api/items/', include('items.api_urls')),
     path('transactions/', include('transactions.urls')),
     path('account/', include('account_profile.urls')),
     path('chat/', include('chat.urls')),
