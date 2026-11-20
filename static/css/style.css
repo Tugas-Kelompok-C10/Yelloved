@@ -4916,3 +4916,36 @@ body:has(.profile-page) .profile-page :is(
 
 .wanted-transaction-card .btn { display:inline-flex; justify-content:center; align-items:center; padding:12px 20px; border:1px solid var(--violet); border-radius:var(--radius-pill); text-decoration:none; font:inherit; cursor:pointer; }
 .wanted-transaction-card input:focus-visible, .wanted-transaction-card .btn:focus-visible {outline:2px solid var(--violet); outline-offset:3px;}
+
+
+/* Chat Popover - View All Button */
+.nav-chat-popover .notification-popover-header > a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 7px 13px;
+    border: 1px solid #eaddec;
+    border-radius: 999px;
+
+    background: #f7eff8;
+    color: #4b154f;
+
+    font-size: 12px;
+    font-weight: 650;
+    text-decoration: none;
+
+    transition: all 0.2s ease;
+}
+
+.nav-chat-popover .notification-popover-header > a:hover {
+    background: #4b154f;
+    color: #ffffff;
+    border-color: #4b154f;
+    transform: translateY(-1px);
+}
+
+.nav-chat-popover .notification-popover-header > a:focus-visible {
+    outline: 3px solid rgba(75, 21, 79, 0.2);
+    outline-offset: 3px;
+}
