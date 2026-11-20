@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'corsheaders',
     'rest_framework',
     *(["cloudinary_storage"] if USE_CLOUDINARY else []),
     "django.contrib.staticfiles",
@@ -70,6 +71,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -207,3 +209,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MIDTRANS_CLIENT_KEY = os.getenv("MIDTRANS_CLIENT_KEY", "")
 MIDTRANS_SERVER_KEY = os.getenv("MIDTRANS_SERVER_KEY", "")
 MIDTRANS_IS_PRODUCTION = False
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:51801",
+]
