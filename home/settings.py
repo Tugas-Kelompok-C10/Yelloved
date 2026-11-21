@@ -56,6 +56,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     *(["cloudinary_storage"] if USE_CLOUDINARY else []),
     "django.contrib.staticfiles",
+    "rest_framework",
+    "rest_framework.authtoken",
     *(["cloudinary"] if USE_CLOUDINARY else []),
     "home.apps.HomeConfig",
     "account_profile.apps.AccountProfileConfig",
