@@ -1,10 +1,11 @@
-from django.urls import path
+from django.urls import include, path
 
 from . import views
 
 app_name = 'item_matching'
 
 urlpatterns = [
+    path('api/', include('item_matching.api_urls')),
     path('', views.dashboard, name='dashboard'),
     path('preview/', views.activity_preview, name='activity_preview'),
     path('wanted/<uuid:wanted_id>/send-offer/', views.photo_offer_create, name='photo_offer_create'),
