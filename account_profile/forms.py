@@ -1,11 +1,9 @@
-from xml.dom import ValidationErr
-
 from django import forms
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
 from PIL import Image, UnidentifiedImageError
 import warnings
-
-from item_matching.tests import User
 
 from .models import Address, PaymentMethod, Profile, Review
 
@@ -65,9 +63,10 @@ class ProfileForm(forms.ModelForm):
         return photo
 
     def clean_email(self):
-        email = self.cleaned_data.get("email")
-        if User.objects.filter(email=email).exist():
-            raise ValidationErr("Email ini sudah digunakan, silahkan memakai email lain")
+        email = (self.cleaned_data.get("email") or "").strip()
+        User = get_user_model()
+        if email and User.objects.filter(email__iexact=email).exclude(pk=self.user.pk).exists():
+            raise ValidationError("Email ini sudah digunakan, silahkan memakai email lain")
         return email
 
     def save(self, commit=True):

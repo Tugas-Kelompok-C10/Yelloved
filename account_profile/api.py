@@ -266,5 +266,6 @@ def change_password_api(request):
     if not form.is_valid():
         return JsonResponse({"errors": form_errors(form)}, status=400)
     user = form.save()
-    update_session_auth_hash(request, user)
+    if getattr(request, "session", None) and request.session.get("_auth_user_id") == str(user.pk):
+        update_session_auth_hash(request, user)
     return JsonResponse({"message": "Password updated successfully."})
