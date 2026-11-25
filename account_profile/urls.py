@@ -1,10 +1,14 @@
 from django.urls import path
 
-from . import api, views
+from . import api, mobile_api, views
 
 app_name = "account_profile"
 
 urlpatterns = [
+    path("api/mobile/register/", mobile_api.MobileRegisterView.as_view(), name="mobile_register"),
+    path("api/mobile/login/", mobile_api.MobileLoginView.as_view(), name="mobile_login"),
+    path("api/mobile/logout/", mobile_api.MobileLogoutView.as_view(), name="mobile_logout"),
+    path("api/mobile/profile/", mobile_api.MobileProfileView.as_view(), name="mobile_profile"),
     path("api/profile/", api.profile_api, name="api_profile"),
     path("api/profile/photo/", api.profile_photo_api, name="api_profile_photo"),
     path("api/addresses/", api.addresses_api, name="api_addresses"),

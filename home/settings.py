@@ -58,6 +58,8 @@ INSTALLED_APPS = [
     'rest_framework',
     *(["cloudinary_storage"] if USE_CLOUDINARY else []),
     "django.contrib.staticfiles",
+    "rest_framework",
+    "rest_framework.authtoken",
     *(["cloudinary"] if USE_CLOUDINARY else []),
     "rest_framework",
     "home.apps.HomeConfig",
