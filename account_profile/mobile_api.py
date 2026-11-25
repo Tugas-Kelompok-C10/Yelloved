@@ -1,9 +1,13 @@
+import json
+
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
+from django.http import QueryDict
 from rest_framework import serializers, status
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -134,6 +138,43 @@ class MobileProfileView(APIView):
                 setattr(profile, field, data[field])
         profile.save()
         return Response(profile_payload(request, profile))
+
+
+class MobileAccountEndpoint(APIView):
+    """Expose the existing account JSON handlers to token-authenticated clients."""
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
+    endpoint = None
+
+    def _call(self, request, **kwargs):
+        # TokenAuthentication has run before the handler method is called.
+        django_request = request._request
+        django_request.user = request.user
+        if django_request.content_type == "application/json":
+            django_request._body = json.dumps(request.data).encode("utf-8")
+        else:
+            django_request._post = QueryDict("", mutable=True)
+            django_request._post.update(request.data)
+            django_request._files = request.FILES
+        return self.endpoint(django_request, **kwargs)
+
+    def get(self, request, **kwargs):
+        return self._call(request, **kwargs)
+
+    def post(self, request, **kwargs):
+        return self._call(request, **kwargs)
+
+    def patch(self, request, **kwargs):
+        return self._call(request, **kwargs)
+
+    def delete(self, request, **kwargs):
+        return self._call(request, **kwargs)
+
+
+def mobile_endpoint(endpoint):
+    return type(f"Mobile{endpoint.__name__}", (MobileAccountEndpoint,), {"endpoint": endpoint}).as_view()
 
 
 def user_payload(user):
