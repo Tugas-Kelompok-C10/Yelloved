@@ -20,6 +20,8 @@
     </div>
     {% if not sample and user == wanted_post.requester %}
         <div class="wanted-detail-actions" aria-label="Post management">
+            <!-- ilang di commit `598bb6e` (27 okt) -->
+            <a class="wanted-button wanted-action-buy" href="{% url 'item_matching:wanted_suggestions' wanted_post.pk %}">Find matching items</a>
             <button class="wanted-button wanted-action-offer" type="button" data-open-edit-wanted-modal>Edit</button>
             <button class="wanted-button wanted-action-secondary" type="button" data-open-delete-wanted-modal>Delete</button>
         </div>
