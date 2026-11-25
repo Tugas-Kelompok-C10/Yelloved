@@ -149,7 +149,7 @@
                             <!-- Footer dan aksi pesanan -->
                             <div class="order-card-footer">
                                 <span>Thank you for choosing Yelloved.</span>
-                                {% if transaction.review_submitted %}<span class="order-review-status">Review submitted</span>{% elif transaction.can_review %}<a class="order-cancel-button" href="{% url 'account_profile:reviews' %}?order={{ transaction.pk }}">Leave a review</a>{% endif %}
+                                {% if transaction.review_submitted %}<span class="order-review-status">Review submitted</span>{% elif transaction.can_review %}<a class="order-cancel-button" style="text-decoration: none;" href="{% url 'account_profile:reviews' %}?order={{ transaction.pk }}">Leave a review</a>{% endif %}
 
                                 <div class="order-card-actions">
                                     {% if transaction.accepted_offer_id %}<a class="order-continue-payment" href="{% url 'transactions:wanted_detail' transaction.order_id %}">Continue to Transaction</a>{% endif %}

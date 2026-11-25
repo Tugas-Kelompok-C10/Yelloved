@@ -18,6 +18,8 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from decimal import Decimal, InvalidOperation
 from account_profile.models import Address
+from rest_framework import generics, permissions
+from .serializers import TransactionSerializer
 
 
 def transaction_home(request):
@@ -573,6 +575,28 @@ def checkout(request):
 
 @login_required
 def checkout_success(request, order_id):
+
+    if request.method == "POST":
+        orders = Transaction.objects.filter(
+            order_id=order_id,
+            buyer=request.user,
+            payment_method="cod",
+            accepted_offer__isnull=True,
+            transaction_status="pending",
+        )
+
+        orders.update(
+            transaction_status="completed",
+            payment_status="paid",
+            updated_at= timezone.now(),    
+        )
+        
+        if orders == 0:
+            raise Http404("")
+
+        return redirect("transactions:transaction_history")
+
+
     order = get_object_or_404(
         Transaction,
         order_id=order_id,
@@ -706,7 +730,7 @@ def cancel_order(request, order_id):
         # If it has already been paid, do not mark it as cancelled.
         elif midtrans_status in {"settlement", "capture"}:
             order.payment_status = "paid"
-            order.transaction_status = "processing"
+            order.transaction_status = "completed"
             order.save(
                 update_fields=[
                     "payment_status",
@@ -714,10 +738,10 @@ def cancel_order(request, order_id):
                     "updated_at",
                 ]
             )
-            messages.error(
+            messages.info(
                 request,
                 "This transaction has already been paid. "
-                "The order was not cancelled, and its status has been updated.",
+                "The order has been marked as completed.",
             )
 
         else:
@@ -1310,9 +1334,7 @@ def apply_midtrans_status(order, data):
         or (status == "capture" and fraud_status == "accept")
     ):
         order.payment_status = "paid"
-
-        if order.transaction_status != "completed":
-            order.transaction_status = "processing"
+        order.transaction_status = "completed"
 
         update_fields.update({
             "payment_status",
@@ -1479,3 +1501,12 @@ def midtrans_notification(request):
     return JsonResponse({"status": "ok"}, status=200)
 
     return JsonResponse({"status": "ok"}, status=200)
+
+class TransactionListAPIView(generics.ListAPIView):
+    serializer_class = TransactionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Transaction.objects.filter(
+            buyer=self.request.user
+        ).order_by("-created_at")
