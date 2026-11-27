@@ -119,6 +119,26 @@ python manage.py runserver
 
 Buka `http://127.0.0.1:8000/`.
 
+## Yelloved Mobile Account API
+
+Semua endpoint mobile memakai DRF Token Authentication. Kirim header `Authorization: Token <token>` pada setiap request setelah login. Base path lokal adalah `/account/api/mobile/`.
+
+| Method | Path | Fungsi |
+|---|---|---|
+| POST | `register/` | Buat akun; body: `first_name`, `email`, `password` |
+| POST | `login/` | Login; body: `email`, `password`; response berisi `token` dan `user` |
+| POST | `logout/` | Hapus token aktif |
+| GET, PATCH | `profile/` | Baca atau ubah `first_name`, `email`, `date_of_birth`, `gender`, `phone_number` |
+| POST | `profile/photo/` | Upload foto sebagai multipart field `photo` |
+| GET, POST | `addresses/` | Daftar atau tambah alamat |
+| GET, PATCH, DELETE | `addresses/<id>/` | Baca, ubah, atau hapus alamat milik pengguna |
+| POST | `addresses/<id>/default/` | Jadikan alamat utama |
+| GET, POST | `payment-methods/` | Daftar atau tambah metode pembayaran |
+| GET, PATCH, DELETE | `payment-methods/<id>/` | Baca, ubah, atau hapus metode milik pengguna |
+| POST | `change-password/` | Ubah password; body mengikuti field `old_password`, `new_password1`, `new_password2` |
+
+Contoh: `POST /account/api/mobile/login/` dengan JSON `{"email":"user@example.com","password":"..."}`. Gunakan token dari response untuk request berikutnya. Untuk upload foto gunakan `multipart/form-data`; untuk operasi lain kirim `application/json`. Tanggal lahir memakai format `YYYY-MM-DD`. Endpoint alamat dan metode pembayaran membungkus validasi dan aturan data yang sama dengan Account API web.
+
 ## Sumber Dataset / Public API
 
 - https://dummyjson.com/docs/auth

@@ -1,4 +1,6 @@
 from django import forms
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
 from PIL import Image, UnidentifiedImageError
 import warnings
@@ -59,6 +61,13 @@ class ProfileForm(forms.ModelForm):
         finally:
             photo.seek(0)
         return photo
+
+    def clean_email(self):
+        email = (self.cleaned_data.get("email") or "").strip()
+        User = get_user_model()
+        if email and User.objects.filter(email__iexact=email).exclude(pk=self.user.pk).exists():
+            raise ValidationError("Email ini sudah digunakan, silahkan memakai email lain")
+        return email
 
     def save(self, commit=True):
         old_photo_name = self.original_photo_name

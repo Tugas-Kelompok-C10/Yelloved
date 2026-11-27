@@ -2,11 +2,13 @@ from django.urls import path
 from django.views.generic import RedirectView
 from . import views, api
 from .wanted import wanted_detail
+from .mobile_api import MobileTransactionsView
 
 
 app_name = "transactions"
 
 urlpatterns = [
+    path("api/", MobileTransactionsView.as_view(), name="mobile_api"),
     path("wanted/<str:order_id>/", wanted_detail, name="wanted_detail"),
     path(
         "",
