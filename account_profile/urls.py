@@ -5,6 +5,7 @@ from . import api, views
 app_name = "account_profile"
 
 urlpatterns = [
+    path("api/login/", api.login_api, name="api_login"),
     path("api/profile/", api.profile_api, name="api_profile"),
     path("api/profile/photo/", api.profile_photo_api, name="api_profile_photo"),
     path("api/addresses/", api.addresses_api, name="api_addresses"),

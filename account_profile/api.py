@@ -2,6 +2,9 @@
 
 import json
 from functools import wraps
+from django.contrib.auth import authenticate
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.authtoken.models import Token
 
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
@@ -268,3 +271,48 @@ def change_password_api(request):
     user = form.save()
     update_session_auth_hash(request, user)
     return JsonResponse({"message": "Password updated successfully."})
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def login_api(request):
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({
+            "success": False,
+            "message": "Format JSON tidak valid."
+        }, status=400)
+
+    username = data.get("username")
+    password = data.get("password")
+
+    if not username or not password:
+        return JsonResponse({
+            "success": False,
+            "message": "Username dan password wajib diisi."
+        }, status=400)
+
+    user = authenticate(
+        request,
+        username=username,
+        password=password
+    )
+
+    if user is None:
+        return JsonResponse({
+            "success": False,
+            "message": "Username atau password salah."
+        }, status=401)
+
+    token, created = Token.objects.get_or_create(user=user)
+
+    return JsonResponse({
+        "success": True,
+        "message": "Login berhasil.",
+        "token": token.key,
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email
+        }
+    })

@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'corsheaders',
     'rest_framework',
+    'rest_framework.authtoken',
     *(["cloudinary_storage"] if USE_CLOUDINARY else []),
     "django.contrib.staticfiles",
     *(["cloudinary"] if USE_CLOUDINARY else []),
@@ -213,3 +214,10 @@ MIDTRANS_IS_PRODUCTION = False
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:51801",
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+}
