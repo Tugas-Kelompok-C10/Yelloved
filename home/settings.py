@@ -39,11 +39,10 @@ USE_CLOUDINARY = all(os.getenv(name, '').strip() for name in (
     'CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET',
 ))
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "muhammad-adib51-yelloved.pws.cs.ui.ac.id", "cindy-olivia-yelloved.pws.cs.ui.ac.id","yelloved.vercel.app"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "muhammad-adib51-yelloved.pws.cs.ui.ac.id", "cindy-olivia-yelloved.pws.cs.ui.ac.id",]
 CSRF_TRUSTED_ORIGINS = [
     "https://muhammad-adib51-yelloved.pws.cs.ui.ac.id",
     "https://cindy-olivia-yelloved.pws.cs.ui.ac.id",
-    "https://yelloved.vercel.app",
 ]
 
 # Application definition
@@ -55,10 +54,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'corsheaders',
+    'rest_framework',
+    'rest_framework.authtoken',
     *(["cloudinary_storage"] if USE_CLOUDINARY else []),
     "django.contrib.staticfiles",
-    "rest_framework",
-    "rest_framework.authtoken",
     *(["cloudinary"] if USE_CLOUDINARY else []),
     "home.apps.HomeConfig",
     "account_profile.apps.AccountProfileConfig",
@@ -215,3 +214,10 @@ MIDTRANS_IS_PRODUCTION = False
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:51801",
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+}

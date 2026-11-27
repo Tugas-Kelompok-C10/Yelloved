@@ -1,21 +1,11 @@
 from django.urls import path
 
-from . import api, mobile_api, views
+from . import api, views
 
 app_name = "account_profile"
 
 urlpatterns = [
-    path("api/mobile/register/", mobile_api.MobileRegisterView.as_view(), name="mobile_register"),
-    path("api/mobile/login/", mobile_api.MobileLoginView.as_view(), name="mobile_login"),
-    path("api/mobile/logout/", mobile_api.MobileLogoutView.as_view(), name="mobile_logout"),
-    path("api/mobile/profile/", mobile_api.MobileProfileView.as_view(), name="mobile_profile"),
-    path("api/mobile/profile/photo/", mobile_api.mobile_endpoint(api.profile_photo_api), name="mobile_profile_photo"),
-    path("api/mobile/addresses/", mobile_api.mobile_endpoint(api.addresses_api), name="mobile_addresses"),
-    path("api/mobile/addresses/<int:address_id>/", mobile_api.mobile_endpoint(api.address_detail_api), name="mobile_address_detail"),
-    path("api/mobile/addresses/<int:address_id>/default/", mobile_api.mobile_endpoint(api.address_default_api), name="mobile_address_default"),
-    path("api/mobile/payment-methods/", mobile_api.mobile_endpoint(api.payment_methods_api), name="mobile_payment_methods"),
-    path("api/mobile/payment-methods/<int:method_id>/", mobile_api.mobile_endpoint(api.payment_method_detail_api), name="mobile_payment_method_detail"),
-    path("api/mobile/change-password/", mobile_api.mobile_endpoint(api.change_password_api), name="mobile_change_password"),
+    path("api/login/", api.login_api, name="api_login"),
     path("api/profile/", api.profile_api, name="api_profile"),
     path("api/profile/photo/", api.profile_photo_api, name="api_profile_photo"),
     path("api/addresses/", api.addresses_api, name="api_addresses"),

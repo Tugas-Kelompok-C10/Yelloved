@@ -1,8 +1,9 @@
 from django.urls import path
 from django.views.generic import RedirectView
-from . import views
+from . import views, api
 from .wanted import wanted_detail
 from .mobile_api import MobileTransactionsView
+
 
 app_name = "transactions"
 
@@ -85,6 +86,74 @@ urlpatterns = [
         "midtrans/notification/",
         views.midtrans_notification,
         name="midtrans_notification",
+    ),
+
+    path(
+        "api/cart/",
+        api.cart_api,
+        name="cart_api",
+    ),
+
+    path(
+        "api/addresses/",
+        api.address_list_api,
+        name="address_list_api",
+    ),
+
+    path(
+        "api/checkout/cod/",
+        api.checkout_cod_api,
+        name="checkout_cod_api",
+    ),
+
+    path(
+        "api/checkout/qris/",
+        api.checkout_qris_api,
+        name="checkout_qris_api",
+    ),
+
+    path(
+        "api/history/",
+        api.transaction_history_api,
+        name="transaction_history_api",
+    ),
+
+    path(
+        "api/checkout/va/",
+        api.checkout_va_api,
+        name="checkout_va_api",
+    ),
+
+    path(
+        "api/<str:order_id>/qris-image/",
+        api.transaction_qris_image_api,
+        name="transaction_qris_image_api",
+    ),
+
+
+
+    path(
+        "api/<str:order_id>/",
+        api.transaction_detail_api,
+        name="transaction_detail_api",
+    ),
+
+    path(
+        "api/cart/add/<int:item_id>/",
+        api.add_cart_api,
+        name="add_cart_api",
+    ),
+
+    path(
+        "api/cart/update/<int:cart_item_id>/",
+        api.update_cart_api,
+        name="update_cart_api",
+    ),
+
+    path(
+        "api/cart/<int:cart_item_id>/",
+        api.remove_cart_api,
+        name="remove_cart_api",
     ),
 
     path(
